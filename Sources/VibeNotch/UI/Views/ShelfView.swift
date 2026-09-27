@@ -3,6 +3,7 @@ import AppKit
 
 struct ShelfView: View {
     @ObservedObject var manager = ShelfManager.shared
+    @ObservedObject var localization = LocalizationManager.shared
     
     var body: some View {
         VStack(spacing: 8) {
@@ -14,7 +15,7 @@ struct ShelfView: View {
                         .foregroundStyle(.white)
                         .shadow(color: .white.opacity(0.4), radius: 3)
                     
-                    Text("FILE SHELF & DROP ZONE")
+                    Text(loc("FILE SHELF & DROP ZONE", "ПОЛКА ФАЙЛОВ & ДРОП-ЗОНА"))
                         .font(.system(size: 10, weight: .bold, design: .monospaced))
                         .foregroundStyle(.white)
                 }
@@ -34,7 +35,7 @@ struct ShelfView: View {
                 Spacer()
                 
                 if !manager.items.isEmpty {
-                    Text("\(manager.items.count) FILES")
+                    Text(loc("\(manager.items.count) FILES", "\(manager.items.count) ФАЙЛОВ"))
                         .font(.system(size: 9, weight: .bold, design: .monospaced))
                         .foregroundStyle(.white.opacity(0.7))
                         .padding(.horizontal, 7)
@@ -42,7 +43,7 @@ struct ShelfView: View {
                         .background(Color.white.opacity(0.08))
                         .clipShape(Capsule())
                     
-                    Button("Очистить") {
+                    Button(loc("Clear", "Очистить")) {
                         withAnimation(.spring) {
                             manager.clearAll()
                         }
@@ -66,11 +67,11 @@ struct ShelfView: View {
                         .foregroundStyle(.white)
                         .shadow(color: .white.opacity(manager.isTargeted ? 0.7 : 0.3), radius: 6)
                     
-                    Text("Перетащите файлы сюда для быстрого стэша")
+                    Text(loc("Drag and drop files here for quick stash", "Перетащите файлы сюда для быстрого стэша"))
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.white)
                     
-                    Text("Конвертация в WebP/PNG • Копирование Base64 URI • AirDrop • Подсчет токенов")
+                    Text(loc("WebP/PNG conversion • Copy Base64 URI • AirDrop • Token estimation", "Конвертация в WebP/PNG • Копирование Base64 URI • AirDrop • Подсчет токенов"))
                         .font(.system(size: 9, design: .monospaced))
                         .foregroundStyle(.secondary)
                 }
@@ -106,6 +107,7 @@ struct ShelfView: View {
 struct ShelfCardView: View {
     let item: ShelfItem
     @ObservedObject var manager = ShelfManager.shared
+    @ObservedObject var localization = LocalizationManager.shared
     @State private var isHovering = false
     @State private var copiedPath = false
     @State private var copiedBase64 = false
@@ -218,7 +220,7 @@ struct ShelfCardView: View {
                         HStack(spacing: 3) {
                             Image(systemName: copiedPath ? "checkmark" : "doc.on.doc")
                                 .font(.system(size: 8))
-                            Text(copiedPath ? "✓" : "Путь")
+                            Text(copiedPath ? "✓" : loc("Path", "Путь"))
                                 .font(.system(size: 8.5, weight: .medium, design: .monospaced))
                         }
                         .padding(.vertical, 3)
@@ -236,7 +238,7 @@ struct ShelfCardView: View {
                         HStack(spacing: 3) {
                             Image(systemName: "curlybraces")
                                 .font(.system(size: 8))
-                            Text("Код")
+                            Text(loc("Code", "Код"))
                                 .font(.system(size: 8.5, weight: .medium, design: .monospaced))
                         }
                         .padding(.vertical, 3)
@@ -263,7 +265,7 @@ struct ShelfCardView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 5))
                 }
                 .buttonStyle(.plain)
-                .help("AirDrop")
+                .help(loc("AirDrop", "AirDrop"))
                 
                 // Finder Reveal
                 Button(action: {
@@ -278,7 +280,7 @@ struct ShelfCardView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 5))
                 }
                 .buttonStyle(.plain)
-                .help("Показать в Finder")
+                .help(loc("Reveal in Finder", "Показать в Finder"))
             }
         }
         .padding(10)

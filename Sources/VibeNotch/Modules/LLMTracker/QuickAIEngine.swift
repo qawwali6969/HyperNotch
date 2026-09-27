@@ -11,6 +11,17 @@ enum AIActionType: String, Identifiable {
     
     var id: String { rawValue }
     
+    @MainActor
+    var localizedTitle: String {
+        switch self {
+        case .explain: return loc("Explain", "Объяснить")
+        case .summarize: return loc("Summarize", "Саммари")
+        case .translate: return loc("Translate", "Перевести")
+        case .fix: return loc("Fix", "Исправить")
+        case .custom: return loc("Prompt", "Запрос")
+        }
+    }
+    
     var icon: String {
         switch self {
         case .explain: return "questionmark.circle"
@@ -29,12 +40,27 @@ enum QuickAIProvider: String, CaseIterable, Identifiable {
     
     var id: String { rawValue }
     
-    var subtitle: String {
+    @MainActor
+    var localizedName: String {
         switch self {
-        case .auto: return "Сначала Gemini 2.0 Flash, при ошибке Z.ai"
-        case .gemini: return "Gemini 2.0 Flash (быстрый, бесплатный)"
+        case .auto: return loc("Auto-Select", "Автовыбор")
+        case .gemini: return "Google Gemini"
+        case .zai: return "Z.ai (GLM)"
+        }
+    }
+    
+    @MainActor
+    var localizedSubtitle: String {
+        switch self {
+        case .auto: return loc("Gemini 2.0 Flash first, fallback to Z.ai", "Сначала Gemini 2.0 Flash, при ошибке Z.ai")
+        case .gemini: return loc("Gemini 2.0 Flash (fast, free tier)", "Gemini 2.0 Flash (быстрый, бесплатный)")
         case .zai: return "GLM-4-Flash (Z.ai / BigModel)"
         }
+    }
+    
+    @MainActor
+    var subtitle: String {
+        localizedSubtitle
     }
 }
 

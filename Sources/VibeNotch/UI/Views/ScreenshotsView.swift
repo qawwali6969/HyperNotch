@@ -3,12 +3,13 @@ import AppKit
 
 struct ScreenshotsView: View {
     @ObservedObject var manager = ScreenshotManager.shared
+    @ObservedObject var localization = LocalizationManager.shared
     
     var body: some View {
-        VibeTabContainer(title: "SCREENSHOTS & CAPTURE", icon: "camera.viewfinder") {
+        VibeTabContainer(title: loc("SCREENSHOTS & CAPTURE", "СНИМКИ ЭКРАНА & ЗАХВАТ"), icon: "camera.viewfinder") {
             HStack(spacing: 8) {
                 if !manager.items.isEmpty {
-                    Text("\(manager.items.count) SHOTS")
+                    Text(loc("\(manager.items.count) SHOTS", "\(manager.items.count) СНИМКОВ"))
                         .font(.system(size: 9, weight: .bold, design: .monospaced))
                         .foregroundStyle(.white.opacity(0.7))
                         .padding(.horizontal, 7)
@@ -41,7 +42,7 @@ struct ScreenshotsView: View {
                 }
                 
                 VibeInteractiveHoverButton(
-                    text: "Текст (OCR)",
+                    text: loc("Text (OCR)", "Текст (OCR)"),
                     leadingIcon: "text.viewfinder",
                     icon: "arrow.right",
                     fontSize: 9.5,
@@ -53,7 +54,7 @@ struct ScreenshotsView: View {
                 }
                 
                 VibeInteractiveHoverButton(
-                    text: "Снимок",
+                    text: loc("Capture", "Снимок"),
                     leadingIcon: "camera.viewfinder",
                     icon: "plus",
                     fontSize: 9.5,
@@ -88,16 +89,16 @@ struct ScreenshotsView: View {
                 .foregroundStyle(.white.opacity(0.6))
                 .shadow(color: .white.opacity(0.3), radius: 6)
             
-            Text("Снимки экрана появятся здесь автоматически")
+            Text(loc("Screenshots will appear here automatically", "Снимки экрана появятся здесь автоматически"))
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.white)
             
-            Text("Делайте скриншоты через ⌘⇧4 или кнопку выше • Перетаскивайте прямо в чаты")
+            Text(loc("Take screenshots via ⌘⇧4 or the button above • Drag directly into chats", "Делайте скриншоты через ⌘⇧4 или кнопку выше • Перетаскивайте прямо в чаты"))
                 .font(.system(size: 9, design: .monospaced))
                 .foregroundStyle(.secondary)
             
             VibeInteractiveHoverButton(
-                text: "Сделать снимок области",
+                text: loc("Capture screen area", "Сделать снимок области"),
                 leadingIcon: "crop",
                 icon: "arrow.right",
                 fontSize: 10,
@@ -135,7 +136,7 @@ struct ScreenshotCardView: View {
     private var formattedDate: String {
         let formatter = DateFormatter()
         if Calendar.current.isDateInToday(item.creationDate) {
-            formatter.dateFormat = "Сегодня, HH:mm"
+            formatter.dateFormat = loc("'Today', HH:mm", "'Сегодня', HH:mm")
         } else {
             formatter.dateFormat = "d MMM, HH:mm"
         }
@@ -212,7 +213,7 @@ struct ScreenshotCardView: View {
                     HStack(spacing: 3) {
                         Image(systemName: "eye.fill")
                             .font(.system(size: 8.5))
-                        Text("Открыть")
+                        Text(loc("Open", "Открыть"))
                             .font(.system(size: 9, weight: .medium, design: .monospaced))
                     }
                     .padding(.vertical, 3)
@@ -229,7 +230,7 @@ struct ScreenshotCardView: View {
                     HStack(spacing: 3) {
                         Image(systemName: "pencil.tip.crop.circle")
                             .font(.system(size: 8.5))
-                        Text("Править")
+                        Text(loc("Edit", "Править"))
                             .font(.system(size: 9, weight: .medium, design: .monospaced))
                     }
                     .padding(.vertical, 3)
@@ -246,7 +247,7 @@ struct ScreenshotCardView: View {
                     HStack(spacing: 3) {
                         Image(systemName: isCopied ? "checkmark" : "doc.on.clipboard")
                             .font(.system(size: 8.5))
-                        Text(isCopied ? "Скопировано" : "Копия")
+                        Text(isCopied ? loc("Copied", "Скопировано") : loc("Copy", "Копия"))
                             .font(.system(size: 9, weight: .medium, design: .monospaced))
                     }
                     .padding(.vertical, 3)
@@ -273,7 +274,7 @@ struct ScreenshotCardView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 5))
                 }
                 .buttonStyle(.plain)
-                .help("Распознать текст в буфер обмена")
+                .help(loc("Recognize text to clipboard", "Распознать текст в буфер обмена"))
                 
                 Spacer(minLength: 0)
                 

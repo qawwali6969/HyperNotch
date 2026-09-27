@@ -13,6 +13,14 @@ enum AIPresetType: String, CaseIterable, Identifiable {
     
     var id: String { rawValue }
     
+    @MainActor
+    var localizedTitle: String {
+        switch self {
+        case .custom: return loc("+ Custom / Jev", "+ Кастомный / Jev")
+        default: return rawValue
+        }
+    }
+    
     var icon: String {
         switch self {
         case .gemini: return "sparkles"
@@ -31,6 +39,7 @@ enum AIPresetType: String, CaseIterable, Identifiable {
 struct AIQuotaView: View {
     @ObservedObject var tracker = LLMTrackerManager.shared
     @ObservedObject var coordinator = NotchStateCoordinator.shared
+    @ObservedObject var localization = LocalizationManager.shared
     @State private var isManaging = false
     
     var body: some View {
@@ -43,7 +52,7 @@ struct AIQuotaView: View {
                         .foregroundStyle(.white)
                         .shadow(color: .white.opacity(0.4), radius: 3)
                     
-                    Text(isManaging ? "ПОДКЛЮЧЕНИЕ НЕЙРОСЕТЕЙ & ПРОКСИ" : "AI USAGE & RATE LIMITS")
+                    Text(isManaging ? loc("CONNECT AI & PROXIES", "ПОДКЛЮЧЕНИЕ НЕЙРОСЕТЕЙ & ПРОКСИ") : loc("AI USAGE & RATE LIMITS", "РАСХОД AI & ЛИМИТЫ"))
                         .font(.system(size: 10, weight: .bold, design: .monospaced))
                         .foregroundStyle(.white)
                 }
@@ -52,7 +61,7 @@ struct AIQuotaView: View {
                 
                 if isManaging {
                     VibeInteractiveHoverButton(
-                        text: "Готово",
+                        text: loc("Done", "Готово"),
                         leadingIcon: "checkmark",
                         icon: "arrow.right",
                         fontSize: 9,
@@ -69,7 +78,7 @@ struct AIQuotaView: View {
                     }
                 } else {
                     VibeInteractiveHoverButton(
-                        text: "Добавить",
+                        text: loc("Add", "Добавить"),
                         leadingIcon: "plus",
                         icon: "arrow.right",
                         fontSize: 9,
@@ -126,18 +135,18 @@ struct AIQuotaView: View {
                 .foregroundStyle(.white)
                 .shadow(color: .white.opacity(0.3), radius: 6)
             
-            Text("Нет подключенных нейросетей")
+            Text(loc("No AI providers connected", "Нет подключенных нейросетей"))
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.white)
             
-            Text("Подключите Gemini, Claude, Codex, Grok, Z.ai или кастомный провайдер (Jev, прокси)")
+            Text(loc("Connect Gemini, Claude, Codex, Grok, Z.ai or custom proxy endpoints", "Подключите Gemini, Claude, Codex, Grok, Z.ai или кастомный провайдер (Jev, прокси)"))
                 .font(.system(size: 9, design: .monospaced))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
             
             VibeInteractiveHoverButton(
-                text: "Добавить нейросеть",
+                text: loc("Add AI Provider", "Добавить нейросеть"),
                 leadingIcon: "plus",
                 icon: "arrow.right",
                 fontSize: 10,
@@ -172,7 +181,7 @@ struct AIQuotaView: View {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 18))
                             .foregroundStyle(.white.opacity(0.7))
-                        Text("Добавить")
+                        Text(loc("Add", "Добавить"))
                             .font(.system(size: 9, weight: .bold, design: .monospaced))
                             .foregroundStyle(.white.opacity(0.8))
                     }
@@ -190,6 +199,7 @@ struct AIQuotaView: View {
 // MARK: - In-Tab AI Provider Manager (Add / Configure Models directly here)
 struct AIProviderManagerView: View {
     @ObservedObject var tracker = LLMTrackerManager.shared
+    @ObservedObject var localization = LocalizationManager.shared
     var onDone: () -> Void
     
     @State private var selectedTab: AIPresetType = .gemini
@@ -210,7 +220,7 @@ struct AIProviderManagerView: View {
                             HStack(spacing: 4) {
                                 Image(systemName: preset.icon)
                                     .font(.system(size: 8.5))
-                                Text(preset.rawValue)
+                                Text(preset.localizedTitle)
                                     .font(.system(size: 9, weight: isSelected ? .bold : .medium, design: .monospaced))
                             }
                             .padding(.horizontal, 8)

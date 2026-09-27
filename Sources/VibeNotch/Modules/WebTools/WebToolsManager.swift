@@ -39,6 +39,14 @@ enum OpenTargetMode: String, CaseIterable, Identifiable {
     case newWindow = "New Window"
     
     var id: String { rawValue }
+    
+    @MainActor
+    var localizedTitle: String {
+        switch self {
+        case .newTab: return loc("New Tab", "Вкладка")
+        case .newWindow: return loc("New Window", "Окно")
+        }
+    }
 }
 
 struct WebToolItem: Identifiable, Codable, Equatable {

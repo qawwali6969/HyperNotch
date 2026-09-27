@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AIResultModalView: View {
     @ObservedObject var ai = QuickAIEngine.shared
+    @ObservedObject var localization = LocalizationManager.shared
     @State private var isCopied = false
     @State private var isSavedToNotes = false
     
@@ -13,7 +14,7 @@ struct AIResultModalView: View {
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(Color.cyan)
                 
-                Text(ai.activeAction?.rawValue ?? "AI Ответ")
+                Text(ai.activeAction?.localizedTitle ?? loc("AI Response", "AI Ответ"))
                     .font(.system(size: 10, weight: .bold, design: .monospaced))
                     .foregroundStyle(.white)
                 
@@ -31,7 +32,7 @@ struct AIResultModalView: View {
                         HStack(spacing: 3) {
                             Image(systemName: isCopied ? "checkmark" : "doc.on.clipboard")
                                 .font(.system(size: 8.5))
-                            Text(isCopied ? "Скопировано!" : "Копировать")
+                            Text(isCopied ? loc("Copied!", "Скопировано!") : loc("Copy", "Копировать"))
                                 .font(.system(size: 9, weight: .bold, design: .monospaced))
                         }
                         .padding(.horizontal, 7)
@@ -44,7 +45,7 @@ struct AIResultModalView: View {
                     
                     // Save to Apple Notes Button
                     Button(action: {
-                        let actionName = ai.activeAction?.rawValue ?? "Запрос к AI"
+                        let actionName = ai.activeAction?.localizedTitle ?? loc("AI Request", "Запрос к AI")
                         let title = "VibeNotch: \(actionName)"
                         let ok = AppleNotesManager.shared.createNote(title: title, content: ai.resultText)
                         if ok {
@@ -57,7 +58,7 @@ struct AIResultModalView: View {
                         HStack(spacing: 3) {
                             Image(systemName: isSavedToNotes ? "checkmark" : "note.text.badge.plus")
                                 .font(.system(size: 8.5))
-                            Text(isSavedToNotes ? "В Заметках!" : "В Заметки")
+                            Text(isSavedToNotes ? loc("Saved!", "В Заметках!") : loc("To Notes", "В Заметки"))
                                 .font(.system(size: 9, weight: .bold, design: .monospaced))
                         }
                         .padding(.horizontal, 7)
@@ -67,7 +68,7 @@ struct AIResultModalView: View {
                         .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
-                    .help("Сохранить этот ответ в системные Заметки macOS")
+                    .help(loc("Save response to macOS Notes", "Сохранить этот ответ в системные Заметки macOS"))
                 }
                 
                 Button(action: {
@@ -96,7 +97,7 @@ struct AIResultModalView: View {
                         HStack(spacing: 6) {
                             ProgressView()
                                 .controlSize(.small)
-                            Text("Нейросеть генерирует ответ...")
+                            Text(loc("AI is generating response...", "Нейросеть генерирует ответ..."))
                                 .font(.system(size: 9.5, design: .monospaced))
                                 .foregroundStyle(Color.cyan)
                         }

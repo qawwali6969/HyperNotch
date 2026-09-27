@@ -3,14 +3,21 @@ import AppKit
 
 // MARK: - Curated Vibe-Coder & AI Creator Icon Categories
 struct VibeIconCategory: Identifiable {
-    var id: String { name }
-    let name: String
+    var id: String { nameEn }
+    let nameEn: String
+    let nameRu: String
     let icon: String
     let icons: [String]
+    
+    @MainActor
+    var name: String {
+        loc(nameEn, nameRu)
+    }
 }
 
 struct WebToolsView: View {
     @ObservedObject var manager = WebToolsManager.shared
+    @ObservedObject var localization = LocalizationManager.shared
     @State private var showingAddSheet = false
     @State private var hoveredItemId: UUID? = nil
     @State private var isAddHovered = false
@@ -28,7 +35,8 @@ struct WebToolsView: View {
     // Curated Golden Icon Set for Vibe-Coders & AI Creators
     let categories: [VibeIconCategory] = [
         VibeIconCategory(
-            name: "AI & Нейросети",
+            nameEn: "AI & Models",
+            nameRu: "AI & Нейросети",
             icon: "sparkles",
             icons: [
                 "sparkles",                     // Magic / Prompts
@@ -42,7 +50,8 @@ struct WebToolsView: View {
             ]
         ),
         VibeIconCategory(
-            name: "Вайб-кодинг & Dev",
+            nameEn: "Vibe-Coding & Dev",
+            nameRu: "Вайб-кодинг & Dev",
             icon: "terminal.fill",
             icons: [
                 "terminal.fill",                // CLI / agy / Terminal
@@ -56,7 +65,8 @@ struct WebToolsView: View {
             ]
         ),
         VibeIconCategory(
-            name: "Креатив & Медиа",
+            nameEn: "Creative & Media",
+            nameRu: "Креатив & Медиа",
             icon: "film.fill",
             icons: [
                 "film.fill",                    // Video / Seedance / Runway
@@ -70,7 +80,8 @@ struct WebToolsView: View {
             ]
         ),
         VibeIconCategory(
-            name: "Рост & Метрики",
+            nameEn: "Growth & Metrics",
+            nameRu: "Рост & Метрики",
             icon: "flame.fill",
             icons: [
                 "flame.fill",                   // Hype / Trends / Viral
@@ -120,7 +131,7 @@ struct WebToolsView: View {
                     .foregroundStyle(.white)
                     .shadow(color: .white.opacity(0.4), radius: 3)
                 
-                Text("WEB APPS & DEVELOPER CONSOLE")
+                Text(loc("WEB APPS & DEVELOPER CONSOLE", "ВЕБ-ПРИЛОЖЕНИЯ & КОНСОЛЬ"))
                     .font(.system(size: 10, weight: .bold, design: .monospaced))
                     .foregroundStyle(.white)
             }
@@ -161,7 +172,7 @@ struct WebToolsView: View {
             // Open Mode (Tab vs Window)
             Picker("", selection: $manager.openMode) {
                 ForEach(OpenTargetMode.allCases) { mode in
-                    Text(mode.rawValue).tag(mode)
+                    Text(mode.localizedTitle).tag(mode)
                 }
             }
             .labelsHidden()
@@ -220,7 +231,7 @@ struct WebToolsView: View {
                 // 2. Input Fields
                 VStack(spacing: 5) {
                     HStack(spacing: 6) {
-                        TextField("Название (Claude / Midjourney)", text: $newTitle)
+                        TextField(loc("Title (Claude / Midjourney)", "Название (Claude / Midjourney)"), text: $newTitle)
                             .textFieldStyle(.plain)
                             .font(.system(size: 10, weight: .medium))
                             .padding(.horizontal, 7)
@@ -228,7 +239,7 @@ struct WebToolsView: View {
                             .background(Color.white.opacity(0.08))
                             .clipShape(RoundedRectangle(cornerRadius: 6))
                         
-                        TextField("URL (https://...)", text: $newUrl)
+                        TextField(loc("URL (https://...)", "URL (https://...)"), text: $newUrl)
                             .textFieldStyle(.plain)
                             .font(.system(size: 10, design: .monospaced))
                             .padding(.horizontal, 7)
@@ -269,12 +280,12 @@ struct WebToolsView: View {
                         
                         Spacer()
                         
-                        // "Использовать favicon" Checkbox
+                        // "Use favicon" Checkbox
                         Toggle(isOn: $useFavicon) {
                             HStack(spacing: 3) {
                                 Image(systemName: "globe")
                                     .font(.system(size: 9))
-                                Text("Использовать favicon")
+                                Text(loc("Use favicon", "Использовать favicon"))
                                     .font(.system(size: 9, weight: .medium))
                             }
                             .foregroundStyle(useFavicon ? .white : .secondary)
@@ -339,7 +350,7 @@ struct WebToolsView: View {
                 
                 // Cancel & Save Buttons
                 HStack(spacing: 5) {
-                    Button("Отмена") {
+                    Button(loc("Cancel", "Отмена")) {
                         withAnimation(.spring) {
                             showingAddSheet = false
                             useFavicon = false
@@ -351,7 +362,7 @@ struct WebToolsView: View {
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 6)
                     
-                    VibeInteractiveHoverButton(text: "Добавить", icon: "plus", fontSize: 9, horizontalPadding: 9, verticalPadding: 4, minHeight: 24) {
+                    VibeInteractiveHoverButton(text: loc("Add", "Добавить"), icon: "plus", fontSize: 9, horizontalPadding: 9, verticalPadding: 4, minHeight: 24) {
                         let titleToSave = newTitle.isEmpty ? cleanHost(newUrl) : newTitle
                         manager.addItem(
                             title: titleToSave,
@@ -521,7 +532,7 @@ struct WebToolsView: View {
         }
         .buttonStyle(.plain)
         .onHover { isAddHovered = $0 }
-        .help("Добавить веб-сервис в док")
+        .help(loc("Add web app to dock", "Добавить веб-сервис в док"))
     }
     
     private var tooltipBar: some View {
@@ -545,7 +556,7 @@ struct WebToolsView: View {
                 .background(Capsule().fill(Color.white.opacity(0.08)))
                 .transition(.opacity.combined(with: .scale(scale: 0.95)))
             } else {
-                Text("Кликните на иконку, чтобы открыть в \(manager.selectedBrowser.rawValue)")
+                Text(loc("Click icon to open in \(manager.selectedBrowser.rawValue)", "Кликните на иконку, чтобы открыть в \(manager.selectedBrowser.rawValue)"))
                     .font(.system(size: 9))
                     .foregroundStyle(.tertiary)
             }

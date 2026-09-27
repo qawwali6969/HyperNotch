@@ -52,6 +52,7 @@ struct MainNotchView: View {
     @ObservedObject var shelfManager = ShelfManager.shared
     @ObservedObject var llmTracker = LLMTrackerManager.shared
     @ObservedObject var mediaManager = MediaManager.shared
+    @ObservedObject var localization = LocalizationManager.shared
     @Namespace private var tabAnimation
     @State private var isHovering = false
     
@@ -161,7 +162,7 @@ struct MainNotchView: View {
                         HStack(spacing: 4) {
                             Image(systemName: tab.icon)
                                 .font(.system(size: 10, weight: isSelected ? .bold : .medium))
-                            Text(tab.rawValue)
+                            Text(tab.localizedTitle)
                                 .font(.system(size: 10, weight: isSelected ? .bold : .medium, design: .monospaced))
                                 .lineLimit(1)
                                 .fixedSize(horizontal: true, vertical: false)

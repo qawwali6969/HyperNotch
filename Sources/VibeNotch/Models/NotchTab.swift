@@ -12,6 +12,19 @@ enum NotchTab: String, CaseIterable, Identifiable {
     
     var id: String { rawValue }
     
+    @MainActor
+    var localizedTitle: String {
+        switch self {
+        case .shelf: return loc("Shelf", "Полка")
+        case .clipboard: return loc("Buffer", "Буфер")
+        case .webTools: return loc("Web Apps", "Веб")
+        case .myDashboard: return loc("Dashboard", "Дашборд")
+        case .aiQuota: return loc("AI Quota", "Квоты AI")
+        case .screenshots: return loc("Shots", "Снимки")
+        case .settings: return loc("Settings", "Настройки")
+        }
+    }
+    
     var icon: String {
         switch self {
         case .shelf: return "tray.and.arrow.down.fill"

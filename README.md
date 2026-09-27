@@ -77,6 +77,10 @@
 * Быстрый доступ к локальным веб-серверам (`localhost:3000`), репозиториям и дашбордам.
 * Поддержка пользовательских виджетов и веб-статусов.
 
+#### 8. 🌐 Двуязычный интерфейс (English & Русский)
+* По умолчанию приложение открывается на **английском языке**.
+* В разделе **Настройки (Settings)** можно в 1 клик переключиться на **русский язык** — все вкладки, кнопки, формы и подсказки обновляются мгновенно и реактивно без перезапуска.
+
 ---
 
 ### 🛠 Сборка и запуск
@@ -169,6 +173,10 @@ VibeNotch спроектирован с философией **Zero-Trust** и �
 
 #### 7. 🌐 Developer Web Tools
 * Quick-launch pinned links to localhost dev servers, GitHub, cloud consoles, and custom web dashboards.
+
+#### 8. 🌐 Dual-Language UI (English & Russian)
+* Defaults to **English** out of the box.
+* Switchable to **Russian** anytime with 1 click in **Settings** — all tabs, widgets, buttons, forms, and tooltips update instantly in real time without restarting.
 
 ---
 

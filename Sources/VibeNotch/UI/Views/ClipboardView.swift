@@ -4,6 +4,7 @@ import AppKit
 struct ClipboardView: View {
     @ObservedObject var manager = ClipboardManager.shared
     @ObservedObject var quickAI = QuickAIEngine.shared
+    @ObservedObject var localization = LocalizationManager.shared
     @State private var copiedId: UUID?
     
     var body: some View {
@@ -17,7 +18,7 @@ struct ClipboardView: View {
                             .foregroundStyle(.white)
                             .shadow(color: .white.opacity(0.4), radius: 3)
                         
-                        Text("CLIPBOARD & AI ACTIONS")
+                        Text(loc("CLIPBOARD & AI ACTIONS", "БУФЕР ОБМЕНА & AI ДЕЙСТВИЯ"))
                             .font(.system(size: 10, weight: .bold, design: .monospaced))
                             .foregroundStyle(.white)
                     }
@@ -29,7 +30,7 @@ struct ClipboardView: View {
                         Image(systemName: "sparkles")
                             .font(.system(size: 9))
                             .foregroundStyle(Color.cyan)
-                        TextField("Спросить AI...", text: $quickAI.quickPromptQuery)
+                        TextField(loc("Ask AI...", "Спросить AI..."), text: $quickAI.quickPromptQuery)
                             .textFieldStyle(.plain)
                             .font(.system(size: 9.5, design: .monospaced))
                             .foregroundStyle(.white)
@@ -47,7 +48,7 @@ struct ClipboardView: View {
                             .font(.system(size: 10))
                             .foregroundStyle(.secondary)
                         
-                        TextField("Поиск...", text: $manager.searchQuery)
+                        TextField(loc("Search...", "Поиск..."), text: $manager.searchQuery)
                             .textFieldStyle(.plain)
                             .font(.system(size: 10, design: .monospaced))
                             .foregroundStyle(.white)
@@ -57,7 +58,7 @@ struct ClipboardView: View {
                     .frame(width: 130)
                     .heroInputBox(cornerRadius: 7)
                     
-                    Button("Очистить") {
+                    Button(loc("Clear", "Очистить")) {
                         withAnimation {
                             manager.clearUnpinned()
                         }
@@ -80,11 +81,11 @@ struct ClipboardView: View {
                             .foregroundStyle(.white.opacity(0.6))
                             .shadow(color: .white.opacity(0.2), radius: 6)
                         
-                        Text("Буфер обмена пуст")
+                        Text(loc("Clipboard is empty", "Буфер обмена пуст"))
                             .font(.system(size: 12, weight: .medium))
                             .foregroundStyle(.white)
                         
-                        Text("Скопированный текст и фрагменты кода появятся здесь автоматически")
+                        Text(loc("Copied text and code snippets will appear here automatically", "Скопированный текст и фрагменты кода появятся здесь автоматически"))
                             .font(.system(size: 9, design: .monospaced))
                             .foregroundStyle(.secondary)
                     }
@@ -126,6 +127,7 @@ struct ClipboardRowView: View {
     let item: ClipboardItem
     @Binding var copiedId: UUID?
     @ObservedObject var manager = ClipboardManager.shared
+    @ObservedObject var localization = LocalizationManager.shared
     @State private var isHovered = false
     
     var body: some View {
@@ -172,7 +174,7 @@ struct ClipboardRowView: View {
                         HStack(spacing: 2) {
                             Image(systemName: "sparkles")
                                 .font(.system(size: 8))
-                            Text("Объяснить")
+                            Text(loc("Explain", "Объяснить"))
                                 .font(.system(size: 8.5, weight: .bold, design: .monospaced))
                         }
                         .padding(.vertical, 3)
@@ -182,7 +184,7 @@ struct ClipboardRowView: View {
                         .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
-                    .help("Объяснить этот код с помощью AI")
+                    .help(loc("Explain this code with AI", "Объяснить этот код с помощью AI"))
                 } else {
                     Button(action: {
                         QuickAIEngine.shared.executeAction(.summarize, on: item.content)
@@ -190,7 +192,7 @@ struct ClipboardRowView: View {
                         HStack(spacing: 2) {
                             Image(systemName: "sparkles")
                                 .font(.system(size: 8))
-                            Text("Саммари")
+                            Text(loc("Summary", "Саммари"))
                                 .font(.system(size: 8.5, weight: .bold, design: .monospaced))
                         }
                         .padding(.vertical, 3)
@@ -200,7 +202,7 @@ struct ClipboardRowView: View {
                         .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
-                    .help("Сделать саммари текста")
+                    .help(loc("Summarize text with AI", "Сделать саммари текста"))
                     
                     Button(action: {
                         QuickAIEngine.shared.executeAction(.translate, on: item.content)
@@ -214,12 +216,12 @@ struct ClipboardRowView: View {
                             .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
-                    .help("Быстрый перевод RU / EN")
+                    .help(loc("Quick RU ↔ EN translation", "Быстрый перевод RU ↔ EN"))
                 }
                 
                 // Save to Apple Notes
                 Button(action: {
-                    let firstLine = item.content.components(separatedBy: .newlines).first ?? "Заметка"
+                    let firstLine = item.content.components(separatedBy: .newlines).first ?? loc("Note", "Заметка")
                     let title = String(firstLine.prefix(45))
                     AppleNotesManager.shared.createNote(title: title, content: item.content)
                 }) {
@@ -230,7 +232,7 @@ struct ClipboardRowView: View {
                         .background(Circle().fill(Color.yellow.opacity(0.12)))
                 }
                 .buttonStyle(.plain)
-                .help("Сохранить сниппет в Заметки macOS")
+                .help(loc("Save snippet to macOS Notes", "Сохранить сниппет в Заметки macOS"))
                 
                 Button(action: {
                     manager.togglePin(item: item)
@@ -252,7 +254,7 @@ struct ClipboardRowView: View {
                         }
                     }
                 }) {
-                    Text(copiedId == item.id ? "Скопировано!" : "Вставить")
+                    Text(copiedId == item.id ? loc("Copied!", "Скопировано!") : loc("Paste", "Вставить"))
                         .font(.system(size: 9, weight: .semibold, design: .monospaced))
                         .foregroundStyle(copiedId == item.id ? Color.green : Color.white)
                         .padding(.vertical, 3)

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MyDashboardView: View {
     @ObservedObject var manager = DashboardManager.shared
+    @ObservedObject var localization = LocalizationManager.shared
     @State private var isEditingConfig = false
     @State private var isAddingSite = false
     
@@ -18,7 +19,7 @@ struct MyDashboardView: View {
     @State private var newApiPath = "/api/admin/stats"
     
     var currentProfileName: String {
-        manager.profiles.first(where: { $0.id == manager.currentProfileId })?.name ?? "Дашборд"
+        manager.profiles.first(where: { $0.id == manager.currentProfileId })?.name ?? loc("Dashboard", "Дашборд")
     }
     
     var body: some View {
@@ -45,7 +46,7 @@ struct MyDashboardView: View {
                         newBaseUrl = ""
                         isAddingSite = true
                     }) {
-                        Label("Добавить новый сервис...", systemImage: "plus.circle")
+                        Label(loc("Add new service...", "Добавить новый сервис..."), systemImage: "plus.circle")
                     }
                 } label: {
                     HStack(spacing: 5) {
@@ -78,7 +79,7 @@ struct MyDashboardView: View {
                         .fill(manager.isOnline ? Color.green : (manager.isLoggedIn ? Color.orange : Color.secondary))
                         .frame(width: 6, height: 6)
                     
-                    Text(manager.isOnline ? "Live API" : (manager.isLoggedIn ? "Сессия активна" : "Вход не выполнен"))
+                    Text(manager.isOnline ? "Live API" : (manager.isLoggedIn ? loc("Session Active", "Сессия активна") : loc("Not Logged In", "Вход не выполнен")))
                         .font(.system(size: 9, weight: .semibold, design: .monospaced))
                         .foregroundStyle(manager.isOnline ? .green : (manager.isLoggedIn ? .orange : .secondary))
                 }
@@ -113,7 +114,7 @@ struct MyDashboardView: View {
                 }) {
                     HStack(spacing: 3) {
                         Image(systemName: isEditingConfig ? "xmark" : "gearshape")
-                        Text(isEditingConfig ? "Закрыть" : "Настройки")
+                        Text(isEditingConfig ? loc("Close", "Закрыть") : loc("Settings", "Настройки"))
                     }
                     .font(.system(size: 9, weight: .medium))
                     .foregroundStyle(.secondary)
@@ -144,12 +145,12 @@ struct MyDashboardView: View {
             // Add Site Dialog
             if isAddingSite {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("ДОБАВЛЕНИЕ НОВОГО СЕРВИСА / САЙТА")
+                    Text(loc("ADD NEW SERVICE / WEBSITE", "ДОБАВЛЕНИЕ НОВОГО СЕРВИСА / САЙТА"))
                         .font(.system(size: 9, weight: .bold, design: .monospaced))
                         .foregroundStyle(.secondary)
                     
                     HStack(spacing: 8) {
-                        TextField("Название (например: Мой SaaS)", text: $newName)
+                        TextField(loc("Name (e.g. My SaaS)", "Название (например: Мой SaaS)"), text: $newName)
                             .textFieldStyle(.plain)
                             .font(.system(size: 10))
                             .padding(5)
@@ -179,12 +180,12 @@ struct MyDashboardView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 6))
                             .frame(width: 100)
                         
-                        VibeInteractiveHoverButton(text: "Создать", icon: "plus", fontSize: 10, horizontalPadding: 10, verticalPadding: 5, minHeight: 26) {
+                        VibeInteractiveHoverButton(text: loc("Create", "Создать"), icon: "plus", fontSize: 10, horizontalPadding: 10, verticalPadding: 5, minHeight: 26) {
                             manager.addNewProfile(name: newName, baseUrl: newBaseUrl, loginPath: newLoginPath, statsApiPath: newApiPath)
                             isAddingSite = false
                         }
                         
-                        Button("Отмена") {
+                        Button(loc("Cancel", "Отмена")) {
                             isAddingSite = false
                         }
                         .buttonStyle(.plain)
@@ -202,7 +203,7 @@ struct MyDashboardView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 8) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Адрес сервиса:")
+                            Text(loc("Service URL:", "Адрес сервиса:"))
                                 .font(.system(size: 9, weight: .medium))
                                 .foregroundStyle(.secondary)
                             TextField("https://example.com", text: $editBaseUrl)
@@ -214,7 +215,7 @@ struct MyDashboardView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Страница входа:")
+                            Text(loc("Login Page:", "Страница входа:"))
                                 .font(.system(size: 9, weight: .medium))
                                 .foregroundStyle(.secondary)
                             TextField("/login", text: $editLoginPath)
@@ -226,7 +227,7 @@ struct MyDashboardView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Stats API URL:")
+                            Text(loc("Stats API URL:", "Stats API URL:"))
                                 .font(.system(size: 9, weight: .medium))
                                 .foregroundStyle(.secondary)
                             TextField("/api/admin/stats", text: $editApiPath)
@@ -237,7 +238,7 @@ struct MyDashboardView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 6))
                         }
                         
-                        VibeInteractiveHoverButton(text: "Применить", icon: "checkmark", fontSize: 10, horizontalPadding: 10, verticalPadding: 5, minHeight: 26) {
+                        VibeInteractiveHoverButton(text: loc("Apply", "Применить"), icon: "checkmark", fontSize: 10, horizontalPadding: 10, verticalPadding: 5, minHeight: 26) {
                             manager.baseUrl = editBaseUrl
                             manager.loginPath = editLoginPath
                             manager.statsApiPath = editApiPath
@@ -300,10 +301,10 @@ struct MyDashboardView: View {
                             .shadow(color: .white.opacity(0.4), radius: 3)
                         
                         VStack(alignment: .leading, spacing: 1) {
-                            Text("Авторизация на отслеживаемом сервисе (\(currentProfileName))")
+                            Text(loc("Log in to tracked service (\(currentProfileName))", "Авторизация на отслеживаемом сервисе (\(currentProfileName))"))
                                 .font(.system(size: 11, weight: .bold))
                                 .foregroundStyle(.white)
-                            Text("Для доступа к метрикам дашборда войдите на сайт под учетной записью администратора:")
+                            Text(loc("To access dashboard metrics, log in to the site as an administrator:", "Для доступа к метрикам дашборда войдите на сайт под учетной записью администратора:"))
                                 .font(.system(size: 9))
                                 .foregroundStyle(.secondary)
                         }
@@ -314,7 +315,7 @@ struct MyDashboardView: View {
                     HStack(spacing: 8) {
                         // URL of service input
                         HStack(spacing: 4) {
-                            Text("Сайт:")
+                            Text(loc("Website:", "Сайт:"))
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundStyle(.secondary)
                             
@@ -329,14 +330,14 @@ struct MyDashboardView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 6))
                         
                         // Button to launch login window
-                        VibeInteractiveHoverButton(text: "Открыть окно входа", icon: "globe", fontSize: 10, horizontalPadding: 12, verticalPadding: 5, minHeight: 26) {
+                        VibeInteractiveHoverButton(text: loc("Open Login Window", "Открыть окно входа"), icon: "globe", fontSize: 10, horizontalPadding: 12, verticalPadding: 5, minHeight: 26) {
                             manager.startLoginFlow()
                         }
                     }
                     
                     // Manual cookie fallback option
                     HStack(spacing: 6) {
-                        Text("Или cookie / токен:")
+                        Text(loc("Or cookie / token:", "Или cookie / токен:"))
                             .font(.system(size: 9))
                             .foregroundStyle(.tertiary)
                         
@@ -348,7 +349,7 @@ struct MyDashboardView: View {
                             .background(Color.white.opacity(0.05))
                             .clipShape(RoundedRectangle(cornerRadius: 5))
                         
-                        Button("Подключить") {
+                        Button(loc("Connect", "Подключить")) {
                             Task {
                                 await manager.fetchStats()
                             }
@@ -369,7 +370,7 @@ struct MyDashboardView: View {
                 VStack(spacing: 8) {
                     // Session status subline
                     HStack(spacing: 8) {
-                        Text("Сервис: \(manager.getNormalizedBaseUrl())")
+                        Text(loc("Service: \(manager.getNormalizedBaseUrl())", "Сервис: \(manager.getNormalizedBaseUrl())"))
                             .font(.system(size: 9, design: .monospaced))
                             .foregroundStyle(.secondary)
                         
@@ -380,7 +381,7 @@ struct MyDashboardView: View {
                         }) {
                             HStack(spacing: 3) {
                                 Image(systemName: "rectangle.portrait.and.arrow.right")
-                                Text("Выйти")
+                                Text(loc("Logout", "Выйти"))
                             }
                             .font(.system(size: 9))
                             .foregroundStyle(.secondary)
