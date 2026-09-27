@@ -95,6 +95,23 @@ open build/VibeNotch.app
 
 ---
 
+### 🔒 Безопасность и защита данных
+
+VibeNotch спроектирован с философией **Zero-Trust** и максимальной приватности данных разработчика:
+
+* 🔐 **Аппаратная защита Apple Keychain & Secure Enclave:**  
+  Ваши API-ключи (OpenAI, Claude, Gemini, Z.ai, сессионные куки) **никогда не сохраняются в открытом виде** в обычных файлах (`UserDefaults`, `.json` или `.plist`). Все секреты шифруются и записываются напрямую в системное хранилище **Apple Keychain**, использующее аппаратную защиту Secure Enclave вашего Mac.
+* 🛡 **Умный фильтр буфера обмена (Clipboard Security Filter):**  
+  VibeNotch автоматически сканирует копируемый текст на наличие чувствительных данных. Если вы копируете приватные SSH-ключи (`BEGIN OPENSSH`), токены GitHub (`ghp_`, `gho_`), ключи нейросетей (`sk-`, `AIzaSy`), токены авторизации JWT или пароли — приложение **мгновенно отфильтровывает их и запрещает сохранение в историю буфера**. Ваши секреты никогда не засветятся на экране при показе выреза коллегам или на стриме.
+* 💻 **100% Локальные вычисления (On-Device Processing):**  
+  Оптическое распознавание текста (OCR) работает на базе встроенного Apple Vision Framework и выполняется локально на Neural Engine чипов Apple Silicon. Ни один ваш скриншот, фрагмент экрана или файл не отправляется на сторонние сервера для обработки.
+* ⚙️ **Прозрачный контроль прав (macOS TCC):**  
+  Доступ к записи экрана и управлению часами строго изолирован нативной системой контроля разрешений macOS (Transparency, Consent, and Control). Приложение имеет постоянную цифровую подпись разработчика.
+* 🚫 **Zero Telemetry (Полное отсутствие трекинга):**  
+  В коде полностью отсутствуют аналитические трекеры, телеметрия или скрытые сетевые запросы. Только то, что нужно вам для работы.
+
+---
+
 <br/>
 
 <a name="-english-version"></a>
@@ -171,11 +188,20 @@ On first launch, grant **Screen Recording** permission in *System Settings → P
 
 ---
 
-### 🔒 Privacy & Security
+### 🔒 Privacy & Architecture Security
 
-* **100% Local Processing:** Vision OCR and file conversions happen entirely on your Mac.
-* **Secure Storage:** All user secrets and tokens are stored in the hardware-backed Apple Keychain.
-* **Zero Telemetry:** No tracking, no external analytics, no third-party data collection.
+VibeNotch is built from the ground up with a strict **Zero-Trust & Local-First** security architecture:
+
+* 🔐 **Hardware-Backed Apple Keychain & Secure Enclave:**  
+  Your API keys (OpenAI, Claude, Gemini, Z.ai, session tokens) are **never stored as plain text** on disk (`UserDefaults`, `.json`, or `.plist`). All sensitive credentials are encrypted and stored directly in the native **Apple Keychain**, protected by your Mac's hardware Secure Enclave.
+* 🛡 **Proactive Clipboard Security Filter:**  
+  VibeNotch continuously monitors clipboard events to safeguard your credentials. If you copy private SSH keys (`BEGIN OPENSSH`), GitHub PATs (`ghp_`, `gho_`), LLM API keys (`sk-`, `AIzaSy`), JWT authentication tokens, or environment passwords, the app **automatically redacts them and refuses to persist them into clipboard history**. Your secrets won't be exposed on-screen during screen shares or code reviews.
+* 💻 **100% On-Device Neural Processing:**  
+  Optical Character Recognition (OCR) is powered by Apple's native Vision framework running locally on Apple Silicon Neural Engine cores. Not a single pixel, screenshot, or dropped file is transmitted to external servers for processing.
+* ⚙️ **Transparent Permission Model (macOS TCC):**  
+  Screen capture and automation capabilities are strictly sandboxed under macOS Transparency, Consent, and Control (TCC) guidelines and signed with a persistent Apple Developer identity.
+* 🚫 **Zero Telemetry & Tracking:**  
+  There are no analytics frameworks, crash log transmitters, or third-party pings. What happens in your notch stays in your notch.
 
 ---
 
