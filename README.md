@@ -18,6 +18,12 @@
 
 ---
 
+<br/>
+
+<img src="Resources/preview.gif" alt="VibeNotch Preview" width="850" style="border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
+
+<br/>
+
 </div>
 
 <a name="-русская-версия"></a>
