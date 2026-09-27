@@ -6,6 +6,13 @@ enum ActivePlayerApp: String {
     case spotify = "Spotify"
     case appleMusic = "Music"
     
+    var bundleIdentifier: String {
+        switch self {
+        case .spotify: return "com.spotify.client"
+        case .appleMusic: return "com.apple.Music"
+        }
+    }
+    
     var iconName: String {
         switch self {
         case .spotify: return "music.note"
@@ -81,8 +88,8 @@ class MediaManager: ObservableObject {
     }
     
     func refreshNowPlaying() {
-        let spotifyRunning = isAppRunning("Spotify")
-        let musicRunning = isAppRunning("Music")
+        let spotifyRunning = isAppRunning(.spotify)
+        let musicRunning = isAppRunning(.appleMusic)
         
         if !spotifyRunning && !musicRunning {
             if activeApp != nil {
@@ -160,7 +167,7 @@ class MediaManager: ObservableObject {
     }
     
     func togglePlayPause() {
-        guard let app = activeApp ?? (isAppRunning("Spotify") ? .spotify : (isAppRunning("Music") ? .appleMusic : nil)) else { return }
+        guard let app = activeApp ?? (isAppRunning(.spotify) ? .spotify : (isAppRunning(.appleMusic) ? .appleMusic : nil)) else { return }
         let appName = app.rawValue
         let script = "tell application \"\(appName)\" to playpause"
         _ = runAppleScript(script)
@@ -171,7 +178,7 @@ class MediaManager: ObservableObject {
     }
     
     func nextTrack() {
-        guard let app = activeApp ?? (isAppRunning("Spotify") ? .spotify : (isAppRunning("Music") ? .appleMusic : nil)) else { return }
+        guard let app = activeApp ?? (isAppRunning(.spotify) ? .spotify : (isAppRunning(.appleMusic) ? .appleMusic : nil)) else { return }
         let appName = app.rawValue
         let script = "tell application \"\(appName)\" to next track"
         _ = runAppleScript(script)
@@ -181,7 +188,7 @@ class MediaManager: ObservableObject {
     }
     
     func previousTrack() {
-        guard let app = activeApp ?? (isAppRunning("Spotify") ? .spotify : (isAppRunning("Music") ? .appleMusic : nil)) else { return }
+        guard let app = activeApp ?? (isAppRunning(.spotify) ? .spotify : (isAppRunning(.appleMusic) ? .appleMusic : nil)) else { return }
         let appName = app.rawValue
         let script = "tell application \"\(appName)\" to previous track"
         _ = runAppleScript(script)
@@ -190,9 +197,9 @@ class MediaManager: ObservableObject {
         }
     }
     
-    private nonisolated func isAppRunning(_ name: String) -> Bool {
+    private nonisolated func isAppRunning(_ player: ActivePlayerApp) -> Bool {
         return NSWorkspace.shared.runningApplications.contains { app in
-            app.localizedName == name
+            app.bundleIdentifier?.lowercased() == player.bundleIdentifier.lowercased()
         }
     }
     
