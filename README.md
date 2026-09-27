@@ -24,9 +24,9 @@
 ## 🇷🇺 Русская версия
 
 > ### 💫 Напутствие начинающим вайбкодерам:
-> **Вайбкодинг — это не просто написание кода, это воплощение чистой мысли и идей в реальность!**  
-> Мы живем в потрясающее время: сегодня вам больше не нужно годами зубрить документацию и шаблонный синтаксис, чтобы создавать полезные, красивые и сложные приложения. Современный искусственный интеллект стал нашим универсальным напарником. Ваши главные суперсилы теперь — это **воображение, вкус, насмотренность и смелость пробовать новое**.  
-> Не бойтесь ошибок, экспериментируйте, ломайте старые рамки и создавайте то, чем сами хотите пользоваться каждый день. Кайфуйте от процесса, ловите вайб и верьте в свои силы — у вас всё обязательно получится! 🚀✨
+> **Вайбкодинг - это не просто написание кода, это воплощение чистой мысли и идей в реальность!**  
+> Мы живем в потрясающее время: сегодня вам больше не нужно годами зубрить документацию и шаблонный синтаксис, чтобы создавать полезные, красивые и сложные приложения. Современный искусственный интеллект стал нашим универсальным напарником. Ваши главные суперсилы теперь - это **воображение, вкус, насмотренность и смелость пробовать новое**.  
+> Не бойтесь ошибок, экспериментируйте, ломайте старые рамки и создавайте то, чем сами хотите пользоваться каждый день. Кайфуйте от процесса, ловите вайб и верьте в свои силы - у вас всё обязательно получится! 🚀✨
 
 ---
 
@@ -43,9 +43,9 @@
 * **История сниппетов:** Удобная лента скопированного кода и текста с поиском.
 * **Security Filter (Защита ключей):** Автоматическая фильтрация и маскирование паролей, токенов и секретных ключей (`sk-`, `ghp_`, `AIzaSy`, JWT). Ключи никогда не утекают в историю и хранятся исключительно в защищенном хранилище Apple Keychain.
 * **Быстрые действия с ИИ (Quick AI Actions):**
-  * *«Объяснить»* — подробный разбор логики функции или текста ошибки.
-  * *«Саммари»* — моментальная выжимка сути текста.
-  * *«RU ↔ EN»* — мгновенный перевод с автоопределением языка.
+  * *«Объяснить»* - подробный разбор логики функции или текста ошибки.
+  * *«Саммари»* - моментальная выжимка сути текста.
+  * *«RU ↔ EN»* - мгновенный перевод с автоопределением языка.
 * **Промпт-бар:** Прямой чат с моделями ИИ прямо из выпадающей шторки.
 
 #### 3. 📸 Screen OCR & Скриншоты (Локальное распознавание текста)
@@ -101,7 +101,7 @@ open build/VibeNotch.app
 ## 🇬🇧 English Version
 
 > ### 💫 A Special Note to Fellow Vibe-Coders:
-> **Vibe-coding is not just about writing code — it's about turning pure thought and creative energy into reality!**  
+> **Vibe-coding is not just about writing code - it's about turning pure thought and creative energy into reality!**  
 > We are privileged to live in an unprecedented era: you no longer need years of rote memorization or boilerplate mastery to ship gorgeous, complex, and delightful software. Modern AI models act as your infinite pair programmers. Today, your greatest superpowers are your **taste, vision, curiosity, and the courage to build**.  
 > Don't be afraid to break things, experiment relentlessly, and create tools you genuinely love using every day. Catch the vibe, embrace the flow, and ship the future! 🚀✨
 
@@ -120,9 +120,9 @@ open build/VibeNotch.app
 * **Snippet History:** Clean searchable history of your copied code and text snippets.
 * **Security Filter:** Proactively detects and redacts secrets, tokens, and private keys (`sk-`, `ghp_`, `AIzaSy`, JWT, SSH keys). Any user-provided credentials stay encrypted in Apple Keychain.
 * **Instant AI Actions:**
-  * *Explain* — deep dive into error traces and complex code blocks.
-  * *Summarize* — key takeaways from lengthy texts.
-  * *Translate (RU ↔ EN)* — high-accuracy translation with language auto-detection.
+  * *Explain* - deep dive into error traces and complex code blocks.
+  * *Summarize* - key takeaways from lengthy texts.
+  * *Translate (RU ↔ EN)* - high-accuracy translation with language auto-detection.
 * **Inline Prompt Bar:** Prompt LLMs directly from your notch drawer.
 
 #### 3. 📸 Screen OCR & Capture
