@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="Resources/AppIcon.png" alt="VibeNotch Icon" width="128" height="128" style="border-radius: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); margin-bottom: 12px;" />
+<img src="Resources/AppIcon.png" alt="VibeNotch Icon" width="140" height="140" style="border-radius: 32px; box-shadow: 0 12px 36px rgba(0,0,0,0.45); margin-bottom: 14px;" />
 
 # 🚀 VibeNotch
 
@@ -22,7 +22,11 @@
 
 <br/>
 
-<img src="Resources/preview.gif" alt="VibeNotch Preview" width="850" style="border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
+<img src="Resources/preview.gif" alt="VibeNotch Interactive Preview" width="880" style="border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.6);" />
+
+<p align="center">
+  <sub>✨ <i>Интерактивная демонстрация смарт-выреза: Shelf • Web Apps • AI Quota • Screen OCR • Metrics HUD</i></sub>
+</p>
 
 <br/>
 
@@ -102,6 +106,10 @@ cd VibeNotch
 # Запустите приложение
 open build/VibeNotch.app
 ```
+
+| Приложение | Платформа | Архитектура | Статус |
+| :---: | :---: | :---: | :---: |
+| <img src="Resources/AppIcon.png" width="36" height="36" style="vertical-align: middle; border-radius: 8px;"/> **VibeNotch.app** | macOS 14.0+ | Apple Silicon (M1–M4) & Intel | Готов к релизу |
 
 При первом запуске разрешите приложению доступ к **Записи экрана** в *Системных настройках → Конфиденциальность и безопасность* (необходимо для работы инструмента OCR и создания скриншотов).
 
@@ -199,6 +207,10 @@ cd VibeNotch
 # Run VibeNotch
 open build/VibeNotch.app
 ```
+
+| Application | Platform | Architecture | Status |
+| :---: | :---: | :---: | :---: |
+| <img src="Resources/AppIcon.png" width="36" height="36" style="vertical-align: middle; border-radius: 8px;"/> **VibeNotch.app** | macOS 14.0+ | Apple Silicon (M1–M4) & Intel | Production Ready |
 
 On first launch, grant **Screen Recording** permission in *System Settings → Privacy & Security* (required for Vision OCR and screen snips).
 
