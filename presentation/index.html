@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HyperNotch — Motion Reel (One Take • 60 FPS)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,700;0,800;1,400;1,800&family=Plus+Jakarta+Sans:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+    body {
+      background: #060608;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #stage-container {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      background: #090a0f;
+      overflow: hidden;
+      box-shadow: 0 30px 100px rgba(0,0,0,0.9);
+      transform-origin: center center;
+    }
+
+    /* Ambient background grid */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+    .bg-radial {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 20%, rgba(0, 240, 255, 0.08) 0%, transparent 60%);
+      pointer-events: none;
+      transition: background 0.8s ease;
+    }
+
+    /* Viewfinder HUD Overlays */
+    .hud-bracket {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      border-color: rgba(255,255,255,0.3);
+      border-style: solid;
+      pointer-events: none;
+      z-index: 100;
+    }
+    .hud-tl { top: 48px; left: 48px; border-width: 2px 0 0 2px; }
+    .hud-tr { top: 48px; right: 48px; border-width: 2px 2px 0 0; }
+    .hud-bl { bottom: 48px; left: 48px; border-width: 0 0 2px 2px; }
+    .hud-br { bottom: 48px; right: 48px; border-width: 0 2px 2px 0; }
+
+    .hud-header-left {
+      position: absolute;
+      top: 56px;
+      left: 72px;
+      font-size: 13px;
+      letter-spacing: 2px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.85);
+      z-index: 100;
+    }
+    .hud-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+
+    .hud-header-right {
+      position: absolute;
+      top: 56px;
+      right: 72px;
+      text-align: right;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #00f0ff;
+      z-index: 100;
+    }
+    .hud-category {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+
+    .hud-footer-left {
+      position: absolute;
+      bottom: 56px;
+      left: 72px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.6);
+      z-index: 100;
+      line-height: 1.6;
+    }
+    .hud-timecode {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .hud-footer-center {
+      position: absolute;
+      bottom: 54px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      z-index: 100;
+    }
+    .waveform-bar {
+      width: 3px;
+      height: 8px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 2px;
+      transition: height 0.05s ease, background 0.2s ease;
+    }
+    .waveform-bar.active {
+      background: #00f0ff;
+    }
+
+    .hud-footer-right {
+      position: absolute;
+      bottom: 56px;
+      right: 72px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      z-index: 100;
+    }
+    .rec-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #ff334b;
+    }
+    .rec-dot {
+      width: 8px;
+      height: 8px;
+      background: #ff334b;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #ff334b;
+      animation: pulse-rec 1s infinite alternate;
+    }
+    @keyframes pulse-rec {
+      0% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
+    /* SCENE WRAPPER */
+    .scene-layer {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* SCENE 1: THE NOTCH */
+    .mac-bezel {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1400px;
+      height: 52px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .physical-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 220px;
+      height: 36px;
+      background: #000;
+      border-bottom-left-radius: 18px;
+      border-bottom-right-radius: 18px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      overflow: hidden;
+      transition: border-radius 0.3s;
+    }
+    .camera-lens {
+      width: 10px;
+      height: 10px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 50%;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .camera-lens::after {
+      content: '';
+      width: 4px;
+      height: 4px;
+      background: rgba(0, 150, 255, 0.4);
+      border-radius: 50%;
+    }
+
+    /* EXPANDED NOTCH HUD */
+    .notch-expanded-panel {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1060px;
+      height: 440px;
+      background: rgba(14, 16, 22, 0.94);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-top: none;
+      border-bottom-left-radius: 36px;
+      border-bottom-right-radius: 36px;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.9), 0 0 60px rgba(0, 240, 255, 0.15);
+      padding: 30px 40px;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      transform-origin: top center;
+    }
+    .panel-tabs-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .hud-tab-item {
+      padding: 6px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.03);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hud-tab-item.active {
+      background: #00f0ff;
+      color: #000;
+      font-weight: 800;
+      box-shadow: 0 0 20px rgba(0,240,255,0.4);
+    }
+
+    /* GRAPH EDITOR OVERLAY (As seen in 123.mp4!) */
+    .graph-editor-box {
+      position: absolute;
+      bottom: 120px;
+      right: 120px;
+      width: 320px;
+      height: 180px;
+      background: rgba(18, 20, 28, 0.85);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    }
+    .graph-title {
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 8px;
+    }
+    .graph-canvas {
+      width: 100%;
+      height: 100px;
+      border-left: 1px solid rgba(255,255,255,0.2);
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      position: relative;
+    }
+    .graph-svg-path {
+      width: 100%;
+      height: 100%;
+    }
+    .graph-curve {
+      stroke: #ff5722;
+      stroke-width: 2.5;
+      fill: none;
+      stroke-dasharray: 400;
+      stroke-dashoffset: 400;
+    }
+    .graph-point {
+      fill: #ff5722;
+      filter: drop-shadow(0 0 8px #ff5722);
+    }
+    .graph-ease-label {
+      font-size: 22px;
+      font-weight: 800;
+      font-style: italic;
+      color: #fff;
+      margin-top: 10px;
+    }
+
+    /* SCENE 2: SHELF CARDS */
+    .shelf-dropzone {
+      margin-top: 30px;
+      border: 2px dashed rgba(0, 240, 255, 0.4);
+      border-radius: 20px;
+      height: 240px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 240, 255, 0.02);
+      position: relative;
+    }
+    .flying-card {
+      position: absolute;
+      padding: 16px 24px;
+      background: rgba(30, 34, 48, 0.95);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: #fff;
+      font-size: 13px;
+    }
+    .token-badge {
+      padding: 6px 12px;
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      color: #00f0ff;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    /* SCENE 3: QUICK AI TERMINAL */
+    .code-terminal-box {
+      width: 780px;
+      background: #0d0f17;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.9);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .terminal-bar {
+      height: 38px;
+      background: rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 8px;
+    }
+    .t-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .t-red { background: #ff5f56; }
+    .t-yellow { background: #ffbd2e; }
+    .t-green { background: #27c93f; }
+    .terminal-content {
+      padding: 24px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #a5b4fc;
+    }
+    .ai-action-pills {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .ai-pill {
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .ai-pill.selected {
+      background: linear-gradient(135deg, #ff5722, #ff8a65);
+      border-color: #ff5722;
+      box-shadow: 0 0 25px rgba(255,87,34,0.5);
+    }
+
+    /* SCENE 4: VISION OCR RETICLE */
+    .ocr-reticle-wrap {
+      position: relative;
+      width: 840px;
+      height: 480px;
+      border: 1px dashed rgba(255,255,255,0.2);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+    .ocr-laser-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #00f0ff;
+      box-shadow: 0 0 20px #00f0ff, 0 0 40px #00f0ff;
+    }
+    .ocr-word-box {
+      position: absolute;
+      border: 1.5px solid #30d158;
+      background: rgba(48, 209, 88, 0.15);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+    }
+
+    /* SCENE 5: AI QUOTA DIALS */
+    .quota-grid {
+      display: flex;
+      gap: 36px;
+      align-items: center;
+      justify-content: center;
+    }
+    .quota-card {
+      width: 220px;
+      height: 260px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .dial-svg {
+      width: 120px;
+      height: 120px;
+      transform: rotate(-90deg);
+    }
+    .dial-bg {
+      fill: none;
+      stroke: rgba(255,255,255,0.08);
+      stroke-width: 8;
+    }
+    .dial-bar {
+      fill: none;
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-dasharray: 314;
+      stroke-dashoffset: 314;
+    }
+
+    /* SCENE 6: KINETIC OUTRO */
+    .kinetic-title-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .kinetic-word {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 900;
+      font-size: 140px;
+      line-height: 0.95;
+      letter-spacing: -4px;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, #ffffff 0%, #a1a1aa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 20px 40px rgba(0,0,0,0.8));
+    }
+    .kinetic-icon {
+      width: 140px;
+      height: 140px;
+      border-radius: 34px;
+      box-shadow: 0 25px 70px rgba(0,0,0,0.8), 0 0 50px rgba(0,240,255,0.4);
+      margin-bottom: 24px;
+    }
+    .kinetic-badge-pill {
+      margin-top: 24px;
+      padding: 8px 24px;
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #00f0ff;
+      letter-spacing: 2px;
+    }
+
+    /* Controller UI (Bottom Bar) */
+    #player-bar {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 17, 25, 0.9);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 40px;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 1000;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }
+    .btn-ctl {
+      background: none;
+      border: none;
+      color: #fff;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.06);
+      transition: background 0.2s;
+    }
+    .btn-ctl:hover {
+      background: rgba(255,255,255,0.15);
+    }
+    .btn-ctl.primary {
+      background: #00f0ff;
+      color: #000;
+      box-shadow: 0 0 15px rgba(0,240,255,0.4);
+    }
+    .scrub-track {
+      width: 240px;
+      height: 4px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px;
+      position: relative;
+      cursor: pointer;
+    }
+    .scrub-progress {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 0%;
+      background: #00f0ff;
+      border-radius: 2px;
+      box-shadow: 0 0 8px #00f0ff;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="stage-container">
+    <div class="bg-grid"></div>
+    <div class="bg-radial" id="bg-radial"></div>
+
+    <!-- Viewfinder Corners -->
+    <div class="hud-bracket hud-tl"></div>
+    <div class="hud-bracket hud-tr"></div>
+    <div class="hud-bracket hud-bl"></div>
+    <div class="hud-bracket hud-br"></div>
+
+    <!-- HUD Top Header -->
+    <div class="hud-header-left">
+      <div>HYPERNOTCH — MOTION REEL</div>
+      <div class="hud-sub">ONE TAKE • 1920×1080 • 60 FPS</div>
+    </div>
+
+    <div class="hud-header-right">
+      <div id="hud-chapter-num">01 / 06</div>
+      <div class="hud-category" id="hud-chapter-name">NOTCH</div>
+    </div>
+
+    <!-- HUD Footer Left -->
+    <div class="hud-footer-left">
+      <div id="hud-ease-tag">EASE BACK.OUT(2.2)</div>
+      <div class="hud-timecode" id="hud-timecode">00:00:00:00 <span style="color:rgba(255,255,255,0.4); font-size:11px;">F 0000</span></div>
+    </div>
+
+    <!-- HUD Spectrum Analyzer (Bottom Center) -->
+    <div class="hud-footer-center" id="hud-waveform">
+      <!-- 40 audio bars generated dynamically -->
+    </div>
+
+    <!-- HUD Footer Right -->
+    <div class="hud-footer-right">
+      <div class="rec-badge"><div class="rec-dot"></div> REC</div>
+      <div>CUTS 00</div>
+      <div style="color: #00f0ff;">120 BPM</div>
+    </div>
+
+    <!-- ==================== SCENE 1: THE NOTCH AWAKENING ==================== -->
+    <div class="scene-layer" id="scene-notch" style="opacity: 1;">
+      <div class="mac-bezel">
+        <div class="physical-notch" id="phys-notch">
+          <span style="font-size: 10px; color:rgba(255,255,255,0.4);">9:41</span>
+          <div class="camera-lens"></div>
+          <span style="font-size: 10px; color:#30d158;">100%</span>
+        </div>
+      </div>
+
+      <!-- Expanded Panel -->
+      <div class="notch-expanded-panel" id="notch-panel">
+        <div class="panel-tabs-bar">
+          <div class="hud-tab-item active" id="tab-shelf">📂 Shelf</div>
+          <div class="hud-tab-item" id="tab-buffer">📋 Buffer</div>
+          <div class="hud-tab-item" id="tab-web">🌐 Web Apps</div>
+          <div class="hud-tab-item" id="tab-dash">📊 Dashboard</div>
+          <div class="hud-tab-item" id="tab-ai">⚡️ AI Quota</div>
+          <div class="hud-tab-item" id="tab-shots">📸 Shots</div>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:30px;">
+          <div>
+            <div style="font-size:24px; font-weight:800; color:#fff; display:flex; align-items:center; gap:10px;">
+              <span>SMART HUD EXPANDED</span>
+              <span class="token-badge">NATIVE macOS 14+</span>
+            </div>
+            <div style="font-size:13px; color:rgba(255,255,255,0.5); margin-top:8px;">Hover detection with haptic magnetic snap • Zero CPU overhead</div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <div class="hud-tab-item" style="border:1px solid rgba(255,255,255,0.2);">🇬🇧 English</div>
+            <div class="hud-tab-item" style="border:1px solid rgba(255,255,255,0.2);">🇷🇺 Русский</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Graph Editor (as in 123.mp4!) -->
+      <div class="graph-editor-box" id="graph-editor">
+        <div class="graph-title">GRAPH EDITOR • TIMING CURVE</div>
+        <div class="graph-canvas">
+          <svg class="graph-svg-path" viewBox="0 0 300 100">
+            <line x1="0" y1="90" x2="300" y2="90" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+            <path id="curve-path" class="graph-curve" d="M 0 90 C 80 90, 140 -20, 280 20 L 300 20"/>
+            <circle id="curve-dot" class="graph-point" cx="280" cy="20" r="4.5"/>
+          </svg>
+        </div>
+        <div class="graph-ease-label">back.out(2.2)</div>
+      </div>
+    </div>
+
+    <!-- ==================== SCENE 2: SMART SHELF & TOKENS ==================== -->
+    <div class="scene-layer" id="scene-shelf">
+      <div style="width: 1000px; display:flex; flex-direction:column; align-items:center;">
+        <div style="font-size:38px; font-weight:900; letter-spacing:-1px; text-transform:uppercase;">
+          02 / FILE SHELF & DROP ZONE
+        </div>
+        <div style="font-size:14px; color:rgba(255,255,255,0.5); margin-top:8px;">
+          Instant Base64 URI • WebP / PNG Convert • Real-Time Token Estimator
+        </div>
+
+        <div class="shelf-dropzone" style="width:100%;">
+          <div id="drop-hint" style="font-size:15px; color:rgba(255,255,255,0.4); font-weight:600;">
+            DROP FILES INTO NOTCH TO STASH
+          </div>
+
+          <!-- Flying Stash Cards -->
+          <div class="flying-card" id="card-1" style="top:30px; left:60px;">
+            <span style="font-size:20px;">🖼️</span>
+            <div>
+              <div style="font-weight:700;">AppIcon_512.png</div>
+              <div style="font-size:11px; color:rgba(255,255,255,0.4);">512×512 • 96 KB</div>
+            </div>
+            <span class="token-badge">data:image/png;base64,...</span>
+          </div>
+
+          <div class="flying-card" id="card-2" style="bottom:30px; right:60px;">
+            <span style="font-size:20px;">📄</span>
+            <div>
+              <div style="font-weight:700;">PromptSchema.ts</div>
+              <div style="font-size:11px; color:rgba(255,255,255,0.4);">TypeScript Snippet</div>
+            </div>
+            <span class="token-badge" style="color:#ffbd2e; border-color:#ffbd2e;">~ 482 TOKENS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SCENE 3: QUICK AI & PROMPT BAR ==================== -->
+    <div class="scene-layer" id="scene-ai">
+      <div class="code-terminal-box">
+        <div class="terminal-bar">
+          <div class="t-dot t-red"></div>
+          <div class="t-dot t-yellow"></div>
+          <div class="t-dot t-green"></div>
+          <div style="font-size:11px; color:rgba(255,255,255,0.4); margin-left:12px;">Clipboard & Quick AI Engine</div>
+        </div>
+        <div class="terminal-content">
+          <div style="color: #64748b;">// Captured from Xcode clipboard</div>
+          <div id="code-snippet-type">
+            <span style="color:#f43f5e;">func</span> <span style="color:#38bdf8;">calculateAttention</span>(<span style="color:#e2e8f0;">tokens</span>: [<span style="color:#38bdf8;">Float</span>]) -> <span style="color:#38bdf8;">Tensor</span> {<br>
+            &nbsp;&nbsp;<span style="color:#f43f5e;">let</span> weights = matrixMultiply(tokens, Q_K_transpose)<br>
+            &nbsp;&nbsp;<span style="color:#f43f5e;">return</span> softmax(weights / sqrt(dim))<br>
+            }
+          </div>
+          
+          <div class="ai-action-pills">
+            <div class="ai-pill selected" id="pill-explain">✦ Explain Error</div>
+            <div class="ai-pill">⚡️ Instant Summary</div>
+            <div class="ai-pill">🌐 RU ↔ EN Translation</div>
+          </div>
+
+          <div id="ai-response-box" style="margin-top:20px; padding:16px; background:rgba(0, 240, 255, 0.05); border:1px solid rgba(0, 240, 255, 0.3); border-radius:12px; font-size:13px; color:#e2e8f0; opacity:0;">
+            <div style="font-weight:700; color:#00f0ff; margin-bottom:6px;">✦ AI EXPLANATION (Claude 3.7 / DeepSeek V3):</div>
+            <div>Self-attention query-key product normalized by scaling factor. No memory leaks detected. Ready for tensor execution.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SCENE 4: SCREEN VISION OCR ==================== -->
+    <div class="scene-layer" id="scene-ocr">
+      <div style="display:flex; flex-direction:column; align-items:center;">
+        <div style="font-size:36px; font-weight:900; letter-spacing:-1px; margin-bottom:20px;">
+          04 / 100% OFFLINE VISION OCR
+        </div>
+        <div class="ocr-reticle-wrap">
+          <div class="ocr-laser-line" id="ocr-laser"></div>
+          
+          <div class="ocr-word-box" id="ocr-b1" style="top:120px; left:140px;">
+            [142, 120] Apple Silicon Neural Engine
+          </div>
+          <div class="ocr-word-box" id="ocr-b2" style="top:200px; left:260px;">
+            [260, 200] 100% Local On-Device Vision
+          </div>
+          <div class="ocr-word-box" id="ocr-b3" style="top:280px; left:180px;">
+            [180, 280] Zero Server Transmission • No Telemetry
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SCENE 5: AI QUOTA MONITOR & ALARMS ==================== -->
+    <div class="scene-layer" id="scene-quota">
+      <div style="display:flex; flex-direction:column; align-items:center;">
+        <div style="font-size:36px; font-weight:900; letter-spacing:-1px; margin-bottom:30px;">
+          05 / AI QUOTA & SMART ALARMS
+        </div>
+
+        <div class="quota-grid">
+          <!-- Card 1: Anthropic -->
+          <div class="quota-card">
+            <svg class="dial-svg" viewBox="0 0 120 120">
+              <circle class="dial-bg" cx="60" cy="60" r="50"/>
+              <circle class="dial-bar" id="dial-c1" cx="60" cy="60" r="50" stroke="#ff5722"/>
+            </svg>
+            <div style="font-size:24px; font-weight:800; margin-top:14px;">92%</div>
+            <div style="font-size:12px; color:rgba(255,255,255,0.5);">Claude 3.7</div>
+            <div style="font-size:10px; color:#ff5722; margin-top:8px;">Reset: 3h 18m</div>
+          </div>
+
+          <!-- Card 2: DeepSeek -->
+          <div class="quota-card" style="border-color:rgba(0, 240, 255, 0.3);">
+            <svg class="dial-svg" viewBox="0 0 120 120">
+              <circle class="dial-bg" cx="60" cy="60" r="50"/>
+              <circle class="dial-bar" id="dial-c2" cx="60" cy="60" r="50" stroke="#00f0ff"/>
+            </svg>
+            <div style="font-size:24px; font-weight:800; margin-top:14px;">98%</div>
+            <div style="font-size:12px; color:rgba(255,255,255,0.5);">DeepSeek V3</div>
+            <div style="font-size:10px; color:#00f0ff; margin-top:8px;">12 000 / 12 000</div>
+          </div>
+
+          <!-- Card 3: Clock Alarm Trigger -->
+          <div class="quota-card" style="border-color:rgba(48, 209, 88, 0.4);">
+            <div style="font-size:42px; margin-bottom:8px;">⏰</div>
+            <div style="font-size:18px; font-weight:800; color:#30d158;">ALARM SET</div>
+            <div style="font-size:13px; font-weight:700; margin-top:4px;">06:52 AM</div>
+            <div style="font-size:10px; color:rgba(255,255,255,0.4); margin-top:8px;">Synced to macOS Clock</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SCENE 6: KINETIC OUTRO ==================== -->
+    <div class="scene-layer" id="scene-outro">
+      <div class="kinetic-title-wrap">
+        <img src="assets/AppIcon.png" alt="HyperNotch Icon" class="kinetic-icon" id="outro-icon">
+        <div class="kinetic-word" id="outro-title">HYPERNOTCH</div>
+        <div style="font-size: 20px; font-weight: 700; color: rgba(255,255,255,0.7); letter-spacing: 2px; margin-top: 14px;">
+          THE ULTIMATE AI & DEVELOPER HUD FOR MACBOOK
+        </div>
+        <div class="kinetic-badge-pill" id="outro-badge">
+          ⚡️ RELEASE v1.5 • APPLE SILICON & INTEL • ZERO-TRUST
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Interactive Controls Bar -->
+  <div id="player-bar">
+    <button class="btn-ctl primary" id="btn-play">▶ PLAY REEL</button>
+    <button class="btn-ctl" id="btn-sound">🔊 SOUND: ON</button>
+    <button class="btn-ctl" id="btn-record">📹 RECORD MP4</button>
+    <div class="scrub-track" id="scrub-track">
+      <div class="scrub-progress" id="scrub-fill"></div>
+    </div>
+    <span id="player-time" style="font-size: 11px; font-weight:700; width:45px;">00:00</span>
+    <button class="btn-ctl" id="btn-fs">⛶ FULLSCREEN</button>
+  </div>
+
+  <script>
+    // Scale stage to fit window perfectly
+    function resizeStage() {
+      const container = document.getElementById('stage-container');
+      const scaleX = window.innerWidth / 1920;
+      const scaleY = window.innerHeight / 1080;
+      const scale = Math.min(scaleX, scaleY) * 0.96;
+      container.style.transform = `scale(${scale})`;
+    }
+    window.addEventListener('resize', resizeStage);
+    resizeStage();
+
+    // Populate Audio Waveform Bars
+    const waveformBox = document.getElementById('hud-waveform');
+    const barsCount = 36;
+    const bars = [];
+    for (let i = 0; i < barsCount; i++) {
+      const b = document.createElement('div');
+      b.className = 'waveform-bar';
+      waveformBox.appendChild(b);
+      bars.push(b);
+    }
+
+    // Procedural Web Audio Synthesizer (120 BPM Cyber Groove)
+    let audioCtx = null;
+    let isSoundOn = true;
+    let isPlaying = false;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playKick(time) {
+      if (!isSoundOn || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.setValueAtTime(140, time);
+      osc.frequency.exponentialRampToValueAtTime(32, time + 0.12);
+      gain.gain.setValueAtTime(0.8, time);
+      gain.gain.exponentialRampToValueAtTime(0.01, time + 0.15);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(time);
+      osc.stop(time + 0.15);
+    }
+
+    function playHiHat(time) {
+      if (!isSoundOn || !audioCtx) return;
+      const bufSize = audioCtx.sampleRate * 0.04;
+      const buffer = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.value = 7500;
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.2, time);
+      gain.gain.exponentialRampToValueAtTime(0.01, time + 0.04);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+      noise.start(time);
+    }
+
+    function playSynthNote(freq, time, dur = 0.2) {
+      if (!isSoundOn || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, time);
+      gain.gain.setValueAtTime(0.18, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(time);
+      osc.stop(time + dur);
+    }
+
+    // Schedule 120 BPM rhythm
+    let audioTimer = null;
+    function startRhythm() {
+      initAudio();
+      const bpm = 120;
+      const beatDur = 60 / bpm; // 0.5s per quarter note
+      let step = 0;
+      const notes = [110, 110, 146.83, 164.81, 130.81, 146.83];
+
+      audioTimer = setInterval(() => {
+        if (!isPlaying || !audioCtx) return;
+        const now = audioCtx.currentTime;
+        if (step % 2 === 0) playKick(now);
+        playHiHat(now);
+        if (step % 4 === 0) {
+          const f = notes[(step / 4) % notes.length];
+          playSynthNote(f, now, 0.3);
+        }
+        step++;
+      }, (beatDur / 2) * 1000);
+    }
+
+    function stopRhythm() {
+      if (audioTimer) clearInterval(audioTimer);
+    }
+
+    // GSAP Master Timeline Construction
+    const master = gsap.timeline({
+      paused: true,
+      onUpdate: updateUIProgress,
+      onComplete: () => {
+        document.getElementById('btn-play').textContent = '↺ REPLAY';
+        isPlaying = false;
+        stopRhythm();
+      }
+    });
+
+    const chapterNum = document.getElementById('hud-chapter-num');
+    const chapterName = document.getElementById('hud-chapter-name');
+    const easeTag = document.getElementById('hud-ease-tag');
+    const timecode = document.getElementById('hud-timecode');
+    const scrubFill = document.getElementById('scrub-fill');
+    const playerTime = document.getElementById('player-time');
+
+    function updateUIProgress() {
+      const p = master.progress();
+      const curTime = master.time();
+      scrubFill.style.width = `${p * 100}%`;
+      
+      const mins = String(Math.floor(curTime / 60)).padStart(2, '0');
+      const secs = String(Math.floor(curTime % 60)).padStart(2, '0');
+      const frames = String(Math.floor((curTime % 1) * 60)).padStart(2, '0');
+      const totalFrames = String(Math.floor(curTime * 60)).padStart(4, '0');
+      
+      playerTime.textContent = `${mins}:${secs}`;
+      timecode.innerHTML = `00:${mins}:${secs}:${frames} <span style="color:rgba(255,255,255,0.4); font-size:11px;">F ${totalFrames}</span>`;
+
+      // Animate HUD spectrum analyzer
+      bars.forEach((b, idx) => {
+        const height = isPlaying ? 6 + Math.sin(curTime * 15 + idx * 0.6) * 16 + Math.random() * 8 : 8;
+        b.style.height = `${Math.max(4, height)}px`;
+        if (height > 18) b.classList.add('active');
+        else b.classList.remove('active');
+      });
+    }
+
+    // ================= BUILD CINEMATIC SEQUENCE =================
+
+    // [00:00 - 00:04] SCENE 1: THE NOTCH
+    master
+      .set('#scene-notch', { opacity: 1 })
+      .add(() => {
+        chapterNum.textContent = '01 / 06';
+        chapterName.textContent = 'THE NOTCH';
+        easeTag.textContent = 'EASE BACK.OUT(2.2)';
+      })
+      .fromTo('#phys-notch', { scaleX: 1, scaleY: 1 }, { scaleX: 1.15, scaleY: 1.1, duration: 0.4, ease: 'power2.out' }, '+=0.3')
+      .to('#curve-path', { strokeDashoffset: 0, duration: 1.2, ease: 'power2.out' }, '<')
+      .to('#notch-panel', {
+        opacity: 1,
+        scaleY: 1,
+        duration: 0.9,
+        ease: 'back.out(2.2)',
+        onStart: () => {
+          document.getElementById('phys-notch').style.borderBottomLeftRadius = '0px';
+          document.getElementById('phys-notch').style.borderBottomRightRadius = '0px';
+        }
+      }, '+=0.2')
+      .to('.hud-tab-item', { scale: 1.08, stagger: 0.08, yoyo: true, repeat: 1, duration: 0.2 }, '-=0.3')
+      .to('#scene-notch', { opacity: 0, scale: 0.94, duration: 0.5, ease: 'power2.in' }, '+=1.0');
+
+    // [00:04 - 00:08] SCENE 2: SMART SHELF
+    master
+      .set('#scene-shelf', { opacity: 1 }, '-=0.1')
+      .add(() => {
+        chapterNum.textContent = '02 / 06';
+        chapterName.textContent = 'SMART SHELF';
+        easeTag.textContent = 'PHYSICS SPRING(400, 25)';
+      })
+      .fromTo('#card-1', 
+        { y: -200, opacity: 0, rotation: -8 }, 
+        { y: 0, opacity: 1, rotation: 0, duration: 0.7, ease: 'back.out(2)' }
+      )
+      .fromTo('#card-2', 
+        { y: 200, opacity: 0, rotation: 8 }, 
+        { y: 0, opacity: 1, rotation: 0, duration: 0.7, ease: 'back.out(2)' }, 
+        '-=0.4'
+      )
+      .to('.shelf-dropzone', { borderColor: '#00f0ff', boxShadow: '0 0 40px rgba(0,240,255,0.3)', duration: 0.4, yoyo: true, repeat: 1 })
+      .to('#scene-shelf', { opacity: 0, x: -100, duration: 0.5, ease: 'power2.in' }, '+=1.0');
+
+    // [00:08 - 00:12] SCENE 3: QUICK AI ENGINE
+    master
+      .set('#scene-ai', { opacity: 1 }, '-=0.1')
+      .add(() => {
+        chapterNum.textContent = '03 / 06';
+        chapterName.textContent = 'QUICK AI';
+        easeTag.textContent = 'STREAMING TOKEN EVAL';
+      })
+      .fromTo('.code-terminal-box', { scale: 0.88, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: 'back.out(1.8)' })
+      .to('#pill-explain', { scale: 1.15, boxShadow: '0 0 30px #ff5722', duration: 0.3, yoyo: true, repeat: 1 }, '+=0.4')
+      .to('#ai-response-box', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' })
+      .to('#scene-ai', { opacity: 0, y: -60, duration: 0.5, ease: 'power2.in' }, '+=1.2');
+
+    // [00:12 - 00:16] SCENE 4: VISION OCR
+    master
+      .set('#scene-ocr', { opacity: 1 }, '-=0.1')
+      .add(() => {
+        chapterNum.textContent = '04 / 06';
+        chapterName.textContent = 'VISION OCR';
+        easeTag.textContent = 'NEURAL ENGINE 100% LOCAL';
+      })
+      .fromTo('#ocr-laser', { top: '0%' }, { top: '100%', duration: 1.2, ease: 'linear' })
+      .fromTo(['#ocr-b1', '#ocr-b2', '#ocr-b3'], 
+        { scale: 0.8, opacity: 0 }, 
+        { scale: 1, opacity: 1, stagger: 0.25, duration: 0.4, ease: 'back.out(2)' }, 
+        '-=0.9'
+      )
+      .to('#scene-ocr', { opacity: 0, scale: 1.1, duration: 0.5, ease: 'power2.in' }, '+=1.0');
+
+    // [00:16 - 00:20] SCENE 5: AI QUOTA & ALARMS
+    master
+      .set('#scene-quota', { opacity: 1 }, '-=0.1')
+      .add(() => {
+        chapterNum.textContent = '05 / 06';
+        chapterName.textContent = 'QUOTA & ALARMS';
+        easeTag.textContent = 'APPLE CLOCK INTEGRATION';
+      })
+      .fromTo('.quota-card', 
+        { y: 80, opacity: 0 }, 
+        { y: 0, opacity: 1, stagger: 0.15, duration: 0.6, ease: 'back.out(1.8)' }
+      )
+      .to('#dial-c1', { strokeDashoffset: 314 * (1 - 0.92), duration: 0.8, ease: 'power2.out' }, '-=0.3')
+      .to('#dial-c2', { strokeDashoffset: 314 * (1 - 0.98), duration: 0.8, ease: 'power2.out' }, '-=0.6')
+      .to('#scene-quota', { opacity: 0, duration: 0.5 }, '+=1.2');
+
+    // [00:20 - 00:25] SCENE 6: KINETIC OUTRO
+    master
+      .set('#scene-outro', { opacity: 1 }, '-=0.1')
+      .add(() => {
+        chapterNum.textContent = '06 / 06';
+        chapterName.textContent = 'HYPERNOTCH';
+        easeTag.textContent = 'ONE TAKE SIGNATURE';
+      })
+      .fromTo('#outro-icon', 
+        { scale: 0, rotation: -25, opacity: 0 }, 
+        { scale: 1, rotation: 0, opacity: 1, duration: 0.8, ease: 'back.out(2.5)' }
+      )
+      .fromTo('#outro-title', 
+        { scale: 2.2, opacity: 0, letterSpacing: '20px' }, 
+        { scale: 1, opacity: 1, letterSpacing: '-4px', duration: 0.6, ease: 'power4.out' }, 
+        '-=0.4'
+      )
+      .fromTo('#outro-badge', 
+        { y: 40, opacity: 0 }, 
+        { y: 0, opacity: 1, duration: 0.5, ease: 'back.out(2)' }, 
+        '-=0.2'
+      );
+
+    // ================= CONTROLS HANDLERS =================
+    const btnPlay = document.getElementById('btn-play');
+    btnPlay.addEventListener('click', () => {
+      if (isPlaying) {
+        master.pause();
+        stopRhythm();
+        btnPlay.textContent = '▶ RESUME';
+        isPlaying = false;
+      } else {
+        if (master.progress() === 1) master.restart();
+        else master.play();
+        startRhythm();
+        btnPlay.textContent = '⏸ PAUSE';
+        isPlaying = true;
+      }
+    });
+
+    // Sound toggle
+    const btnSound = document.getElementById('btn-sound');
+    btnSound.addEventListener('click', () => {
+      isSoundOn = !isSoundOn;
+      btnSound.textContent = isSoundOn ? '🔊 SOUND: ON' : '🔇 SOUND: OFF';
+    });
+
+    // Scrubbing
+    const scrubTrack = document.getElementById('scrub-track');
+    scrubTrack.addEventListener('click', (e) => {
+      const rect = scrubTrack.getBoundingClientRect();
+      const p = (e.clientX - rect.left) / rect.width;
+      master.progress(Math.max(0, Math.min(1, p)));
+    });
+
+    // Record to WebM/MP4
+    const btnRecord = document.getElementById('btn-record');
+    let mediaRecorder = null;
+    let recordedChunks = [];
+
+    btnRecord.addEventListener('click', async () => {
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: { frameRate: 60, width: 1920, height: 1080 },
+          audio: true
+        });
+        recordedChunks = [];
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) recordedChunks.push(e.data);
+        };
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recordedChunks, { type: 'video/webm' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'HyperNotch_Motion_Reel.webm';
+          a.click();
+          btnRecord.textContent = '📹 RECORD MP4';
+          btnRecord.style.background = '';
+        };
+
+        mediaRecorder.start();
+        btnRecord.textContent = '🔴 STOP & SAVE';
+        btnRecord.style.background = '#ff334b';
+
+        // Restart presentation from 0
+        master.restart();
+        if (!isPlaying) btnPlay.click();
+      } catch (err) {
+        alert('Recording cancelled or not supported by browser.');
+      }
+    });
+
+    // Fullscreen
+    document.getElementById('btn-fs').addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    // Auto-start on load after brief delay
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        btnPlay.click();
+      }, 500);
+    });
+  </script>
+</body>
+</html>
