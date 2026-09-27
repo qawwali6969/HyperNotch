@@ -1,0 +1,284 @@
+import SwiftUI
+import AppKit
+
+struct ClipboardView: View {
+    @ObservedObject var manager = ClipboardManager.shared
+    @ObservedObject var quickAI = QuickAIEngine.shared
+    @State private var copiedId: UUID?
+    
+    var body: some View {
+        ZStack {
+            VStack(spacing: 8) {
+                // Unified Hero Header & Search Bar
+                HStack(spacing: 8) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "doc.on.clipboard")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.white)
+                            .shadow(color: .white.opacity(0.4), radius: 3)
+                        
+                        Text("CLIPBOARD & AI ACTIONS")
+                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .foregroundStyle(.white)
+                    }
+                    
+                    Spacer()
+                    
+                    // Quick AI Query Field
+                    HStack(spacing: 5) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 9))
+                            .foregroundStyle(Color.cyan)
+                        TextField("Спросить AI...", text: $quickAI.quickPromptQuery)
+                            .textFieldStyle(.plain)
+                            .font(.system(size: 9.5, design: .monospaced))
+                            .foregroundStyle(.white)
+                            .onSubmit {
+                                quickAI.submitQuickPrompt()
+                            }
+                    }
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 8)
+                    .frame(width: 140)
+                    .heroInputBox(cornerRadius: 7)
+                    
+                    HStack(spacing: 6) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                        
+                        TextField("Поиск...", text: $manager.searchQuery)
+                            .textFieldStyle(.plain)
+                            .font(.system(size: 10, design: .monospaced))
+                            .foregroundStyle(.white)
+                    }
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 8)
+                    .frame(width: 130)
+                    .heroInputBox(cornerRadius: 7)
+                    
+                    Button("Очистить") {
+                        withAnimation {
+                            manager.clearUnpinned()
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 4)
+                    .background(Color.white.opacity(0.06))
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                }
+                .padding(.horizontal, 16)
+                
+                // Items List
+                if manager.filteredItems.isEmpty {
+                    VStack(spacing: 6) {
+                        Image(systemName: "doc.on.clipboard")
+                            .font(.system(size: 26))
+                            .foregroundStyle(.white.opacity(0.6))
+                            .shadow(color: .white.opacity(0.2), radius: 6)
+                        
+                        Text("Буфер обмена пуст")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.white)
+                        
+                        Text("Скопированный текст и фрагменты кода появятся здесь автоматически")
+                            .font(.system(size: 9, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.bottom, 8)
+                } else {
+                    ScrollView(.vertical, showsIndicators: true) {
+                        LazyVStack(spacing: 6) {
+                            ForEach(manager.filteredItems) { item in
+                                ClipboardRowView(item: item, copiedId: $copiedId)
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 8)
+                    }
+                }
+            }
+            
+            // Inline AI Result Modal Overlay
+            if quickAI.isPresented {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation(.spring) {
+                            quickAI.isPresented = false
+                        }
+                    }
+                
+                AIResultModalView()
+                    .transition(.scale(scale: 0.95).combined(with: .opacity))
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+            }
+        }
+    }
+}
+
+struct ClipboardRowView: View {
+    let item: ClipboardItem
+    @Binding var copiedId: UUID?
+    @ObservedObject var manager = ClipboardManager.shared
+    @State private var isHovered = false
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            // Icon
+            Image(systemName: item.isPinned ? "pin.fill" : (item.isCodeSnippet ? "curlybraces" : "text.alignleft"))
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(item.isPinned ? Color.orange : (item.isCodeSnippet ? Color.cyan : Color.white.opacity(0.8)))
+                .shadow(color: (item.isPinned ? Color.orange : (item.isCodeSnippet ? Color.cyan : Color.white)).opacity(0.3), radius: 4)
+                .padding(.top, 2)
+            
+            // Text Preview
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.preview)
+                    .font(.system(size: 11, design: item.isCodeSnippet ? .monospaced : .default))
+                    .lineLimit(2)
+                    .foregroundStyle(.white)
+                
+                HStack(spacing: 5) {
+                    Text(item.timestamp, style: .time)
+                        .font(.system(size: 9, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                    
+                    if item.isCodeSnippet {
+                        Text("CODE")
+                            .font(.system(size: 7, weight: .bold, design: .monospaced))
+                            .foregroundStyle(Color.cyan)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                            .background(Color.cyan.opacity(0.15))
+                            .clipShape(Capsule())
+                    }
+                }
+            }
+            
+            Spacer()
+            
+            // 1-Click AI actions & Quick buttons
+            HStack(spacing: 5) {
+                if item.isCodeSnippet {
+                    Button(action: {
+                        QuickAIEngine.shared.executeAction(.explain, on: item.content)
+                    }) {
+                        HStack(spacing: 2) {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 8))
+                            Text("Объяснить")
+                                .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                        }
+                        .padding(.vertical, 3)
+                        .padding(.horizontal, 6)
+                        .background(Color.cyan.opacity(0.18))
+                        .foregroundStyle(Color.cyan)
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .help("Объяснить этот код с помощью AI")
+                } else {
+                    Button(action: {
+                        QuickAIEngine.shared.executeAction(.summarize, on: item.content)
+                    }) {
+                        HStack(spacing: 2) {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 8))
+                            Text("Саммари")
+                                .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                        }
+                        .padding(.vertical, 3)
+                        .padding(.horizontal, 6)
+                        .background(Color.purple.opacity(0.2))
+                        .foregroundStyle(Color.purple)
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .help("Сделать саммари текста")
+                    
+                    Button(action: {
+                        QuickAIEngine.shared.executeAction(.translate, on: item.content)
+                    }) {
+                        Text("RU↔EN")
+                            .font(.system(size: 8, weight: .bold, design: .monospaced))
+                            .padding(.vertical, 3)
+                            .padding(.horizontal, 5)
+                            .background(Color.white.opacity(0.08))
+                            .foregroundStyle(Color.white.opacity(0.85))
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .help("Быстрый перевод RU / EN")
+                }
+                
+                // Save to Apple Notes
+                Button(action: {
+                    let firstLine = item.content.components(separatedBy: .newlines).first ?? "Заметка"
+                    let title = String(firstLine.prefix(45))
+                    AppleNotesManager.shared.createNote(title: title, content: item.content)
+                }) {
+                    Image(systemName: "note.text.badge.plus")
+                        .font(.system(size: 9.5))
+                        .foregroundStyle(Color.yellow.opacity(0.85))
+                        .padding(4)
+                        .background(Circle().fill(Color.yellow.opacity(0.12)))
+                }
+                .buttonStyle(.plain)
+                .help("Сохранить сниппет в Заметки macOS")
+                
+                Button(action: {
+                    manager.togglePin(item: item)
+                }) {
+                    Image(systemName: item.isPinned ? "pin.slash" : "pin")
+                        .font(.system(size: 10))
+                        .foregroundStyle(item.isPinned ? Color.orange : Color.white.opacity(0.6))
+                        .padding(4)
+                        .background(Circle().fill(Color.white.opacity(item.isPinned ? 0.15 : 0.05)))
+                }
+                .buttonStyle(.plain)
+                
+                Button(action: {
+                    manager.copyToPasteboard(item: item)
+                    copiedId = item.id
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                        if copiedId == item.id {
+                            copiedId = nil
+                        }
+                    }
+                }) {
+                    Text(copiedId == item.id ? "Скопировано!" : "Вставить")
+                        .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(copiedId == item.id ? Color.green : Color.white)
+                        .padding(.vertical, 3)
+                        .padding(.horizontal, 7)
+                        .background(Color.white.opacity(copiedId == item.id ? 0.2 : 0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 5))
+                }
+                .buttonStyle(.plain)
+                
+                Button(action: {
+                    withAnimation {
+                        manager.remove(item: item)
+                    }
+                }) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 10))
+                        .foregroundStyle(Color.white.opacity(0.5))
+                        .padding(4)
+                }
+                .buttonStyle(.plain)
+            }
+            .opacity(isHovered || item.isPinned || copiedId == item.id ? 1.0 : 0.35)
+        }
+        .padding(.vertical, 7)
+        .padding(.horizontal, 10)
+        .heroGlassCard(cornerRadius: 10, isHovered: isHovered)
+        .onHover { isHovered = $0 }
+    }
+}

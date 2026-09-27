@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>VibeNotch</string>
+    <key>CFBundleIdentifier</key>
+    <string>dev.vibenotch.app</string>
+    <key>CFBundleName</key>
+    <string>VibeNotch</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>CFBundleIconName</key>
+    <string>AppIcon</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+    <key>LSUIElement</key>
+    <true/>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>VibeNotch использует автоматизацию для установки будильников и напоминаний о сбросе лимитов.</string>
+    <key>NSScreenCaptureUsageDescription</key>
+    <string>VibeNotch требуется доступ к экрану для создания скриншотов и оптического распознавания текста (OCR).</string>
+</dict>
+</plist>

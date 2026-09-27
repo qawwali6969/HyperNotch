@@ -1,0 +1,41 @@
+# Xcode / Swift Package Manager
+.build/
+Packages/
+Package.pins
+Package.resolved
+*.xcodeproj
+*.xcworkspace
+.swiftpm/
+
+# App Bundles & Binaries
+build/
+*.app/
+*.dSYM/
+*.dmg
+*.zip
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Secrets & Environment
+*.env
+*.env.*
+*.pem
+*.key
+*.cert
+*.p12
+*.token
+*.log
+oauth_creds.json
+tokens.json
+credentials.json
+secrets.json
+
+# Plist rules
+*.plist
+!Resources/Info.plist
