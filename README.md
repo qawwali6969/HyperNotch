@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="Resources/AppIcon.png" alt="VibeNotch Icon" width="128" height="128" style="border-radius: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); margin-bottom: 12px;" />
+
 # 🚀 VibeNotch
 
 **The Ultimate AI & Developer HUD for the MacBook Notch**  
