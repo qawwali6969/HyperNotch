@@ -2,19 +2,19 @@
 import PackageDescription
 
 let package = Package(
-    name: "VibeNotch",
+    name: "HyperNotch",
     platforms: [
         .macOS(.v14)
     ],
     products: [
-        .executable(name: "VibeNotch", targets: ["VibeNotch"])
+        .executable(name: "HyperNotch", targets: ["HyperNotch"])
     ],
     dependencies: [],
     targets: [
         .executableTarget(
-            name: "VibeNotch",
+            name: "HyperNotch",
             dependencies: [],
-            path: "Sources/VibeNotch"
+            path: "Sources/HyperNotch"
         )
     ]
 )

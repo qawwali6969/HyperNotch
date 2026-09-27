@@ -46,7 +46,7 @@ struct AIResultModalView: View {
                     // Save to Apple Notes Button
                     Button(action: {
                         let actionName = ai.activeAction?.localizedTitle ?? loc("AI Request", "Запрос к AI")
-                        let title = "VibeNotch: \(actionName)"
+                        let title = "HyperNotch: \(actionName)"
                         let ok = AppleNotesManager.shared.createNote(title: title, content: ai.resultText)
                         if ok {
                             isSavedToNotes = true

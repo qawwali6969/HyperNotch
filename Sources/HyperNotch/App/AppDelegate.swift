@@ -134,17 +134,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem?.button {
-            button.image = NSImage(systemSymbolName: "sparkles.rectangle.stack.fill", accessibilityDescription: "VibeNotch")
+            button.image = NSImage(systemSymbolName: "sparkles.rectangle.stack.fill", accessibilityDescription: "HyperNotch")
         }
         
         let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "VibeNotch v1.0", action: nil, keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "HyperNotch v1.5", action: nil, keyEquivalent: ""))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Toggle Notch", action: #selector(toggleNotch), keyEquivalent: "n"))
         menu.addItem(NSMenuItem(title: "Clear File Shelf", action: #selector(clearShelf), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Refresh AI Quotas", action: #selector(refreshAI), keyEquivalent: "r"))
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Quit VibeNotch", action: #selector(quitApp), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Quit HyperNotch", action: #selector(quitApp), keyEquivalent: "q"))
         statusItem?.menu = menu
     }
     

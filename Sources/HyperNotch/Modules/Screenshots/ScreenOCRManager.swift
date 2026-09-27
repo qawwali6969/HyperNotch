@@ -26,7 +26,7 @@ class ScreenOCRManager: ObservableObject {
         NotchStateCoordinator.shared.close(force: true)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            let tempUrl = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("vibenotch_ocr_\(UUID().uuidString).png")
+            let tempUrl = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("hypernotch_ocr_\(UUID().uuidString).png")
             
             let proc = Process()
             proc.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")

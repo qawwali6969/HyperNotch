@@ -46,7 +46,7 @@ class WebAuthManager: NSObject, WKNavigationDelegate, WKUIDelegate, NSWindowDele
         )
         
         let hostName = url.host ?? "Сайт"
-        window.title = "Вход на \(hostName) (Google / Пароль) — VibeNotch"
+        window.title = "Вход на \(hostName) (Google / Пароль) — HyperNotch"
         window.level = .floating
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.isReleasedWhenClosed = false

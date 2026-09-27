@@ -27,7 +27,8 @@ public enum AppLanguage: String, CaseIterable, Identifiable {
 public final class LocalizationManager: ObservableObject {
     public static let shared = LocalizationManager()
     
-    private let storageKey = "vibenotch_app_language"
+    private let storageKey = "hypernotch_app_language"
+    private let legacyStorageKey = "vibenotch_app_language"
     
     @Published public var currentLanguage: AppLanguage {
         didSet {
@@ -36,7 +37,7 @@ public final class LocalizationManager: ObservableObject {
     }
     
     private init() {
-        if let saved = UserDefaults.standard.string(forKey: storageKey),
+        if let saved = UserDefaults.standard.string(forKey: storageKey) ?? UserDefaults.standard.string(forKey: legacyStorageKey),
            let lang = AppLanguage(rawValue: saved) {
             self.currentLanguage = lang
         } else {

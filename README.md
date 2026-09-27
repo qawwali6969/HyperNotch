@@ -1,13 +1,14 @@
 <div align="center">
 
-<img src="Resources/AppIcon.png" alt="VibeNotch Icon" width="140" height="140" style="border-radius: 32px; box-shadow: 0 12px 36px rgba(0,0,0,0.45); margin-bottom: 14px;" />
+<img src="Resources/AppIcon.png" alt="HyperNotch Icon" width="140" height="140" style="border-radius: 32px; box-shadow: 0 12px 36px rgba(0,0,0,0.45); margin-bottom: 14px;" />
 
-# 🚀 VibeNotch
+# ⚡️ HyperNotch
 
 **The Ultimate AI & Developer HUD for the MacBook Notch**  
-*Многофункциональный смарт-вырез для разработчиков, криейторов и вайбкодеров*
+*Сверхскоростной смарт-вырез для разработчиков, криейторов и вайбкодеров*
 
 <p align="center">
+  <img src="https://img.shields.io/badge/Release-v1.5-success?style=for-the-badge" alt="Version 1.5">
   <a href="#-русская-версия"><img src="https://img.shields.io/badge/Язык-Русский-blue?style=for-the-badge" alt="Русская версия"></a>
   <a href="#-english-version"><img src="https://img.shields.io/badge/Language-English-red?style=for-the-badge" alt="English version"></a>
   <img src="https://img.shields.io/badge/macOS-14.0%2B-black?style=for-the-badge&logo=apple" alt="macOS 14+">
@@ -22,7 +23,7 @@
 
 <br/>
 
-<img src="Resources/preview.gif" alt="VibeNotch Interactive Preview" width="880" style="border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.6);" />
+<img src="Resources/preview.gif" alt="HyperNotch Interactive Preview" width="880" style="border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.6);" />
 
 <p align="center">
   <sub>✨ <i>Интерактивная демонстрация смарт-выреза: Shelf • Web Apps • AI Quota • Screen OCR • Metrics HUD</i></sub>
@@ -97,19 +98,19 @@
 #### Установка:
 ```bash
 # Клонируйте репозиторий
-git clone https://github.com/qawwali6969/VibeNotch.git
-cd VibeNotch
+git clone https://github.com/qawwali6969/HyperNotch.git
+cd HyperNotch
 
 # Соберите и упакуйте .app бандл
 ./package.sh
 
 # Запустите приложение
-open build/VibeNotch.app
+open build/HyperNotch.app
 ```
 
-| Приложение | Платформа | Архитектура | Статус |
-| :---: | :---: | :---: | :---: |
-| <img src="Resources/AppIcon.png" width="36" height="36" style="vertical-align: middle; border-radius: 8px;"/> **VibeNotch.app** | macOS 14.0+ | Apple Silicon (M1–M4) & Intel | Готов к релизу |
+| Приложение | Версия | Платформа | Архитектура | Статус |
+| :---: | :---: | :---: | :---: | :---: |
+| <img src="Resources/AppIcon.png" width="36" height="36" style="vertical-align: middle; border-radius: 8px;"/> **HyperNotch.app** | **v1.5** | macOS 14.0+ | Apple Silicon (M1–M4) & Intel | Готов к релизу |
 
 При первом запуске разрешите приложению доступ к **Записи экрана** в *Системных настройках → Конфиденциальность и безопасность* (необходимо для работы инструмента OCR и создания скриншотов).
 
@@ -117,12 +118,12 @@ open build/VibeNotch.app
 
 ### 🔒 Безопасность и защита данных
 
-VibeNotch спроектирован с философией **Zero-Trust** и максимальной приватности данных разработчика:
+HyperNotch спроектирован с философией **Zero-Trust** и максимальной приватности данных разработчика:
 
 * 🔐 **Аппаратная защита Apple Keychain & Secure Enclave:**  
   Ваши API-ключи (OpenAI, Claude, Gemini, Z.ai, сессионные куки) **никогда не сохраняются в открытом виде** в обычных файлах (`UserDefaults`, `.json` или `.plist`). Все секреты шифруются и записываются напрямую в системное хранилище **Apple Keychain**, использующее аппаратную защиту Secure Enclave вашего Mac.
 * 🛡 **Умный фильтр буфера обмена (Clipboard Security Filter):**  
-  VibeNotch автоматически сканирует копируемый текст на наличие чувствительных данных. Если вы копируете приватные SSH-ключи (`BEGIN OPENSSH`), токены GitHub (`ghp_`, `gho_`), ключи нейросетей (`sk-`, `AIzaSy`), токены авторизации JWT или пароли — приложение **мгновенно отфильтровывает их и запрещает сохранение в историю буфера**. Ваши секреты никогда не засветятся на экране при показе выреза коллегам или на стриме.
+  HyperNotch автоматически сканирует копируемый текст на наличие чувствительных данных. Если вы копируете приватные SSH-ключи (`BEGIN OPENSSH`), токены GitHub (`ghp_`, `gho_`), ключи нейросетей (`sk-`, `AIzaSy`), токены авторизации JWT или пароли — приложение **мгновенно отфильтровывает их и запрещает сохранение в историю буфера**. Ваши секреты никогда не засветятся на экране при показе выреза коллегам или на стриме.
 * 💻 **100% Локальные вычисления (On-Device Processing):**  
   Оптическое распознавание текста (OCR) работает на базе встроенного Apple Vision Framework и выполняется локально на Neural Engine чипов Apple Silicon. Ни один ваш скриншот, фрагмент экрана или файл не отправляется на сторонние сервера для обработки.
 * ⚙️ **Прозрачный контроль прав (macOS TCC):**  
@@ -198,19 +199,19 @@ VibeNotch спроектирован с философией **Zero-Trust** и �
 #### Building from source:
 ```bash
 # Clone the repository
-git clone https://github.com/qawwali6969/VibeNotch.git
-cd VibeNotch
+git clone https://github.com/qawwali6969/HyperNotch.git
+cd HyperNotch
 
 # Build & Package the .app bundle
 ./package.sh
 
-# Run VibeNotch
-open build/VibeNotch.app
+# Run HyperNotch
+open build/HyperNotch.app
 ```
 
-| Application | Platform | Architecture | Status |
-| :---: | :---: | :---: | :---: |
-| <img src="Resources/AppIcon.png" width="36" height="36" style="vertical-align: middle; border-radius: 8px;"/> **VibeNotch.app** | macOS 14.0+ | Apple Silicon (M1–M4) & Intel | Production Ready |
+| Application | Version | Platform | Architecture | Status |
+| :---: | :---: | :---: | :---: | :---: |
+| <img src="Resources/AppIcon.png" width="36" height="36" style="vertical-align: middle; border-radius: 8px;"/> **HyperNotch.app** | **v1.5** | macOS 14.0+ | Apple Silicon (M1–M4) & Intel | Production Ready |
 
 On first launch, grant **Screen Recording** permission in *System Settings → Privacy & Security* (required for Vision OCR and screen snips).
 
@@ -218,12 +219,12 @@ On first launch, grant **Screen Recording** permission in *System Settings → P
 
 ### 🔒 Privacy & Architecture Security
 
-VibeNotch is built from the ground up with a strict **Zero-Trust & Local-First** security architecture:
+HyperNotch is built from the ground up with a strict **Zero-Trust & Local-First** security architecture:
 
 * 🔐 **Hardware-Backed Apple Keychain & Secure Enclave:**  
   Your API keys (OpenAI, Claude, Gemini, Z.ai, session tokens) are **never stored as plain text** on disk (`UserDefaults`, `.json`, or `.plist`). All sensitive credentials are encrypted and stored directly in the native **Apple Keychain**, protected by your Mac's hardware Secure Enclave.
 * 🛡 **Proactive Clipboard Security Filter:**  
-  VibeNotch continuously monitors clipboard events to safeguard your credentials. If you copy private SSH keys (`BEGIN OPENSSH`), GitHub PATs (`ghp_`, `gho_`), LLM API keys (`sk-`, `AIzaSy`), JWT authentication tokens, or environment passwords, the app **automatically redacts them and refuses to persist them into clipboard history**. Your secrets won't be exposed on-screen during screen shares or code reviews.
+  HyperNotch continuously monitors clipboard events to safeguard your credentials. If you copy private SSH keys (`BEGIN OPENSSH`), GitHub PATs (`ghp_`, `gho_`), LLM API keys (`sk-`, `AIzaSy`), JWT authentication tokens, or environment passwords, the app **automatically redacts them and refuses to persist them into clipboard history**. Your secrets won't be exposed on-screen during screen shares or code reviews.
 * 💻 **100% On-Device Neural Processing:**  
   Optical Character Recognition (OCR) is powered by Apple's native Vision framework running locally on Apple Silicon Neural Engine cores. Not a single pixel, screenshot, or dropped file is transmitted to external servers for processing.
 * ⚙️ **Transparent Permission Model (macOS TCC):**  

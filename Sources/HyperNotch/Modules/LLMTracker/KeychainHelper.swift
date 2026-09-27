@@ -3,7 +3,8 @@ import Security
 
 /// Безопасное хранилище секретов в Apple Keychain (AES-256 + аппаратная защита Secure Enclave)
 struct KeychainHelper {
-    static let service = "dev.vibenotch.app.secrets"
+    static let service = "dev.hypernotch.app.secrets"
+    static let legacyService = "dev.vibenotch.app.secrets"
     
     @discardableResult
     static func save(key: String, value: String) -> Bool {
@@ -31,9 +32,21 @@ struct KeychainHelper {
     }
     
     static func load(key: String) -> String? {
+        if let val = loadFrom(serviceName: service, key: key) {
+            return val
+        }
+        // Fallback and migrate from legacy service
+        if let legacyVal = loadFrom(serviceName: legacyService, key: key) {
+            _ = save(key: key, value: legacyVal)
+            return legacyVal
+        }
+        return nil
+    }
+    
+    private static func loadFrom(serviceName: String, key: String) -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
+            kSecAttrService as String: serviceName,
             kSecAttrAccount as String: key,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
@@ -55,5 +68,12 @@ struct KeychainHelper {
             kSecAttrAccount as String: key
         ]
         SecItemDelete(query as CFDictionary)
+        
+        let legacyQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: legacyService,
+            kSecAttrAccount as String: key
+        ]
+        SecItemDelete(legacyQuery as CFDictionary)
     }
 }

@@ -15,7 +15,7 @@ class AppleNotesManager: ObservableObject {
         
         let formattedBody: String
         let escapedContent = escapeHTML(content).replacingOccurrences(of: "\n", with: "<br>")
-        formattedBody = "<h1>\(cleanTitle)</h1><p style=\"color:gray; font-size:12px;\">Сохранено из VibeNotch • \(formattedDate)</p><hr><p>\(escapedContent)</p>"
+        formattedBody = "<h1>\(cleanTitle)</h1><p style=\"color:gray; font-size:12px;\">Сохранено из HyperNotch • \(formattedDate)</p><hr><p>\(escapedContent)</p>"
         
         // Escape AppleScript double quotes and backslashes
         let scriptSafeBody = formattedBody

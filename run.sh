@@ -6,5 +6,5 @@ cd "$DIR"
 
 "$DIR/package.sh"
 
-echo "🌟 Launching VibeNotch..."
-open "$DIR/build/VibeNotch.app"
+echo "🌟 Launching HyperNotch..."
+open "$DIR/build/HyperNotch.app"
