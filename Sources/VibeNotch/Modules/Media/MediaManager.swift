@@ -81,9 +81,24 @@ class MediaManager: ObservableObject {
     }
     
     func refreshNowPlaying() {
-        Task.detached(priority: .background) {
+        let spotifyRunning = isAppRunning("Spotify")
+        let musicRunning = isAppRunning("Music")
+        
+        if !spotifyRunning && !musicRunning {
+            if activeApp != nil {
+                isPlaying = false
+                activeApp = nil
+                trackTitle = ""
+                artist = ""
+            }
+            return
+        }
+        
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            
             // First check if Spotify is running
-            if self.isAppRunning("Spotify") {
+            if spotifyRunning {
                 let script = """
                 tell application "Spotify"
                     if player state is playing then
@@ -101,15 +116,13 @@ class MediaManager: ObservableObject {
                     let artist = parts.count > 2 ? parts[2] : ""
                     let album = parts.count > 3 ? parts[3] : ""
                     
-                    await MainActor.run {
-                        MediaManager.shared.update(isPlaying: isPlay, title: title, artist: artist, album: album, app: .spotify)
-                    }
+                    self.update(isPlaying: isPlay, title: title, artist: artist, album: album, app: .spotify)
                     return
                 }
             }
             
             // Check Apple Music
-            if self.isAppRunning("Music") {
+            if musicRunning {
                 let script = """
                 tell application "Music"
                     if player state is playing then
@@ -127,23 +140,13 @@ class MediaManager: ObservableObject {
                     let artist = parts.count > 2 ? parts[2] : ""
                     let album = parts.count > 3 ? parts[3] : ""
                     
-                    await MainActor.run {
-                        MediaManager.shared.update(isPlaying: isPlay, title: title, artist: artist, album: album, app: .appleMusic)
-                    }
+                    self.update(isPlaying: isPlay, title: title, artist: artist, album: album, app: .appleMusic)
                     return
                 }
             }
             
-            await MainActor.run {
-                if MediaManager.shared.activeApp != nil && !MediaManager.shared.isPlaying {
-                    // keep track info if simply paused, or reset if apps are closed
-                    if !self.isAppRunning("Spotify") && !self.isAppRunning("Music") {
-                        MediaManager.shared.isPlaying = false
-                        MediaManager.shared.activeApp = nil
-                        MediaManager.shared.trackTitle = ""
-                        MediaManager.shared.artist = ""
-                    }
-                }
+            if self.isPlaying {
+                self.isPlaying = false
             }
         }
     }

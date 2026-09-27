@@ -104,8 +104,26 @@ struct MainNotchView: View {
                 if hovering {
                     coordinator.open()
                 } else {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
                         if !isHovering {
+                            // Check if cursor is truly outside the active notch rect
+                            let mouseLoc = NSEvent.mouseLocation
+                            if let screen = NSScreen.main {
+                                let activeWidth = coordinator.isExpanded ? coordinator.openSize.width : coordinator.currentClosedSize.width
+                                let activeHeight = coordinator.isExpanded ? coordinator.openSize.height : coordinator.currentClosedSize.height
+                                let screenFrame = screen.frame
+                                let notchScreenRect = NSRect(
+                                    x: screenFrame.midX - (activeWidth / 2) - 10,
+                                    y: screenFrame.maxY - activeHeight - 10,
+                                    width: activeWidth + 20,
+                                    height: activeHeight + 20
+                                )
+                                if notchScreenRect.contains(mouseLoc) {
+                                    // Mouse is still inside the notch zone! Keep open
+                                    isHovering = true
+                                    return
+                                }
+                            }
                             coordinator.close()
                         }
                     }

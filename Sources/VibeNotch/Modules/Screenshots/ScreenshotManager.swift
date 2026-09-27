@@ -191,6 +191,8 @@ class ScreenshotManager: ObservableObject {
     }
     
     // MARK: - Directory Watcher
+    private var pendingReloadTask: Task<Void, Never>?
+    
     private func startWatchingDirectory() {
         let dirUrl = screenshotDirectory
         let fd = Darwin.open(dirUrl.path, O_EVTONLY)
@@ -200,12 +202,15 @@ class ScreenshotManager: ObservableObject {
         let source = DispatchSource.makeFileSystemObjectSource(
             fileDescriptor: fd,
             eventMask: [.write, .link, .rename],
-            queue: DispatchQueue.global(qos: .userInitiated)
+            queue: DispatchQueue.main
         )
         
         source.setEventHandler { [weak self] in
-            Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            self.pendingReloadTask?.cancel()
+            self.pendingReloadTask = Task { @MainActor [weak self] in
                 try? await Task.sleep(nanoseconds: 350_000_000)
+                guard !Task.isCancelled else { return }
                 self?.loadScreenshots()
             }
         }

@@ -24,13 +24,14 @@ class NotchHostingView<Content: View>: NSHostingView<Content> {
             return nil
         }
         
-        // When closed, ONLY intercept events in the center physical notch area!
-        // Clicks over the side wings pass cleanly through to the macOS menu items underneath!
+        // When closed, activate across the full closed width (including music wings) plus a generous hover buffer!
+        let activeClosedWidth = max(coordinator.notchSize.width, coordinator.currentClosedSize.width) + 30
+        let activeClosedHeight = coordinator.notchSize.height + 14
         let centerNotchRect = NSRect(
-            x: (bounds.width - coordinator.notchSize.width) / 2,
-            y: bounds.height - coordinator.notchSize.height,
-            width: coordinator.notchSize.width,
-            height: coordinator.notchSize.height
+            x: (bounds.width - activeClosedWidth) / 2,
+            y: bounds.height - activeClosedHeight,
+            width: activeClosedWidth,
+            height: activeClosedHeight
         )
         if centerNotchRect.contains(point) {
             return super.hitTest(point)
