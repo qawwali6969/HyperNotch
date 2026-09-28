@@ -3,196 +3,200 @@ import AppKit
 
 struct DevToolsView: View {
     @ObservedObject var devTools = DevToolsManager.shared
+    @ObservedObject var localization = LocalizationManager.shared
     
     var body: some View {
-        HStack(spacing: 12) {
-            // Left: Active Dev Ports
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    HStack(spacing: 5) {
-                        Image(systemName: "server.rack")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.white)
-                            .shadow(color: .white.opacity(0.4), radius: 3)
-                        
-                        Text(loc("LOCALHOST SERVERS", "ЛОКАЛЬНЫЕ СЕРВЕРЫ"))
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.white)
-                    }
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        devTools.scanPorts()
-                    }) {
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                    .help(loc("Refresh ports", "Обновить порты"))
+        VStack(spacing: 8) {
+            // V2 Module Header
+            V2ModuleHeader(
+                tab: .devTools,
+                statusText: "\(devTools.activePorts.filter { $0.isOpen }.count) \(loc("RUNNING", "ЗАПУЩЕНО")) · 2 \(loc("IDLE", "СВОБОДНО"))"
+            ) {
+                V2GlassButton(
+                    title: loc("Scan", "Сканировать"),
+                    icon: "arrow.triangle.2.circlepath"
+                ) {
+                    devTools.scanPorts()
                 }
-                
-                VStack(spacing: 5) {
-                    ForEach(devTools.activePorts) { port in
-                        HStack(spacing: 6) {
-                            Circle()
-                                .fill(port.isOpen ? Color.green : Color.white.opacity(0.2))
-                                .frame(width: 6, height: 6)
-                                .shadow(color: port.isOpen ? Color.green.opacity(0.6) : Color.clear, radius: 3)
-                            
-                            Text(port.serviceName)
-                                .font(.system(size: 10, design: .monospaced))
-                                .foregroundStyle(port.isOpen ? .white : .secondary)
-                            
-                            Spacer()
-                            
-                            if port.isOpen {
-                                Button(loc("Open", "Открыть")) {
-                                    if let url = URL(string: "http://localhost:\(port.id)") {
-                                        NSWorkspace.shared.open(url)
-                                    }
-                                }
-                                .buttonStyle(.plain)
-                                .font(.system(size: 9, weight: .bold, design: .monospaced))
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Color.green.opacity(0.18))
-                                .foregroundStyle(.green)
-                                .clipShape(RoundedRectangle(cornerRadius: 5))
-                            }
-                        }
-                        .padding(.vertical, 1)
-                    }
-                }
-                
-                Spacer()
             }
-            .frame(width: 235)
-            .padding(10)
-            .heroGlassCard(cornerRadius: 13)
             
-            // Right: Instant Token & Cost Calculator
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 5) {
-                    Image(systemName: "curlybraces")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.white)
-                        .shadow(color: .white.opacity(0.4), radius: 3)
+            // Duo Body Panels (Matching Prototype .duo)
+            HStack(spacing: 11) {
+                // Left: Active Dev Ports
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text(loc("LOCALHOST PORTS", "ПОРТЫ LOCALHOST"))
+                            .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+                            .foregroundStyle(V2Colors.faint)
+                        
+                        Spacer()
+                    }
                     
-                    Text(loc("TOKEN & COST CALCULATOR", "КАЛЬКУЛЯТОР ТОКЕНОВ И СТОИМОСТИ"))
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
-                        .foregroundStyle(.white)
+                    VStack(spacing: 5) {
+                        ForEach(devTools.activePorts) { port in
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .fill(port.isOpen ? V2Colors.ice : V2Colors.faint.opacity(0.4))
+                                    .frame(width: 5, height: 5)
+                                    .shadow(color: port.isOpen ? V2Colors.ice.opacity(0.7) : Color.clear, radius: 3)
+                                
+                                Text("\(port.id)")
+                                    .font(.system(size: 11.5, weight: .bold, design: .monospaced))
+                                    .foregroundStyle(port.isOpen ? V2Colors.milk : V2Colors.faint)
+                                    .frame(width: 44, alignment: .leading)
+                                
+                                Text(port.serviceName)
+                                    .font(.system(size: 10.5, design: .monospaced))
+                                    .foregroundStyle(port.isOpen ? V2Colors.dim : V2Colors.faint)
+                                    .lineLimit(1)
+                                
+                                Spacer()
+                                
+                                if port.isOpen {
+                                    Button(action: {
+                                        if let url = URL(string: "http://localhost:\(port.id)") {
+                                            NSWorkspace.shared.open(url)
+                                        }
+                                    }) {
+                                        Text(loc("Open", "Открыть"))
+                                            .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                                            .padding(.horizontal, 6)
+                                            .padding(.vertical, 2)
+                                            .background(V2Colors.ice.opacity(0.14))
+                                            .foregroundStyle(V2Colors.ice1)
+                                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding(.vertical, 1)
+                        }
+                    }
                     
                     Spacer()
-                    
-                    // Paste from clipboard button
-                    Button(action: {
-                        if let pasteText = NSPasteboard.general.string(forType: .string) {
-                            devTools.tokenCalcText = pasteText
-                            devTools.updateTokenEstimate(for: pasteText)
-                        }
-                    }) {
-                        HStack(spacing: 3) {
-                            Image(systemName: "doc.on.clipboard")
-                            Text(loc("Paste", "Вставить"))
-                        }
-                        .font(.system(size: 9, weight: .medium))
-                        .foregroundStyle(.cyan)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(Color.cyan.opacity(0.12))
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                    }
-                    .buttonStyle(.plain)
-                    
-                    // Clear button
-                    if !devTools.tokenCalcText.isEmpty {
+                }
+                .frame(width: 250)
+                .padding(10)
+                .heroGlassCard(cornerRadius: 13)
+                
+                // Right: Instant Token & Cost Calculator
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 5) {
+                        Text(loc("TOKENS & COST", "ТОКЕНЫ И СТОИМОСТЬ"))
+                            .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+                            .foregroundStyle(V2Colors.faint)
+                        
+                        Spacer()
+                        
+                        // Paste from clipboard button
                         Button(action: {
-                            devTools.tokenCalcText = ""
-                            devTools.updateTokenEstimate(for: "")
+                            if let pasteText = NSPasteboard.general.string(forType: .string) {
+                                devTools.tokenCalcText = pasteText
+                                devTools.updateTokenEstimate(for: pasteText)
+                            }
                         }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 10))
-                                .foregroundStyle(.white.opacity(0.6))
+                            HStack(spacing: 3) {
+                                Image(systemName: "doc.on.clipboard")
+                                Text(loc("Paste", "Вставить"))
+                            }
+                            .font(.system(size: 8.5, weight: .medium, design: .monospaced))
+                            .foregroundStyle(V2Colors.ice1)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(V2Colors.ice.opacity(0.12))
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
                         }
                         .buttonStyle(.plain)
+                        
+                        // Clear button
+                        if !devTools.tokenCalcText.isEmpty {
+                            Button(action: {
+                                devTools.tokenCalcText = ""
+                                devTools.updateTokenEstimate(for: "")
+                            }) {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundStyle(V2Colors.faint)
+                                    .padding(3)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
+                    
+                    TextField(loc("Paste text or prompt to estimate tokens...", "Вставьте текст или промпт для оценки токенов..."), text: $devTools.tokenCalcText, axis: .vertical)
+                        .lineLimit(2...3)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 9.5, design: .monospaced))
+                        .foregroundStyle(V2Colors.milk)
+                        .padding(6)
+                        .heroInputBox(cornerRadius: 7)
+                        .onChange(of: devTools.tokenCalcText) { _, newText in
+                            devTools.updateTokenEstimate(for: newText)
+                        }
+                    
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(loc("TOKENS", "ТОКЕНЫ"))
+                                .font(.system(size: 8, weight: .bold, design: .monospaced))
+                                .foregroundStyle(V2Colors.faint)
+                            
+                            Text("\(devTools.tokenEstimateCount)")
+                                .font(.system(size: 18, weight: .bold, design: .monospaced))
+                                .foregroundStyle(V2Colors.livingIceHGradient)
+                        }
+                        
+                        Rectangle()
+                            .fill(Color.white.opacity(0.08))
+                            .frame(width: 1, height: 26)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("CLAUDE 3.7")
+                                .font(.system(size: 8, weight: .bold, design: .monospaced))
+                                .foregroundStyle(V2Colors.faint)
+                            
+                            Text(String(format: "$%.5f", devTools.sonnetCostEstimate))
+                                .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                .foregroundStyle(V2Colors.amber)
+                        }
+                        
+                        Rectangle()
+                            .fill(Color.white.opacity(0.08))
+                            .frame(width: 1, height: 26)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("GPT-4O")
+                                .font(.system(size: 8, weight: .bold, design: .monospaced))
+                                .foregroundStyle(V2Colors.faint)
+                            
+                            Text(String(format: "$%.5f", devTools.gpt4oCostEstimate))
+                                .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                .foregroundStyle(V2Colors.ice1)
+                        }
+                        
+                        Rectangle()
+                            .fill(Color.white.opacity(0.08))
+                            .frame(width: 1, height: 26)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(loc("CHARS", "СИМВОЛЫ"))
+                                .font(.system(size: 8, weight: .bold, design: .monospaced))
+                                .foregroundStyle(V2Colors.faint)
+                            
+                            Text("\(devTools.tokenCalcText.count)")
+                                .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                .foregroundStyle(V2Colors.dim)
+                        }
+                    }
+                    .padding(.top, 4)
+                    
+                    Spacer()
                 }
-                
-                TextField(loc("Paste text or prompt to estimate tokens...", "Вставьте текст или промпт для оценки токенов..."), text: $devTools.tokenCalcText, axis: .vertical)
-                    .lineLimit(2...3)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundStyle(.white)
-                    .padding(6)
-                    .heroInputBox(cornerRadius: 7)
-                    .onChange(of: devTools.tokenCalcText) { _, newText in
-                        devTools.updateTokenEstimate(for: newText)
-                    }
-                
-                HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(loc("EST. TOKENS", "ТОКЕНЫ (~TOK)"))
-                            .font(.system(size: 8, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.secondary)
-                        
-                        Text("\(devTools.tokenEstimateCount)")
-                            .font(.system(size: 16, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.cyan)
-                    }
-                    
-                    Rectangle()
-                        .fill(Color.white.opacity(0.1))
-                        .frame(width: 1, height: 26)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("CLAUDE 3.7")
-                            .font(.system(size: 8, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.secondary)
-                        
-                        Text(String(format: "$%.5f", devTools.sonnetCostEstimate))
-                            .font(.system(size: 12, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.orange)
-                    }
-                    
-                    Rectangle()
-                        .fill(Color.white.opacity(0.1))
-                        .frame(width: 1, height: 26)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("GPT-4O")
-                            .font(.system(size: 8, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.secondary)
-                        
-                        Text(String(format: "$%.5f", devTools.gpt4oCostEstimate))
-                            .font(.system(size: 12, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.green)
-                    }
-                    
-                    Rectangle()
-                        .fill(Color.white.opacity(0.1))
-                        .frame(width: 1, height: 26)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(loc("CHARS", "СИМВОЛЫ"))
-                            .font(.system(size: 8, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.secondary)
-                        
-                        Text("\(devTools.tokenCalcText.count)")
-                            .font(.system(size: 12, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.white.opacity(0.8))
-                    }
-                }
-                .padding(.top, 4)
-                
-                Spacer()
+                .padding(10)
+                .frame(maxWidth: .infinity)
+                .heroGlassCard(cornerRadius: 13)
             }
-            .padding(10)
-            .frame(maxWidth: .infinity)
-            .heroGlassCard(cornerRadius: 13)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
         }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 8)
     }
 }

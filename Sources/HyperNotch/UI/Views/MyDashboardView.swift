@@ -24,8 +24,11 @@ struct MyDashboardView: View {
     
     var body: some View {
         VStack(spacing: 8) {
-            // Header Bar
-            HStack(spacing: 8) {
+            // V2 Module Header
+            V2ModuleHeader(
+                tab: .myDashboard,
+                statusText: manager.lastUpdated != nil ? "ОБНОВЛЕНО · ИСТОЧНИКОВ \(manager.profiles.count)" : loc("DASHBOARD · TELEMETRY", "ДАШБОРД · ТЕЛЕМЕТРИЯ")
+            ) {
                 // Profile Switcher Menu
                 Menu {
                     ForEach(manager.profiles) { p in
@@ -49,58 +52,37 @@ struct MyDashboardView: View {
                         Label(loc("Add new service...", "Добавить новый сервис..."), systemImage: "plus.circle")
                     }
                 } label: {
-                    HStack(spacing: 5) {
+                    HStack(spacing: 4) {
                         Image(systemName: "flame.fill")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.white)
-                            .shadow(color: .white.opacity(0.4), radius: 3)
+                            .font(.system(size: 9))
+                            .foregroundStyle(V2Colors.amber)
                         
-                        Text(currentProfileName.uppercased())
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.white)
+                        Text(currentProfileName)
+                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .foregroundStyle(V2Colors.milk)
                         
                         Image(systemName: "chevron.down")
-                            .font(.system(size: 8, weight: .bold))
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: 7, weight: .bold))
+                            .foregroundStyle(V2Colors.faint)
                     }
-                    .padding(.horizontal, 8)
+                    .padding(.horizontal, 7)
                     .padding(.vertical, 3)
-                    .background(
-                        Capsule()
-                            .fill(Color.black.opacity(0.6))
-                            .overlay(Capsule().stroke(Color.white.opacity(0.12), lineWidth: 1))
-                    )
+                    .background(Color.white.opacity(0.06))
+                    .clipShape(Capsule())
                 }
                 .menuStyle(.borderlessButton)
                 
-                // Status Badge
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(manager.isOnline ? Color.green : (manager.isLoggedIn ? Color.orange : Color.secondary))
-                        .frame(width: 6, height: 6)
-                    
-                    Text(manager.isOnline ? "Live API" : (manager.isLoggedIn ? loc("Session Active", "Сессия активна") : loc("Not Logged In", "Вход не выполнен")))
-                        .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(manager.isOnline ? .green : (manager.isLoggedIn ? .orange : .secondary))
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(
-                    Capsule()
-                        .fill(Color.black.opacity(0.5))
-                        .overlay(Capsule().stroke(Color.white.opacity(0.12), lineWidth: 1))
+                // Status Chip
+                V2Chip(
+                    manager.isOnline ? "Live API" : (manager.isLoggedIn ? loc("Active", "Сессия") : loc("Offline", "Офлайн")),
+                    style: manager.isOnline ? .ice : (manager.isLoggedIn ? .warn : .dim)
                 )
                 
-                Spacer()
-                
-                if let updated = manager.lastUpdated {
-                    Text(updated, style: .time)
-                        .font(.system(size: 9, design: .monospaced))
-                        .foregroundStyle(.tertiary)
-                }
-                
                 // Config Toggle Button
-                Button(action: {
+                V2GlassButton(
+                    title: isEditingConfig ? loc("Close", "Закрыть") : loc("Config", "Настройки"),
+                    icon: isEditingConfig ? "xmark" : "gearshape"
+                ) {
                     if !isEditingConfig {
                         editName = currentProfileName
                         editBaseUrl = manager.baseUrl
@@ -111,19 +93,7 @@ struct MyDashboardView: View {
                         isEditingConfig.toggle()
                         isAddingSite = false
                     }
-                }) {
-                    HStack(spacing: 3) {
-                        Image(systemName: isEditingConfig ? "xmark" : "gearshape")
-                        Text(isEditingConfig ? loc("Close", "Закрыть") : loc("Settings", "Настройки"))
-                    }
-                    .font(.system(size: 9, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
-                    .background(Color.white.opacity(0.08))
-                    .clipShape(RoundedRectangle(cornerRadius: 5))
                 }
-                .buttonStyle(.plain)
                 
                 // Refresh Button
                 Button(action: {
@@ -132,15 +102,16 @@ struct MyDashboardView: View {
                     }
                 }) {
                     Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 10))
+                        .font(.system(size: 9.5))
                         .rotationEffect(.degrees(manager.isLoading ? 360 : 0))
                         .animation(manager.isLoading ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: manager.isLoading)
-                        .foregroundStyle(.white.opacity(0.8))
-                        .padding(4)
+                        .foregroundStyle(V2Colors.dim)
+                        .frame(width: 20, height: 20)
+                        .background(Color.white.opacity(0.04))
+                        .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
             }
-            .padding(.horizontal, 16)
             
             // Add Site Dialog
             if isAddingSite {

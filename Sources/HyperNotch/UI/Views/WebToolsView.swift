@@ -100,10 +100,65 @@ struct WebToolsView: View {
     let availableColors = ["white", "blue", "red", "yellow", "orange", "green", "purple", "pink"]
     
     var body: some View {
-        VStack(spacing: 0) {
-            headerBar
+        VStack(spacing: 8) {
+            // V2 Module Header
+            V2ModuleHeader(
+                tab: .webTools,
+                statusText: "\(manager.items.count) \(loc("SERVICES", "СЕРВИСА")) · БРАУЗЕР НА КАЖДЫЙ"
+            ) {
+                // Target Browser Pill
+                Menu {
+                    ForEach(TargetBrowser.allCases) { browser in
+                        Button(action: {
+                            manager.selectedBrowser = browser
+                        }) {
+                            HStack {
+                                Text(browser.rawValue)
+                                if manager.selectedBrowser == browser {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "safari")
+                            .font(.system(size: 9))
+                        Text(manager.selectedBrowser.rawValue)
+                            .font(.system(size: 8.5, weight: .medium, design: .monospaced))
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 7, weight: .bold))
+                    }
+                    .foregroundStyle(V2Colors.dim)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(Color.white.opacity(0.06))
+                    .clipShape(Capsule())
+                }
+                .menuStyle(.borderlessButton)
+                
+                // Open Mode (Tab vs Window)
+                Picker("", selection: $manager.openMode) {
+                    ForEach(OpenTargetMode.allCases) { mode in
+                        Text(mode.localizedTitle).tag(mode)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.segmented)
+                .frame(width: 120)
+                .scaleEffect(0.8)
+                
+                V2GlassButton(
+                    title: showingAddSheet ? loc("Close", "Закрыть") : loc("Add", "Добавить"),
+                    icon: showingAddSheet ? "xmark" : "plus"
+                ) {
+                    withAnimation(.spring) {
+                        showingAddSheet.toggle()
+                    }
+                }
+            }
             
-            Spacer(minLength: 8)
+            Spacer(minLength: 4)
             
             if showingAddSheet {
                 addLinkForm
@@ -116,71 +171,9 @@ struct WebToolsView: View {
                 .transition(.scale(scale: 0.95).combined(with: .opacity))
             }
             
-            Spacer(minLength: 12)
+            Spacer(minLength: 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
-    }
-    
-    // MARK: - Subviews
-    private var headerBar: some View {
-        HStack(spacing: 8) {
-            HStack(spacing: 5) {
-                Image(systemName: "dock.rectangle")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.white)
-                    .shadow(color: .white.opacity(0.4), radius: 3)
-                
-                Text(loc("WEB APPS & DEVELOPER CONSOLE", "ВЕБ-ПРИЛОЖЕНИЯ & КОНСОЛЬ"))
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
-                    .foregroundStyle(.white)
-            }
-            
-            Spacer()
-            
-            // Target Browser Pill
-            Menu {
-                ForEach(TargetBrowser.allCases) { browser in
-                    Button(action: {
-                        manager.selectedBrowser = browser
-                    }) {
-                        HStack {
-                            Text(browser.rawValue)
-                            if manager.selectedBrowser == browser {
-                                Image(systemName: "checkmark")
-                            }
-                        }
-                    }
-                }
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "safari")
-                        .font(.system(size: 10))
-                    Text(manager.selectedBrowser.rawValue)
-                        .font(.system(size: 9, weight: .medium))
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 7, weight: .bold))
-                }
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 7)
-                .padding(.vertical, 3)
-                .background(Color.white.opacity(0.06))
-                .clipShape(Capsule())
-            }
-            .menuStyle(.borderlessButton)
-            
-            // Open Mode (Tab vs Window)
-            Picker("", selection: $manager.openMode) {
-                ForEach(OpenTargetMode.allCases) { mode in
-                    Text(mode.localizedTitle).tag(mode)
-                }
-            }
-            .labelsHidden()
-            .pickerStyle(.segmented)
-            .frame(width: 130)
-            .scaleEffect(0.85)
-        }
-        .padding(.horizontal, 16)
     }
     
     // MARK: - Compact, Perfectly Balanced Add Form (Fits notch perfectly!)

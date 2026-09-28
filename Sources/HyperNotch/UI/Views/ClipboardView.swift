@@ -10,84 +10,67 @@ struct ClipboardView: View {
     var body: some View {
         ZStack {
             VStack(spacing: 8) {
-                // Unified Hero Header & Search Bar
-                HStack(spacing: 8) {
-                    HStack(spacing: 5) {
-                        Image(systemName: "doc.on.clipboard")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.white)
-                            .shadow(color: .white.opacity(0.4), radius: 3)
-                        
-                        Text(loc("CLIPBOARD & AI ACTIONS", "БУФЕР ОБМЕНА & AI ДЕЙСТВИЯ"))
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.white)
-                    }
-                    
-                    Spacer()
-                    
+                // V2 Module Header
+                V2ModuleHeader(
+                    tab: .clipboard,
+                    statusText: "\(manager.filteredItems.count) \(loc("ITEMS", "ЗАПИСЕЙ"))"
+                ) {
                     // Quick AI Query Field
                     HStack(spacing: 5) {
                         Image(systemName: "sparkles")
                             .font(.system(size: 9))
-                            .foregroundStyle(Color.cyan)
+                            .foregroundStyle(V2Colors.ice1)
                         TextField(loc("Ask AI...", "Спросить AI..."), text: $quickAI.quickPromptQuery)
                             .textFieldStyle(.plain)
                             .font(.system(size: 9.5, design: .monospaced))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(V2Colors.milk)
                             .onSubmit {
                                 quickAI.submitQuickPrompt()
                             }
                     }
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 8)
-                    .frame(width: 140)
-                    .heroInputBox(cornerRadius: 7)
+                    .padding(.vertical, 3)
+                    .padding(.horizontal, 7)
+                    .frame(width: 135)
+                    .heroInputBox(cornerRadius: 6)
                     
-                    HStack(spacing: 6) {
+                    // Search Bar
+                    HStack(spacing: 5) {
                         Image(systemName: "magnifyingglass")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: 9.5))
+                            .foregroundStyle(V2Colors.faint)
                         
                         TextField(loc("Search...", "Поиск..."), text: $manager.searchQuery)
                             .textFieldStyle(.plain)
-                            .font(.system(size: 10, design: .monospaced))
-                            .foregroundStyle(.white)
+                            .font(.system(size: 9.5, design: .monospaced))
+                            .foregroundStyle(V2Colors.milk)
                     }
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 8)
-                    .frame(width: 130)
-                    .heroInputBox(cornerRadius: 7)
+                    .padding(.vertical, 3)
+                    .padding(.horizontal, 7)
+                    .frame(width: 125)
+                    .heroInputBox(cornerRadius: 6)
                     
-                    Button(loc("Clear", "Очистить")) {
+                    V2GlassButton(title: loc("Clear", "Очистить"), icon: "trash") {
                         withAnimation {
                             manager.clearUnpinned()
                         }
                     }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 4)
-                    .background(Color.white.opacity(0.06))
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
                 }
-                .padding(.horizontal, 16)
                 
                 // Items List
                 if manager.filteredItems.isEmpty {
                     VStack(spacing: 6) {
                         Image(systemName: "doc.on.clipboard")
                             .font(.system(size: 26))
-                            .foregroundStyle(.white.opacity(0.6))
-                            .shadow(color: .white.opacity(0.2), radius: 6)
+                            .foregroundStyle(V2Colors.ice.opacity(0.4))
+                            .shadow(color: V2Colors.ice.opacity(0.2), radius: 6)
                         
                         Text(loc("Clipboard is empty", "Буфер обмена пуст"))
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(V2Colors.milk)
                         
                         Text(loc("Copied text and code snippets will appear here automatically", "Скопированный текст и фрагменты кода появятся здесь автоматически"))
                             .font(.system(size: 9, design: .monospaced))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(V2Colors.faint)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.bottom, 8)
@@ -149,16 +132,10 @@ struct ClipboardRowView: View {
                 HStack(spacing: 5) {
                     Text(item.timestamp, style: .time)
                         .font(.system(size: 9, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(V2Colors.faint)
                     
                     if item.isCodeSnippet {
-                        Text("CODE")
-                            .font(.system(size: 7, weight: .bold, design: .monospaced))
-                            .foregroundStyle(Color.cyan)
-                            .padding(.horizontal, 4)
-                            .padding(.vertical, 1)
-                            .background(Color.cyan.opacity(0.15))
-                            .clipShape(Capsule())
+                        V2Chip("Code", style: .ice)
                     }
                 }
             }
@@ -179,8 +156,8 @@ struct ClipboardRowView: View {
                         }
                         .padding(.vertical, 3)
                         .padding(.horizontal, 6)
-                        .background(Color.cyan.opacity(0.18))
-                        .foregroundStyle(Color.cyan)
+                        .background(V2Colors.ice.opacity(0.16))
+                        .foregroundStyle(V2Colors.ice1)
                         .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
@@ -197,8 +174,8 @@ struct ClipboardRowView: View {
                         }
                         .padding(.vertical, 3)
                         .padding(.horizontal, 6)
-                        .background(Color.purple.opacity(0.2))
-                        .foregroundStyle(Color.purple)
+                        .background(Color.white.opacity(0.08))
+                        .foregroundStyle(V2Colors.milk)
                         .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
@@ -211,8 +188,8 @@ struct ClipboardRowView: View {
                             .font(.system(size: 8, weight: .bold, design: .monospaced))
                             .padding(.vertical, 3)
                             .padding(.horizontal, 5)
-                            .background(Color.white.opacity(0.08))
-                            .foregroundStyle(Color.white.opacity(0.85))
+                            .background(Color.white.opacity(0.06))
+                            .foregroundStyle(V2Colors.dim)
                             .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
@@ -227,9 +204,9 @@ struct ClipboardRowView: View {
                 }) {
                     Image(systemName: "note.text.badge.plus")
                         .font(.system(size: 9.5))
-                        .foregroundStyle(Color.yellow.opacity(0.85))
+                        .foregroundStyle(V2Colors.amber)
                         .padding(4)
-                        .background(Circle().fill(Color.yellow.opacity(0.12)))
+                        .background(Circle().fill(V2Colors.amber.opacity(0.12)))
                 }
                 .buttonStyle(.plain)
                 .help(loc("Save snippet to macOS Notes", "Сохранить сниппет в Заметки macOS"))
@@ -239,9 +216,9 @@ struct ClipboardRowView: View {
                 }) {
                     Image(systemName: item.isPinned ? "pin.slash" : "pin")
                         .font(.system(size: 10))
-                        .foregroundStyle(item.isPinned ? Color.orange : Color.white.opacity(0.6))
+                        .foregroundStyle(item.isPinned ? V2Colors.amber : V2Colors.faint)
                         .padding(4)
-                        .background(Circle().fill(Color.white.opacity(item.isPinned ? 0.15 : 0.05)))
+                        .background(Circle().fill(item.isPinned ? V2Colors.amber.opacity(0.15) : Color.white.opacity(0.04)))
                 }
                 .buttonStyle(.plain)
                 
@@ -256,7 +233,7 @@ struct ClipboardRowView: View {
                 }) {
                     Text(copiedId == item.id ? loc("Copied!", "Скопировано!") : loc("Paste", "Вставить"))
                         .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(copiedId == item.id ? Color.green : Color.white)
+                        .foregroundStyle(copiedId == item.id ? Color.green : V2Colors.milk)
                         .padding(.vertical, 3)
                         .padding(.horizontal, 7)
                         .background(Color.white.opacity(copiedId == item.id ? 0.2 : 0.08))
@@ -271,7 +248,7 @@ struct ClipboardRowView: View {
                 }) {
                     Image(systemName: "trash")
                         .font(.system(size: 10))
-                        .foregroundStyle(Color.white.opacity(0.5))
+                        .foregroundStyle(V2Colors.faint)
                         .padding(4)
                 }
                 .buttonStyle(.plain)

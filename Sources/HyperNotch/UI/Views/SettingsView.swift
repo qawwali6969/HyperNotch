@@ -18,9 +18,16 @@ struct SettingsView: View {
     @State private var isEditingZai = false
     
     var body: some View {
-        ScrollView(.vertical, showsIndicators: true) {
-            VStack(alignment: .leading, spacing: 10) {
-                // Section 0: Design Theme (Default: V2 Engineering HUD, Switchable to V1 Classic)
+        VStack(spacing: 8) {
+            // V2 Module Header
+            V2ModuleHeader(
+                tab: .settings,
+                statusText: loc("LOCAL ONLY · NO TELEMETRY", "ЛОКАЛЬНО · ТЕЛЕМЕТРИИ НЕТ")
+            )
+            
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(alignment: .leading, spacing: 10) {
+                    // Section 0: Design Theme (Default: V2 Engineering HUD, Switchable to V1 Classic)
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 5) {
                         Image(systemName: "paintpalette.fill")
@@ -499,3 +506,5 @@ struct SettingsView: View {
         }
     }
 }
+}
+

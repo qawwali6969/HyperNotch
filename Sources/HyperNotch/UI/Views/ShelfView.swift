@@ -7,84 +7,46 @@ struct ShelfView: View {
     
     var body: some View {
         VStack(spacing: 8) {
-            // Unified Hero Header
-            HStack(spacing: 8) {
-                HStack(spacing: 5) {
-                    Image(systemName: "tray.fill")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.white)
-                        .shadow(color: .white.opacity(0.4), radius: 3)
-                    
-                    Text(loc("FILE SHELF & DROP ZONE", "ПОЛКА ФАЙЛОВ & ДРОП-ЗОНА"))
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
-                        .foregroundStyle(.white)
-                }
-                
-                // Status banner notification
-                if let status = manager.statusMessage {
-                    Text(status)
-                        .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(.cyan)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(Color.cyan.opacity(0.15))
-                        .clipShape(Capsule())
-                        .transition(.opacity)
-                }
-                
-                Spacer()
-                
+            // V2 Module Header
+            V2ModuleHeader(
+                tab: .shelf,
+                statusText: manager.statusMessage ?? (manager.items.isEmpty ? loc("EMPTY · DROP TO STASH", "ПУСТО · DROP НА ВЫРЕЗ") : loc("\(manager.items.count) FILES · DROP TO STASH", "\(manager.items.count) ФАЙЛА · DROP НА ВЫРЕЗ"))
+            ) {
                 if !manager.items.isEmpty {
-                    Text(loc("\(manager.items.count) FILES", "\(manager.items.count) ФАЙЛОВ"))
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
-                        .foregroundStyle(.white.opacity(0.7))
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
-                        .background(Color.white.opacity(0.08))
-                        .clipShape(Capsule())
-                    
-                    Button(loc("Clear", "Очистить")) {
+                    V2GlassButton(title: loc("Clear", "Очистить"), icon: "trash") {
                         withAnimation(.spring) {
                             manager.clearAll()
                         }
                     }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(.red.opacity(0.9))
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 2)
-                    .background(Color.red.opacity(0.15))
-                    .clipShape(RoundedRectangle(cornerRadius: 5))
                 }
             }
-            .padding(.horizontal, 16)
             
             // Content Area
             if manager.items.isEmpty {
                 VStack(spacing: 8) {
                     Image(systemName: "arrow.down.doc.fill")
                         .font(.system(size: 26))
-                        .foregroundStyle(.white)
-                        .shadow(color: .white.opacity(manager.isTargeted ? 0.7 : 0.3), radius: 6)
+                        .foregroundStyle(V2Colors.ice1)
+                        .shadow(color: V2Colors.ice.opacity(manager.isTargeted ? 0.7 : 0.25), radius: 6)
                     
                     Text(loc("Drag and drop files here for quick stash", "Перетащите файлы сюда для быстрого стэша"))
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(V2Colors.milk)
                     
                     Text(loc("WebP/PNG conversion • Copy Base64 URI • AirDrop • Token estimation", "Конвертация в WebP/PNG • Копирование Base64 URI • AirDrop • Подсчет токенов"))
                         .font(.system(size: 9, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(V2Colors.dim)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(
                     RoundedRectangle(cornerRadius: 13)
                         .strokeBorder(
-                            manager.isTargeted ? Color.white : Color.white.opacity(0.18),
+                            manager.isTargeted ? V2Colors.ice : Color.white.opacity(0.12),
                             style: StrokeStyle(lineWidth: 1.5, dash: [6])
                         )
                         .background(
                             RoundedRectangle(cornerRadius: 13)
-                                .fill(Color.white.opacity(manager.isTargeted ? 0.08 : 0.02))
+                                .fill(manager.isTargeted ? V2Colors.ice.opacity(0.08) : Color.white.opacity(0.02))
                         )
                 )
                 .padding(.horizontal, 16)
@@ -120,30 +82,36 @@ struct ShelfCardView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 26, height: 26)
-                    .shadow(color: .white.opacity(0.15), radius: 3)
+                    .shadow(color: V2Colors.ice.opacity(0.18), radius: 3)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.name)
                         .font(.system(size: 11, weight: .semibold))
                         .lineLimit(1)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(V2Colors.milk)
                     
                     HStack(spacing: 5) {
                         Text(item.sizeString)
                             .font(.system(size: 8, design: .monospaced))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(V2Colors.faint)
                         
                         Text("•")
                             .font(.system(size: 7))
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(V2Colors.faint)
                         
-                        Text("~\(item.tokenEstimate) tok")
-                            .font(.system(size: 8, weight: .bold, design: .monospaced))
-                            .foregroundStyle(Color.cyan)
-                            .padding(.horizontal, 4)
-                            .padding(.vertical, 1)
-                            .background(Color.cyan.opacity(0.15))
-                            .clipShape(Capsule())
+                        if item.tokenEstimate > 0 {
+                            Text("~\(item.tokenEstimate) tok")
+                                .font(.system(size: 8, weight: .bold, design: .monospaced))
+                                .foregroundStyle(V2Colors.ice1)
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 1)
+                                .background(V2Colors.ice.opacity(0.12))
+                                .clipShape(Capsule())
+                        } else {
+                            Text(item.url.pathExtension.uppercased())
+                                .font(.system(size: 8, weight: .bold, design: .monospaced))
+                                .foregroundStyle(V2Colors.dim)
+                        }
                     }
                 }
                 
@@ -154,15 +122,17 @@ struct ShelfCardView: View {
                         manager.remove(id: item.id)
                     }
                 }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.white.opacity(0.6))
+                    Image(systemName: "xmark")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(V2Colors.faint)
+                        .padding(4)
+                        .background(Circle().fill(Color.white.opacity(0.04)))
                 }
                 .buttonStyle(.plain)
             }
             
             Rectangle()
-                .fill(Color.white.opacity(0.08))
+                .fill(Color.white.opacity(0.06))
                 .frame(height: 1)
             
             // Primary & Quick Conversion Actions
@@ -184,8 +154,8 @@ struct ShelfCardView: View {
                         }
                         .padding(.vertical, 3)
                         .padding(.horizontal, 6)
-                        .background(Color.purple.opacity(0.2))
-                        .foregroundStyle(copiedBase64 ? Color.green : Color.purple.opacity(0.9))
+                        .background(V2Colors.ice.opacity(0.15))
+                        .foregroundStyle(copiedBase64 ? Color.green : V2Colors.ice1)
                         .clipShape(RoundedRectangle(cornerRadius: 5))
                     }
                     .buttonStyle(.plain)
@@ -203,8 +173,8 @@ struct ShelfCardView: View {
                         }
                         .padding(.vertical, 3)
                         .padding(.horizontal, 6)
-                        .background(Color.blue.opacity(0.2))
-                        .foregroundStyle(Color.blue.opacity(0.95))
+                        .background(Color.white.opacity(0.08))
+                        .foregroundStyle(V2Colors.milk)
                         .clipShape(RoundedRectangle(cornerRadius: 5))
                     }
                     .buttonStyle(.plain)
@@ -225,8 +195,8 @@ struct ShelfCardView: View {
                         }
                         .padding(.vertical, 3)
                         .padding(.horizontal, 6)
-                        .background(Color.white.opacity(0.08))
-                        .foregroundStyle(copiedPath ? Color.green : Color.white)
+                        .background(Color.white.opacity(0.06))
+                        .foregroundStyle(copiedPath ? Color.green : V2Colors.dim)
                         .clipShape(RoundedRectangle(cornerRadius: 5))
                     }
                     .buttonStyle(.plain)
@@ -243,8 +213,8 @@ struct ShelfCardView: View {
                         }
                         .padding(.vertical, 3)
                         .padding(.horizontal, 6)
-                        .background(Color.white.opacity(0.08))
-                        .foregroundStyle(.white)
+                        .background(Color.white.opacity(0.06))
+                        .foregroundStyle(V2Colors.milk)
                         .clipShape(RoundedRectangle(cornerRadius: 5))
                     }
                     .buttonStyle(.plain)
@@ -260,8 +230,8 @@ struct ShelfCardView: View {
                         .font(.system(size: 9))
                         .padding(.vertical, 3)
                         .padding(.horizontal, 5)
-                        .background(Color.white.opacity(0.08))
-                        .foregroundStyle(Color.white.opacity(0.8))
+                        .background(Color.white.opacity(0.06))
+                        .foregroundStyle(V2Colors.dim)
                         .clipShape(RoundedRectangle(cornerRadius: 5))
                 }
                 .buttonStyle(.plain)
@@ -275,8 +245,8 @@ struct ShelfCardView: View {
                         .font(.system(size: 9))
                         .padding(.vertical, 3)
                         .padding(.horizontal, 5)
-                        .background(Color.white.opacity(0.08))
-                        .foregroundStyle(Color.white.opacity(0.8))
+                        .background(Color.white.opacity(0.06))
+                        .foregroundStyle(V2Colors.dim)
                         .clipShape(RoundedRectangle(cornerRadius: 5))
                 }
                 .buttonStyle(.plain)

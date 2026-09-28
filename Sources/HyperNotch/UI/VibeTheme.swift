@@ -264,3 +264,238 @@ struct VibeInteractiveHoverButton: View {
         .onHover { isHovered = $0 }
     }
 }
+
+// MARK: - V2 Module Header & Glass Button (Matching V2 Engineering HUD)
+struct V2ModuleHeader<TrailingContent: View>: View {
+    let tab: NotchTab
+    let statusText: String
+    let trailing: TrailingContent
+    @ObservedObject var themeManager = ThemeManager.shared
+    
+    init(tab: NotchTab, statusText: String, @ViewBuilder trailing: () -> TrailingContent) {
+        self.tab = tab
+        self.statusText = statusText
+        self.trailing = trailing()
+    }
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            // Index (01, 02...)
+            Text(tab.indexString)
+                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.faint : Color.secondary)
+            
+            // Title
+            Text(tab.localizedTitle)
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
+            
+            // Tier Badge (Приём / Контур / Сервис)
+            Text(tab.tier.localizedTitle.uppercased())
+                .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.dim : Color.secondary)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(
+                    Capsule()
+                        .fill(themeManager.currentTheme == .engineeringV2 ? V2Colors.ice.opacity(0.10) : Color.white.opacity(0.08))
+                )
+                .overlay(
+                    Capsule()
+                        .stroke(themeManager.currentTheme == .engineeringV2 ? V2Colors.ice.opacity(0.22) : Color.white.opacity(0.15), lineWidth: 1)
+                )
+            
+            Spacer()
+            
+            // Dynamic Status Text
+            Text(statusText.uppercased())
+                .font(.system(size: 9.5, weight: .medium, design: .monospaced))
+                .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.faint : Color.secondary)
+                .lineLimit(1)
+            
+            trailing
+        }
+        .padding(.horizontal, 16)
+        .frame(height: 30)
+    }
+}
+
+extension V2ModuleHeader where TrailingContent == EmptyView {
+    init(tab: NotchTab, statusText: String) {
+        self.init(tab: tab, statusText: statusText, trailing: { EmptyView() })
+    }
+}
+
+struct V2GlassButton: View {
+    let title: String
+    var icon: String? = nil
+    var isKey: Bool = false
+    var action: () -> Void
+    
+    @ObservedObject var themeManager = ThemeManager.shared
+    @State private var isHovered = false
+    
+    private var fgColor: Color {
+        if isHovered {
+            return themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white
+        } else {
+            return themeManager.currentTheme == .engineeringV2 ? (isKey ? V2Colors.milk : V2Colors.dim) : Color.white.opacity(0.7)
+        }
+    }
+    
+    private var bgColor: Color {
+        if themeManager.currentTheme == .engineeringV2 {
+            return isHovered ? V2Colors.ice.opacity(0.22) : (isKey ? V2Colors.ice.opacity(0.15) : V2Colors.ice.opacity(0.06))
+        } else {
+            return Color.white.opacity(isHovered ? 0.18 : 0.08)
+        }
+    }
+    
+    private var strokeColor: Color {
+        if themeManager.currentTheme == .engineeringV2 {
+            return isHovered ? V2Colors.ice2.opacity(0.5) : (isKey ? V2Colors.ice.opacity(0.35) : V2Colors.ice.opacity(0.16))
+        } else {
+            return Color.white.opacity(isHovered ? 0.3 : 0.12)
+        }
+    }
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                if let icon = icon {
+                    Image(systemName: icon)
+                        .font(.system(size: 9, weight: .semibold))
+                }
+                Text(title)
+                    .font(.system(size: 9.5, weight: .semibold, design: .monospaced))
+            }
+            .foregroundStyle(fgColor)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3.5)
+            .background(RoundedRectangle(cornerRadius: 6).fill(bgColor))
+            .overlay(RoundedRectangle(cornerRadius: 6).stroke(strokeColor, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
+    }
+}
+
+// MARK: - V2 Chip (Capsule Status Indicator)
+enum V2ChipStyle {
+    case ice
+    case warn
+    case crit
+    case dim
+}
+
+struct V2Chip: View {
+    let text: String
+    var style: V2ChipStyle = .dim
+    var icon: String? = nil
+    @ObservedObject var themeManager = ThemeManager.shared
+    
+    init(_ text: String, style: V2ChipStyle = .dim, icon: String? = nil) {
+        self.text = text
+        self.style = style
+        self.icon = icon
+    }
+    
+    private var fgColor: Color {
+        if themeManager.currentTheme == .engineeringV2 {
+            switch style {
+            case .ice: return Color(hex: "BFDCEA")
+            case .warn: return V2Colors.amber
+            case .crit: return V2Colors.red
+            case .dim: return V2Colors.dim
+            }
+        } else {
+            switch style {
+            case .ice: return .cyan
+            case .warn: return .orange
+            case .crit: return .red
+            case .dim: return .secondary
+            }
+        }
+    }
+    
+    private var bgColor: Color {
+        if themeManager.currentTheme == .engineeringV2 {
+            switch style {
+            case .ice: return Color(hex: "8FB7CC").opacity(0.14)
+            case .warn: return V2Colors.amber.opacity(0.12)
+            case .crit: return V2Colors.red.opacity(0.12)
+            case .dim: return Color.white.opacity(0.04)
+            }
+        } else {
+            return fgColor.opacity(0.15)
+        }
+    }
+    
+    private var borderColor: Color {
+        if themeManager.currentTheme == .engineeringV2 {
+            switch style {
+            case .ice: return Color(hex: "8FB7CC").opacity(0.32)
+            case .warn: return V2Colors.amber.opacity(0.32)
+            case .crit: return V2Colors.red.opacity(0.34)
+            case .dim: return Color.white.opacity(0.12)
+            }
+        } else {
+            return fgColor.opacity(0.3)
+        }
+    }
+    
+    var body: some View {
+        HStack(spacing: 3) {
+            if let icon = icon {
+                Image(systemName: icon)
+                    .font(.system(size: 7.5, weight: .bold))
+            }
+            Text(text)
+                .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .foregroundStyle(fgColor)
+        .background(Capsule().fill(bgColor))
+        .overlay(Capsule().stroke(borderColor, lineWidth: 1))
+    }
+}
+
+// MARK: - V2 Gauge Bar (Instrument Meter)
+struct V2Gauge: View {
+    let progress: Double // 0.0 to 1.0
+    var isWarning: Bool = false
+    var isCritical: Bool = false
+    @ObservedObject var themeManager = ThemeManager.shared
+    
+    init(progress: Double, isWarning: Bool = false, isCritical: Bool = false) {
+        self.progress = max(0, min(1, progress))
+        self.isWarning = isWarning
+        self.isCritical = isCritical
+    }
+    
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                // Background track
+                Capsule()
+                    .fill(Color.white.opacity(0.08))
+                
+                // Progress fill
+                Capsule()
+                    .fill(
+                        isCritical
+                            ? AnyShapeStyle(V2Colors.red)
+                            : (isWarning
+                                ? AnyShapeStyle(V2Colors.amber)
+                                : (themeManager.currentTheme == .engineeringV2
+                                    ? AnyShapeStyle(V2Colors.livingIceHGradient)
+                                    : AnyShapeStyle(Color.white.opacity(0.85))))
+                    )
+                    .frame(width: max(4, geo.size.width * CGFloat(progress)))
+            }
+        }
+        .frame(height: 5)
+    }
+}
+

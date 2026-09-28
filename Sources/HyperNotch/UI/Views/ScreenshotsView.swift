@@ -6,66 +6,41 @@ struct ScreenshotsView: View {
     @ObservedObject var localization = LocalizationManager.shared
     
     var body: some View {
-        VibeTabContainer(title: loc("SCREENSHOTS & CAPTURE", "СНИМКИ ЭКРАНА & ЗАХВАТ"), icon: "camera.viewfinder") {
-            HStack(spacing: 8) {
-                if !manager.items.isEmpty {
-                    Text(loc("\(manager.items.count) SHOTS", "\(manager.items.count) СНИМКОВ"))
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
-                        .foregroundStyle(.white.opacity(0.7))
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
-                        .background(Color.white.opacity(0.08))
-                        .clipShape(Capsule())
-                }
-                
+        VStack(spacing: 8) {
+            // V2 Module Header
+            V2ModuleHeader(
+                tab: .screenshots,
+                statusText: ScreenOCRManager.shared.statusMessage ?? loc("3-DAY FEED · LOCAL OCR", "ЛЕНТА 3 ДНЯ · OCR ЛОКАЛЬНО")
+            ) {
                 Button(action: {
                     manager.refresh()
                 }) {
                     Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.7))
-                        .frame(width: 22, height: 22)
-                        .background(Color.white.opacity(0.08))
+                        .font(.system(size: 9.5))
+                        .foregroundStyle(V2Colors.dim)
+                        .frame(width: 20, height: 20)
+                        .background(Color.white.opacity(0.04))
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
                 
-                if let status = ScreenOCRManager.shared.statusMessage {
-                    Text(status)
-                        .font(.system(size: 8.5, weight: .bold, design: .monospaced))
-                        .foregroundStyle(Color.cyan)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2.5)
-                        .background(Color.cyan.opacity(0.18))
-                        .clipShape(Capsule())
-                        .animation(.spring, value: ScreenOCRManager.shared.statusMessage)
-                }
-                
-                VibeInteractiveHoverButton(
-                    text: loc("Text (OCR)", "Текст (OCR)"),
-                    leadingIcon: "text.viewfinder",
-                    icon: "arrow.right",
-                    fontSize: 9.5,
-                    horizontalPadding: 8,
-                    verticalPadding: 3,
-                    minHeight: 22
-                ) {
-                    ScreenOCRManager.shared.captureScreenAreaAndRecognize()
-                }
-                
-                VibeInteractiveHoverButton(
-                    text: loc("Capture", "Снимок"),
-                    leadingIcon: "camera.viewfinder",
-                    icon: "plus",
-                    fontSize: 9.5,
-                    horizontalPadding: 8,
-                    verticalPadding: 3,
-                    minHeight: 22
+                V2GlassButton(
+                    title: loc("Capture", "Снимок"),
+                    icon: "camera.viewfinder"
                 ) {
                     manager.captureArea()
                 }
+                
+                V2GlassButton(
+                    title: loc("Text (OCR)", "Текст (OCR)"),
+                    icon: "text.viewfinder",
+                    isKey: true
+                ) {
+                    ScreenOCRManager.shared.captureScreenAreaAndRecognize()
+                }
             }
-        } content: {
+            
+            // Content
             if manager.items.isEmpty {
                 emptyStateView
             } else {
@@ -86,25 +61,21 @@ struct ScreenshotsView: View {
         VStack(spacing: 8) {
             Image(systemName: "camera.viewfinder")
                 .font(.system(size: 28))
-                .foregroundStyle(.white.opacity(0.6))
-                .shadow(color: .white.opacity(0.3), radius: 6)
+                .foregroundStyle(V2Colors.ice.opacity(0.5))
+                .shadow(color: V2Colors.ice.opacity(0.2), radius: 6)
             
             Text(loc("Screenshots will appear here automatically", "Снимки экрана появятся здесь автоматически"))
                 .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.white)
+                .foregroundStyle(V2Colors.milk)
             
             Text(loc("Take screenshots via ⌘⇧4 or the button above • Drag directly into chats", "Делайте скриншоты через ⌘⇧4 или кнопку выше • Перетаскивайте прямо в чаты"))
                 .font(.system(size: 9, design: .monospaced))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(V2Colors.faint)
             
-            VibeInteractiveHoverButton(
-                text: loc("Capture screen area", "Сделать снимок области"),
-                leadingIcon: "crop",
-                icon: "arrow.right",
-                fontSize: 10,
-                horizontalPadding: 12,
-                verticalPadding: 5,
-                minHeight: 26
+            V2GlassButton(
+                title: loc("Capture screen area", "Сделать снимок области"),
+                icon: "crop",
+                isKey: true
             ) {
                 manager.captureArea()
             }
@@ -113,7 +84,7 @@ struct ScreenshotsView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 13)
-                .strokeBorder(Color.white.opacity(0.15), style: StrokeStyle(lineWidth: 1.5, dash: [6]))
+                .strokeBorder(Color.white.opacity(0.12), style: StrokeStyle(lineWidth: 1.5, dash: [6]))
                 .background(
                     RoundedRectangle(cornerRadius: 13)
                         .fill(Color.white.opacity(0.02))
@@ -176,37 +147,37 @@ struct ScreenshotCardView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.filename)
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(V2Colors.milk)
                     .lineLimit(1)
                     .truncationMode(.middle)
                 
                 HStack(spacing: 4) {
                     Text(formattedDate)
                         .font(.system(size: 8.5, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(V2Colors.faint)
                     
                     Text("•")
                         .font(.system(size: 8))
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(V2Colors.faint)
                     
                     if let dims = item.dimensions {
                         Text("\(Int(dims.width))×\(Int(dims.height))")
                             .font(.system(size: 8.5, design: .monospaced))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(V2Colors.faint)
                         
                         Text("•")
                             .font(.system(size: 8))
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(V2Colors.faint)
                     }
                     
                     Text(item.fileSizeString)
                         .font(.system(size: 8.5, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(V2Colors.faint)
                 }
             }
             
             // Action Buttons Bar
-            HStack(spacing: 5) {
+            HStack(spacing: 4) {
                 Button(action: {
                     manager.open(item: item)
                 }) {
@@ -217,9 +188,9 @@ struct ScreenshotCardView: View {
                             .font(.system(size: 9, weight: .medium, design: .monospaced))
                     }
                     .padding(.vertical, 3)
-                    .padding(.horizontal, 6)
-                    .background(Color.white.opacity(0.08))
-                    .foregroundStyle(.white)
+                    .padding(.horizontal, 5)
+                    .background(Color.white.opacity(0.06))
+                    .foregroundStyle(V2Colors.milk)
                     .clipShape(RoundedRectangle(cornerRadius: 5))
                 }
                 .buttonStyle(.plain)
@@ -234,9 +205,9 @@ struct ScreenshotCardView: View {
                             .font(.system(size: 9, weight: .medium, design: .monospaced))
                     }
                     .padding(.vertical, 3)
-                    .padding(.horizontal, 6)
-                    .background(Color.white.opacity(0.08))
-                    .foregroundStyle(.white)
+                    .padding(.horizontal, 5)
+                    .background(Color.white.opacity(0.06))
+                    .foregroundStyle(V2Colors.dim)
                     .clipShape(RoundedRectangle(cornerRadius: 5))
                 }
                 .buttonStyle(.plain)
@@ -251,9 +222,9 @@ struct ScreenshotCardView: View {
                             .font(.system(size: 9, weight: .medium, design: .monospaced))
                     }
                     .padding(.vertical, 3)
-                    .padding(.horizontal, 6)
-                    .background(isCopied ? Color.green.opacity(0.2) : Color.white.opacity(0.08))
-                    .foregroundStyle(isCopied ? Color.green : Color.white)
+                    .padding(.horizontal, 5)
+                    .background(isCopied ? Color.green.opacity(0.2) : Color.white.opacity(0.06))
+                    .foregroundStyle(isCopied ? Color.green : V2Colors.dim)
                     .clipShape(RoundedRectangle(cornerRadius: 5))
                 }
                 .buttonStyle(.plain)
@@ -261,16 +232,16 @@ struct ScreenshotCardView: View {
                 Button(action: {
                     ScreenOCRManager.shared.recognizeFromScreenshot(url: item.url)
                 }) {
-                    HStack(spacing: 3) {
+                    HStack(spacing: 2) {
                         Image(systemName: "text.viewfinder")
                             .font(.system(size: 8.5))
                         Text("OCR")
                             .font(.system(size: 9, weight: .medium, design: .monospaced))
                     }
                     .padding(.vertical, 3)
-                    .padding(.horizontal, 6)
-                    .background(Color.white.opacity(0.08))
-                    .foregroundStyle(Color.cyan)
+                    .padding(.horizontal, 5)
+                    .background(V2Colors.ice.opacity(0.14))
+                    .foregroundStyle(V2Colors.ice1)
                     .clipShape(RoundedRectangle(cornerRadius: 5))
                 }
                 .buttonStyle(.plain)
@@ -283,10 +254,8 @@ struct ScreenshotCardView: View {
                 }) {
                     Image(systemName: "trash")
                         .font(.system(size: 9))
-                        .foregroundStyle(.white.opacity(0.5))
+                        .foregroundStyle(V2Colors.faint)
                         .padding(4)
-                        .background(Color.white.opacity(0.06))
-                        .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
             }

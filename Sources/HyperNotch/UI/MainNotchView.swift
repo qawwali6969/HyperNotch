@@ -167,100 +167,185 @@ struct MainNotchView: View {
     }
     
     // Header when notch is expanded (positioned cleanly below the physical camera notch)
+    // Header when notch is expanded (positioned cleanly below the physical camera notch)
     private var openHeaderView: some View {
         HStack(spacing: 8) {
-            // Tab Buttons - strictly fixed horizontal layout, never breaks into vertical letters
-            HStack(spacing: 2) {
-                ForEach(NotchTab.allCases) { tab in
-                    let isSelected = coordinator.selectedTab == tab
-                    Button(action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
-                            coordinator.selectedTab = tab
-                        }
-                        if tab == .myDashboard {
-                            Task {
-                                await DashboardManager.shared.fetchStats()
-                            }
-                        }
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: tab.icon)
-                                .font(.system(size: 10, weight: isSelected ? .bold : .medium))
-                            Text(tab.localizedTitle)
-                                .font(.system(size: 10, weight: isSelected ? .bold : .medium, design: .monospaced))
-                                .lineLimit(1)
-                                .fixedSize(horizontal: true, vertical: false)
-                        }
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 4)
-                        .foregroundStyle(
-                            isSelected
-                                ? (themeManager.currentTheme == .engineeringV2 ? Color(hex: "050608") : Color.white)
-                                : (themeManager.currentTheme == .engineeringV2 ? V2Colors.dim : Color.white.opacity(0.6))
-                        )
-                        .shadow(color: isSelected ? (themeManager.currentTheme == .engineeringV2 ? V2Colors.ice1.opacity(0.5) : Color.white.opacity(0.3)) : Color.clear, radius: 4)
-                        .background {
-                            if isSelected {
-                                Capsule()
-                                    .fill(
-                                        themeManager.currentTheme == .engineeringV2
-                                            ? AnyShapeStyle(V2Colors.livingIceGradient)
-                                            : AnyShapeStyle(LinearGradient(colors: [Color.white.opacity(0.22), Color.white.opacity(0.12)], startPoint: .top, endPoint: .bottom))
-                                    )
-                                    .overlay(
-                                        Capsule().stroke(themeManager.currentTheme == .engineeringV2 ? Color.white.opacity(0.35) : Color.white.opacity(0.25), lineWidth: 1)
-                                    )
-                                    .matchedGeometryEffect(id: "activeTab", in: tabAnimation)
-                            }
-                        }
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(2)
-            .background(
-                Capsule()
-                    .fill(themeManager.currentTheme == .engineeringV2 ? V2Colors.void.opacity(0.85) : Color.black.opacity(0.65))
-                    .overlay(
-                        Capsule().stroke(themeManager.currentTheme == .engineeringV2 ? V2Colors.ice.opacity(0.22) : Color.white.opacity(0.12), lineWidth: 1)
-                    )
-            )
-            .fixedSize(horizontal: true, vertical: false)
-            .layoutPriority(2)
-            
+            tabRailView
             Spacer()
-            
-            // Music HUD
             CompactMusicHUDView()
-            
-            // Pin Toggle Button
-            Button(action: {
-                coordinator.isPinned.toggle()
-            }) {
-                Image(systemName: coordinator.isPinned ? "pin.fill" : "pin")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(coordinator.isPinned ? Color.orange : Color.white.opacity(0.6))
-                    .padding(4)
-                    .background(Circle().fill(Color.white.opacity(coordinator.isPinned ? 0.15 : 0.05)))
-            }
-            .buttonStyle(.plain)
-            
-            // Collapse Button
-            Button(action: {
-                coordinator.isPinned = false
-                coordinator.close()
-            }) {
-                Image(systemName: "chevron.up")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(Color.white.opacity(0.6))
-                    .padding(4)
-                    .background(Circle().fill(Color.white.opacity(0.05)))
-            }
-            .buttonStyle(.plain)
+            pinButton
+            collapseButton
         }
         .padding(.horizontal, 16)
         .padding(.top, 2)
         .padding(.bottom, 6)
+    }
+    
+    private var tabRailView: some View {
+        HStack(spacing: 2) {
+            // Tier 1: Ingest (Приём)
+            tierLabel(loc("Ingest", "Приём"))
+            tabButton(for: .shelf)
+            tabButton(for: .clipboard)
+            tabButton(for: .screenshots)
+            
+            railSeparator
+            
+            // Tier 2: System (Контур)
+            tierLabel(loc("System", "Контур"))
+            tabButton(for: .devTools)
+            tabButton(for: .webTools)
+            tabButton(for: .myDashboard)
+            tabButton(for: .aiQuota)
+            
+            railSeparator
+            
+            // Tier 3: Service (Сервис)
+            tabButton(for: .settings)
+        }
+        .padding(.horizontal, 5)
+        .padding(.vertical, 3)
+        .background(
+            Capsule()
+                .fill(
+                    themeManager.currentTheme == .engineeringV2
+                        ? AnyShapeStyle(LinearGradient(colors: [Color.white.opacity(0.065), Color.white.opacity(0.02)], startPoint: .top, endPoint: .bottom))
+                        : AnyShapeStyle(Color.black.opacity(0.65))
+                )
+        )
+        .overlay(
+            Capsule().stroke(Color.white.opacity(0.12), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.45), radius: 16, y: 8)
+        .fixedSize(horizontal: true, vertical: false)
+        .layoutPriority(2)
+    }
+    
+    private var pinFgColor: Color {
+        if coordinator.isPinned {
+            return themeManager.currentTheme == .engineeringV2 ? V2Colors.ice1 : Color.orange
+        } else {
+            return themeManager.currentTheme == .engineeringV2 ? V2Colors.faint : Color.white.opacity(0.6)
+        }
+    }
+    
+    private var pinBgColor: Color {
+        if coordinator.isPinned {
+            return themeManager.currentTheme == .engineeringV2 ? V2Colors.ice.opacity(0.18) : Color.white.opacity(0.15)
+        } else {
+            return Color.white.opacity(0.04)
+        }
+    }
+    
+    private var pinStrokeColor: Color {
+        if coordinator.isPinned {
+            return themeManager.currentTheme == .engineeringV2 ? V2Colors.ice2.opacity(0.5) : Color.orange.opacity(0.4)
+        } else {
+            return Color.white.opacity(0.08)
+        }
+    }
+
+    private var pinButton: some View {
+        Button(action: {
+            coordinator.isPinned.toggle()
+        }) {
+            Image(systemName: coordinator.isPinned ? "pin.fill" : "pin")
+                .font(.system(size: 10.5, weight: .semibold))
+                .foregroundStyle(pinFgColor)
+                .frame(width: 24, height: 24)
+                .background(Circle().fill(pinBgColor))
+                .overlay(Circle().stroke(pinStrokeColor, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .help(loc("Pin panel open", "Закрепить панель"))
+    }
+    
+    private var collapseButton: some View {
+        Button(action: {
+            coordinator.isPinned = false
+            coordinator.close()
+        }) {
+            Image(systemName: "chevron.up")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.faint : Color.white.opacity(0.6))
+                .frame(width: 24, height: 24)
+                .background(Circle().fill(Color.white.opacity(0.04)))
+                .overlay(Circle().stroke(Color.white.opacity(0.08), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .help(loc("Collapse panel", "Свернуть панель"))
+    }
+    
+    @ViewBuilder
+    private func tabButton(for tab: NotchTab) -> some View {
+        let isSelected = coordinator.selectedTab == tab
+        Button(action: {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                coordinator.selectedTab = tab
+            }
+            if tab == .myDashboard {
+                Task {
+                    await DashboardManager.shared.fetchStats()
+                }
+            }
+        }) {
+            HStack(spacing: 3) {
+                Image(systemName: tab.icon)
+                    .font(.system(size: 9.5, weight: isSelected ? .bold : .medium))
+                Text(tab.localizedTitle)
+                    .font(.system(size: 9.5, weight: isSelected ? .bold : .medium, design: .monospaced))
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+            }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3.5)
+            .foregroundStyle(tabTextColor(isSelected: isSelected))
+            .background {
+                if isSelected {
+                    tabActiveBackground
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private func tabTextColor(isSelected: Bool) -> Color {
+        if isSelected {
+            return themeManager.currentTheme == .engineeringV2 ? Color(hex: "050608") : Color.white
+        } else {
+            return themeManager.currentTheme == .engineeringV2 ? V2Colors.dim : Color.white.opacity(0.6)
+        }
+    }
+    
+    @ViewBuilder
+    private var tabActiveBackground: some View {
+        if themeManager.currentTheme == .engineeringV2 {
+            Capsule()
+                .fill(V2Colors.livingIceHGradient)
+                .overlay(Capsule().stroke(Color.white.opacity(0.4), lineWidth: 1))
+                .shadow(color: V2Colors.ice.opacity(0.55), radius: 6, y: 1)
+                .matchedGeometryEffect(id: "activeTab", in: tabAnimation)
+        } else {
+            Capsule()
+                .fill(LinearGradient(colors: [Color.white.opacity(0.22), Color.white.opacity(0.12)], startPoint: .top, endPoint: .bottom))
+                .overlay(Capsule().stroke(Color.white.opacity(0.25), lineWidth: 1))
+                .matchedGeometryEffect(id: "activeTab", in: tabAnimation)
+        }
+    }
+    
+    @ViewBuilder
+    private func tierLabel(_ text: String) -> some View {
+        Text(text.uppercased())
+            .font(.system(size: 8, weight: .bold, design: .monospaced))
+            .foregroundStyle(V2Colors.faint)
+            .padding(.horizontal, 4)
+    }
+    
+    private var railSeparator: some View {
+        Rectangle()
+            .fill(Color.white.opacity(0.1))
+            .frame(width: 1, height: 16)
+            .padding(.horizontal, 2)
     }
     
     // Closed Notch View

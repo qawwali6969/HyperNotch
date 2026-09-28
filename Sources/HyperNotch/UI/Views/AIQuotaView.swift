@@ -44,71 +44,42 @@ struct AIQuotaView: View {
     
     var body: some View {
         VStack(spacing: 8) {
-            // Header
-            HStack(spacing: 8) {
-                HStack(spacing: 5) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.white)
-                        .shadow(color: .white.opacity(0.4), radius: 3)
-                    
-                    Text(isManaging ? loc("CONNECT AI & PROXIES", "ПОДКЛЮЧЕНИЕ НЕЙРОСЕТЕЙ & ПРОКСИ") : loc("AI USAGE & RATE LIMITS", "РАСХОД AI & ЛИМИТЫ"))
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
-                        .foregroundStyle(.white)
-                }
-                
-                Spacer()
-                
-                if isManaging {
-                    VibeInteractiveHoverButton(
-                        text: loc("Done", "Готово"),
-                        leadingIcon: "checkmark",
-                        icon: "arrow.right",
-                        fontSize: 9,
-                        horizontalPadding: 9,
-                        verticalPadding: 3,
-                        minHeight: 22
-                    ) {
-                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                            isManaging = false
-                        }
+            // V2 Module Header
+            V2ModuleHeader(
+                tab: .aiQuota,
+                statusText: "\(tracker.activeQuotas.count) \(loc("PROVIDERS", "ПРОВАЙДЕРА")) · СБРОС СКОРО"
+            ) {
+                V2GlassButton(
+                    title: isManaging ? loc("Done", "Готово") : loc("Add", "Добавить"),
+                    icon: isManaging ? "checkmark" : "plus",
+                    isKey: isManaging
+                ) {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                        isManaging.toggle()
+                    }
+                    if !isManaging {
                         Task {
                             await tracker.refreshAll()
                         }
                     }
-                } else {
-                    VibeInteractiveHoverButton(
-                        text: loc("Add", "Добавить"),
-                        leadingIcon: "plus",
-                        icon: "arrow.right",
-                        fontSize: 9,
-                        horizontalPadding: 8,
-                        verticalPadding: 3,
-                        minHeight: 22
-                    ) {
-                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                            isManaging = true
-                        }
-                    }
-                    
-                    Button(action: {
-                        Task {
-                            await tracker.refreshAll()
-                        }
-                    }) {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 10))
-                            .rotationEffect(.degrees(tracker.isRefreshing ? 360 : 0))
-                            .animation(tracker.isRefreshing ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: tracker.isRefreshing)
-                            .foregroundStyle(.white.opacity(0.8))
-                            .frame(width: 22, height: 22)
-                            .background(Color.white.opacity(0.08))
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
                 }
+                
+                Button(action: {
+                    Task {
+                        await tracker.refreshAll()
+                    }
+                }) {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 9.5))
+                        .rotationEffect(.degrees(tracker.isRefreshing ? 360 : 0))
+                        .animation(tracker.isRefreshing ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: tracker.isRefreshing)
+                        .foregroundStyle(V2Colors.dim)
+                        .frame(width: 20, height: 20)
+                        .background(Color.white.opacity(0.04))
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
             }
-            .padding(.horizontal, 16)
             
             // Content
             if isManaging {
@@ -510,51 +481,37 @@ struct AIProviderManagerView: View {
 struct QuotaWindowRow: View {
     let window: LLMQuotaWindow
     
+    private var isCrit: Bool { window.effectiveRemaining <= 15 }
+    private var isWarn: Bool { window.effectiveRemaining > 15 && window.effectiveRemaining <= 35 }
+    
     var body: some View {
-        HStack(spacing: 8) {
-            // Circular progress meter showing remaining percentage
-            ZStack {
-                Circle()
-                    .stroke(Color.white.opacity(0.12), lineWidth: 2.2)
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(window.title)
+                    .font(.system(size: 9.5, weight: .bold))
+                    .foregroundStyle(V2Colors.dim)
                 
-                Circle()
-                    .trim(from: 0, to: CGFloat(min(1.0, max(0.0, window.effectiveRemaining / 100.0))))
-                    .stroke(window.statusColor, style: StrokeStyle(lineWidth: 2.2, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                    .shadow(color: window.statusColor.opacity(0.4), radius: 2)
+                Spacer()
+                
+                Text(window.usageText)
+                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+                    .foregroundStyle(isCrit ? V2Colors.red : (isWarn ? V2Colors.amber : V2Colors.ice1))
             }
-            .frame(width: 22, height: 22)
             
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 4) {
-                    Text(window.title)
-                        .font(.system(size: 9.5, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(.white.opacity(0.95))
-                    
-                    Spacer()
-                    
-                    Text(window.usageText)
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
-                        .foregroundStyle(window.statusColor)
-                }
-                
-                if let resetDesc = window.resetDescription {
-                    HStack(spacing: 3) {
-                        Image(systemName: "clock.arrow.circlepath")
-                            .font(.system(size: 7.5))
-                            .foregroundStyle(Color.cyan)
-                        Text(resetDesc)
-                            .font(.system(size: 8, weight: .medium, design: .monospaced))
-                            .foregroundStyle(Color.white.opacity(0.75))
-                            .lineLimit(1)
-                    }
-                }
+            V2Gauge(
+                progress: window.effectiveRemaining / 100.0,
+                isWarning: isWarn,
+                isCritical: isCrit
+            )
+            
+            if let resetDesc = window.resetDescription {
+                Text(resetDesc.uppercased())
+                    .font(.system(size: 8, design: .monospaced))
+                    .foregroundStyle(V2Colors.faint)
+                    .lineLimit(1)
             }
         }
-        .padding(.horizontal, 7)
-        .padding(.vertical, 5)
-        .background(Color.white.opacity(0.04))
-        .clipShape(RoundedRectangle(cornerRadius: 7))
+        .padding(.vertical, 2)
     }
 }
 
@@ -591,52 +548,38 @@ struct QuotaCard: View {
         return fmt.string(from: targetResetDate)
     }
     
+    private var statusChip: (String, V2ChipStyle) {
+        if quota.isError {
+            return ("Ошибка", .crit)
+        }
+        if let lowest = quota.windows.map({ $0.effectiveRemaining }).min() {
+            if lowest <= 15 { return ("Предел", .crit) }
+            if lowest <= 35 { return ("Внимание", .warn) }
+        }
+        return ("Норма", .ice)
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             // Card Header
             HStack(spacing: 5) {
-                Image(systemName: quota.isError ? "exclamationmark.triangle" : "sparkle")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(quota.isError ? Color.red : quota.statusColor)
-                    .shadow(color: (quota.isError ? Color.red : quota.statusColor).opacity(0.4), radius: 4)
-                
                 Text(quota.providerName)
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .font(.system(size: 11, weight: .bold))
                     .lineLimit(1)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(V2Colors.milk)
                 
                 Text(quota.planName)
-                    .font(.system(size: 7.5, weight: .semibold, design: .monospaced))
+                    .font(.system(size: 8, weight: .semibold, design: .monospaced))
                     .padding(.horizontal, 4)
                     .padding(.vertical, 1.5)
-                    .background(Color.white.opacity(0.1))
-                    .foregroundStyle(Color.white.opacity(0.85))
+                    .background(Color.white.opacity(0.06))
+                    .foregroundStyle(V2Colors.dim)
                     .clipShape(Capsule())
+                    .overlay(Capsule().stroke(Color.white.opacity(0.12), lineWidth: 1))
                 
                 Spacer(minLength: 4)
                 
-                if !quota.isError {
-                    Button(action: {
-                        tracker.setAlarmForReset(quota: quota, targetResetDate: targetResetDate)
-                    }) {
-                        HStack(spacing: 3) {
-                            Image(systemName: isAlarmSet ? "checkmark" : "alarm.fill")
-                                .font(.system(size: 8))
-                            Text(isAlarmSet ? "Стоит на \(alarmTimeString)!" : "Будильник \(alarmTimeString)")
-                                .font(.system(size: 8, weight: .bold, design: .monospaced))
-                        }
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2.5)
-                        .background(isAlarmSet ? Color.green.opacity(0.25) : Color.white.opacity(0.1))
-                        .foregroundStyle(isAlarmSet ? Color.green : Color.white.opacity(0.9))
-                        .clipShape(Capsule())
-                        .overlay(
-                            Capsule().stroke(isAlarmSet ? Color.green.opacity(0.5) : Color.white.opacity(0.18), lineWidth: 0.8)
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .help("Установить будильник в приложении Часы на ближайший сброс лимита (\(alarmTimeString))")
-                }
+                V2Chip(statusChip.0, style: statusChip.1)
             }
             
             if quota.isError {
@@ -644,21 +587,21 @@ struct QuotaCard: View {
                     HStack(spacing: 4) {
                         Image(systemName: "xmark.circle")
                             .font(.system(size: 9))
-                            .foregroundStyle(.red)
+                            .foregroundStyle(V2Colors.red)
                         Text(quota.resetTimeDescription)
                             .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(.red)
+                            .foregroundStyle(V2Colors.red)
                     }
                     Text(quota.detailText)
                         .font(.system(size: 8.5, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(V2Colors.faint)
                 }
                 .padding(6)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.red.opacity(0.08))
+                .background(V2Colors.red.opacity(0.08))
                 .clipShape(RoundedRectangle(cornerRadius: 6))
             } else if !quota.windows.isEmpty {
-                VStack(spacing: 5) {
+                VStack(spacing: 4) {
                     ForEach(quota.windows) { window in
                         QuotaWindowRow(window: window)
                     }
@@ -668,26 +611,42 @@ struct QuotaCard: View {
                     HStack(spacing: 4) {
                         Image(systemName: "clock.arrow.circlepath")
                             .font(.system(size: 9))
-                            .foregroundStyle(Color.cyan)
+                            .foregroundStyle(V2Colors.ice1)
                         Text(quota.resetTimeDescription)
                             .font(.system(size: 8.5, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(V2Colors.milk)
                     }
                     .padding(.horizontal, 6)
                     .padding(.vertical, 3)
-                    .background(Color.white.opacity(0.06))
+                    .background(Color.white.opacity(0.04))
                     .clipShape(RoundedRectangle(cornerRadius: 6))
-                    
-                    Text(quota.detailText)
-                        .font(.system(size: 8.5, design: .monospaced))
-                        .foregroundStyle(.secondary)
                 }
             }
             
             Spacer(minLength: 0)
+            
+            // Card Footer
+            HStack {
+                Text("КЛЮЧ · KEYCHAIN")
+                    .font(.system(size: 7.5, weight: .medium, design: .monospaced))
+                    .foregroundStyle(V2Colors.faint)
+                
+                Spacer()
+                
+                if !quota.isError {
+                    V2GlassButton(
+                        title: isAlarmSet ? "Стоит · \(alarmTimeString)" : "Будильник \(alarmTimeString)",
+                        icon: isAlarmSet ? "checkmark" : "alarm.fill",
+                        isKey: isAlarmSet
+                    ) {
+                        tracker.setAlarmForReset(quota: quota, targetResetDate: targetResetDate)
+                    }
+                }
+            }
         }
         .padding(9)
-        .frame(width: 265, height: 144)
+        .frame(width: 215, height: 168)
         .heroGlassCard(cornerRadius: 13)
     }
 }
+
