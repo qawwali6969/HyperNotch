@@ -80,20 +80,36 @@ struct DevToolsView: View {
                 .padding(10)
                 .heroGlassCard(cornerRadius: 13)
                 
-                // Right: Instant Token & Cost Calculator
+                // Right: Instant Token & Cost Calculator with Dynamic Provider Slots
                 VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 5) {
+                    HStack(spacing: 6) {
                         Text(loc("TOKENS & COST", "ТОКЕНЫ И СТОИМОСТЬ"))
                             .font(.system(size: 9.5, weight: .bold, design: .monospaced))
                             .foregroundStyle(V2Colors.faint)
                         
+                        // Live API Refresh Icon
+                        Button(action: {
+                            Task {
+                                await devTools.fetchLiveModels()
+                            }
+                        }) {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.system(size: 8.5, weight: .bold))
+                                .foregroundStyle(V2Colors.faint)
+                                .rotationEffect(.degrees(devTools.isFetchingModels ? 360 : 0))
+                                .animation(devTools.isFetchingModels ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: devTools.isFetchingModels)
+                                .frame(width: 14, height: 14)
+                        }
+                        .buttonStyle(.plain)
+                        .help(loc("Refresh models from active APIs", "Обновить список моделей по API"))
+                        
                         Spacer()
                         
-                        // Paste from clipboard button
+                        // Paste button
                         Button(action: {
-                            if let pasteText = NSPasteboard.general.string(forType: .string) {
-                                devTools.tokenCalcText = pasteText
-                                devTools.updateTokenEstimate(for: pasteText)
+                            if let paste = NSPasteboard.general.string(forType: .string) {
+                                devTools.tokenCalcText = paste
+                                devTools.updateTokenEstimate(for: paste)
                             }
                         }) {
                             HStack(spacing: 3) {
@@ -135,7 +151,8 @@ struct DevToolsView: View {
                             devTools.updateTokenEstimate(for: newText)
                         }
                     
-                    HStack(spacing: 11) {
+                    // Dynamic Provider Cost Row: 1 provider = 1 price, 2 providers = 2 prices, etc.
+                    HStack(spacing: 10) {
                         // Tokens count
                         VStack(alignment: .leading, spacing: 2) {
                             Text(loc("TOKENS", "ТОКЕНЫ"))
@@ -143,42 +160,30 @@ struct DevToolsView: View {
                                 .foregroundStyle(V2Colors.faint)
                             
                             Text("\(devTools.tokenEstimateCount)")
-                                .font(.system(size: 16, weight: .bold, design: .monospaced))
+                                .font(.system(size: 15, weight: .bold, design: .monospaced))
                                 .foregroundStyle(V2Colors.livingIceHGradient)
                         }
                         
-                        Rectangle()
-                            .fill(Color.white.opacity(0.08))
-                            .frame(width: 1, height: 26)
-                        
-                        // Slot A: Model A Dropdown + Cost
-                        VStack(alignment: .leading, spacing: 3) {
-                            ModelDropdownMenu(
-                                selectedId: $devTools.selectedModelAId,
-                                activeModels: devTools.activeModelsFromQuotas,
-                                allModels: devTools.allAvailableModels
-                            )
+                        // Dynamic slots for each active provider configured in AI Quota
+                        if devTools.activeProviders.isEmpty {
+                            Rectangle()
+                                .fill(Color.white.opacity(0.08))
+                                .frame(width: 1, height: 26)
                             
-                            Text(devTools.selectedModelA.formattedCost(tokens: devTools.tokenEstimateCount))
-                                .font(.system(size: 11.5, weight: .bold, design: .monospaced))
-                                .foregroundStyle(devTools.selectedModelA.isFree ? V2Colors.ice1 : V2Colors.amber)
-                        }
-                        
-                        Rectangle()
-                            .fill(Color.white.opacity(0.08))
-                            .frame(width: 1, height: 26)
-                        
-                        // Slot B: Model B Dropdown + Cost
-                        VStack(alignment: .leading, spacing: 3) {
-                            ModelDropdownMenu(
-                                selectedId: $devTools.selectedModelBId,
-                                activeModels: devTools.activeModelsFromQuotas,
-                                allModels: devTools.allAvailableModels
-                            )
-                            
-                            Text(devTools.selectedModelB.formattedCost(tokens: devTools.tokenEstimateCount))
-                                .font(.system(size: 11.5, weight: .bold, design: .monospaced))
-                                .foregroundStyle(devTools.selectedModelB.isFree ? V2Colors.ice1 : V2Colors.amber)
+                            Text(loc("Enable providers in AI Quota", "Включите API в Квотах"))
+                                .font(.system(size: 8.5, design: .monospaced))
+                                .foregroundStyle(V2Colors.dim)
+                        } else {
+                            ForEach(devTools.activeProviders) { provider in
+                                Rectangle()
+                                    .fill(Color.white.opacity(0.08))
+                                    .frame(width: 1, height: 26)
+                                
+                                ProviderCostColumn(
+                                    provider: provider,
+                                    tokens: devTools.tokenEstimateCount
+                                )
+                            }
                         }
                         
                         Rectangle()
@@ -192,9 +197,11 @@ struct DevToolsView: View {
                                 .foregroundStyle(V2Colors.faint)
                             
                             Text("\(devTools.tokenCalcText.count)")
-                                .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                .font(.system(size: 11.5, weight: .bold, design: .monospaced))
                                 .foregroundStyle(V2Colors.dim)
                         }
+                        
+                        Spacer(minLength: 0)
                     }
                     .padding(.top, 4)
                     
@@ -210,98 +217,69 @@ struct DevToolsView: View {
     }
 }
 
-struct ModelDropdownMenu: View {
-    @Binding var selectedId: String
-    let activeModels: [LLMModelPricing]
-    let allModels: [LLMModelPricing]
+struct ProviderCostColumn: View {
+    let provider: DevToolsProvider
+    let tokens: Int
+    @ObservedObject var devTools = DevToolsManager.shared
     @ObservedObject var localization = LocalizationManager.shared
     
-    var currentModel: LLMModelPricing {
-        allModels.first(where: { $0.id == selectedId }) ?? (allModels.first ?? LLMModelPricing.catalog[0])
+    var selectedModel: LLMModelPricing {
+        devTools.selectedModel(for: provider.id)
+    }
+    
+    var providerModels: [LLMModelPricing] {
+        devTools.models(for: provider.id)
     }
     
     var body: some View {
-        Menu {
-            if !activeModels.isEmpty {
-                Section(loc("★ Configured in AI Quota", "★ Активные в Квотах")) {
-                    ForEach(activeModels) { model in
-                        Button(action: { selectedId = model.id }) {
+        VStack(alignment: .leading, spacing: 3) {
+            // Dropdown menu showing ONLY this provider's models
+            Menu {
+                Section("\(provider.name) — \(loc("Models", "Модели"))") {
+                    ForEach(providerModels) { model in
+                        Button(action: {
+                            devTools.selectModel(id: model.id, for: provider.id)
+                        }) {
                             HStack {
                                 Text(model.displayNameWithPrice)
-                                if selectedId == model.id {
+                                if selectedModel.id == model.id {
                                     Image(systemName: "checkmark")
                                 }
                             }
                         }
                     }
                 }
-            }
-            
-            Section("DeepSeek") {
-                ForEach(allModels.filter { $0.providerKey == "deepseek" }) { model in
-                    Button(action: { selectedId = model.id }) {
-                        Text(model.displayNameWithPrice)
-                    }
+            } label: {
+                HStack(spacing: 3.5) {
+                    Image(systemName: provider.icon)
+                        .font(.system(size: 7.5))
+                        .foregroundStyle(V2Colors.ice1)
+                    
+                    Text("\(provider.shortName): \(selectedModel.shortName)")
+                        .font(.system(size: 8, weight: .bold, design: .monospaced))
+                        .lineLimit(1)
+                    
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 6.5, weight: .bold))
+                        .foregroundStyle(V2Colors.faint)
                 }
+                .foregroundStyle(V2Colors.milk)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(V2Colors.ice.opacity(0.12))
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(V2Colors.ice.opacity(0.25), lineWidth: 1)
+                )
             }
+            .menuStyle(.borderlessButton)
             
-            Section("Anthropic Claude") {
-                ForEach(allModels.filter { $0.providerKey == "claude" }) { model in
-                    Button(action: { selectedId = model.id }) {
-                        Text(model.displayNameWithPrice)
-                    }
-                }
-            }
-            
-            Section("OpenAI") {
-                ForEach(allModels.filter { $0.providerKey == "codex" }) { model in
-                    Button(action: { selectedId = model.id }) {
-                        Text(model.displayNameWithPrice)
-                    }
-                }
-            }
-            
-            Section("Google Gemini") {
-                ForEach(allModels.filter { $0.providerKey == "gemini" }) { model in
-                    Button(action: { selectedId = model.id }) {
-                        Text(model.displayNameWithPrice)
-                    }
-                }
-            }
-            
-            Section("xAI Grok & Z.ai") {
-                ForEach(allModels.filter { $0.providerKey == "grok" || $0.providerKey == "zai" }) { model in
-                    Button(action: { selectedId = model.id }) {
-                        Text(model.displayNameWithPrice)
-                    }
-                }
-            }
-            
-            Section("Ollama & Custom") {
-                ForEach(allModels.filter { $0.providerKey == "ollama" || $0.providerKey == "custom" }) { model in
-                    Button(action: { selectedId = model.id }) {
-                        Text(model.displayNameWithPrice)
-                    }
-                }
-            }
-        } label: {
-            HStack(spacing: 3) {
-                Text(currentModel.shortName)
-                    .font(.system(size: 8, weight: .bold, design: .monospaced))
-                    .lineLimit(1)
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.system(size: 6.5, weight: .bold))
-            }
-            .foregroundStyle(V2Colors.milk)
-            .padding(.horizontal, 5)
-            .padding(.vertical, 2.5)
-            .background(V2Colors.ice.opacity(0.12))
-            .clipShape(RoundedRectangle(cornerRadius: 4))
-            .overlay(
-                RoundedRectangle(cornerRadius: 4)
-                    .stroke(V2Colors.ice.opacity(0.25), lineWidth: 1)
-            )
+            // Computed cost for this specific provider model
+            Text(selectedModel.formattedCost(tokens: tokens))
+                .font(.system(size: 11.5, weight: .bold, design: .monospaced))
+                .foregroundStyle(selectedModel.isFree ? V2Colors.ice1 : V2Colors.amber)
+                .lineLimit(1)
         }
-        .menuStyle(.borderlessButton)
     }
 }
