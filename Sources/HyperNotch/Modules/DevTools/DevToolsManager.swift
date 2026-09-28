@@ -8,11 +8,21 @@ struct DevPortInfo: Identifiable, Equatable {
     var isOpen: Bool
 }
 
-struct ProviderTokenCost: Identifiable, Equatable {
+struct LLMModelPricing: Identifiable, Equatable {
     let id: String
-    let name: String
+    let providerKey: String
+    let providerName: String
+    let modelName: String
+    let shortName: String
     let inputCostPerMillion: Double
     let isFree: Bool
+    
+    var displayNameWithPrice: String {
+        if isFree {
+            return "\(modelName) (Free)"
+        }
+        return "\(modelName) ($\(String(format: "%.2f", inputCostPerMillion))/1M)"
+    }
     
     func cost(for tokens: Int) -> Double {
         return (Double(tokens) / 1_000_000.0) * inputCostPerMillion
@@ -25,6 +35,40 @@ struct ProviderTokenCost: Identifiable, Equatable {
         if c < 0.00001 { return "<$0.00001" }
         return String(format: "$%.5f", c)
     }
+    
+    static let catalog: [LLMModelPricing] = [
+        // Google Gemini
+        LLMModelPricing(id: "gemini-2-0-flash", providerKey: "gemini", providerName: "Google Gemini", modelName: "Gemini 2.0 Flash", shortName: "GEMINI FLASH", inputCostPerMillion: 0.10, isFree: true),
+        LLMModelPricing(id: "gemini-2-0-pro", providerKey: "gemini", providerName: "Google Gemini", modelName: "Gemini 2.0 Pro", shortName: "GEMINI PRO", inputCostPerMillion: 1.25, isFree: false),
+        LLMModelPricing(id: "gemini-1-5-flash", providerKey: "gemini", providerName: "Google Gemini", modelName: "Gemini 1.5 Flash", shortName: "GEMINI 1.5 F", inputCostPerMillion: 0.075, isFree: false),
+        
+        // DeepSeek
+        LLMModelPricing(id: "deepseek-v3", providerKey: "deepseek", providerName: "DeepSeek", modelName: "DeepSeek V3", shortName: "DEEPSEEK V3", inputCostPerMillion: 0.14, isFree: false),
+        LLMModelPricing(id: "deepseek-r1", providerKey: "deepseek", providerName: "DeepSeek", modelName: "DeepSeek R1", shortName: "DEEPSEEK R1", inputCostPerMillion: 0.55, isFree: false),
+        
+        // Anthropic Claude
+        LLMModelPricing(id: "claude-3-7-sonnet", providerKey: "claude", providerName: "Anthropic Claude", modelName: "Claude 3.7 Sonnet", shortName: "CLAUDE 3.7", inputCostPerMillion: 3.00, isFree: false),
+        LLMModelPricing(id: "claude-3-5-sonnet", providerKey: "claude", providerName: "Anthropic Claude", modelName: "Claude 3.5 Sonnet", shortName: "CLAUDE 3.5", inputCostPerMillion: 3.00, isFree: false),
+        LLMModelPricing(id: "claude-3-5-haiku", providerKey: "claude", providerName: "Anthropic Claude", modelName: "Claude 3.5 Haiku", shortName: "CLAUDE HAIKU", inputCostPerMillion: 0.80, isFree: false),
+        LLMModelPricing(id: "claude-3-opus", providerKey: "claude", providerName: "Anthropic Claude", modelName: "Claude 3 Opus", shortName: "CLAUDE OPUS", inputCostPerMillion: 15.00, isFree: false),
+        
+        // OpenAI
+        LLMModelPricing(id: "gpt-4o", providerKey: "codex", providerName: "OpenAI", modelName: "GPT-4o", shortName: "GPT-4O", inputCostPerMillion: 2.50, isFree: false),
+        LLMModelPricing(id: "gpt-4o-mini", providerKey: "codex", providerName: "OpenAI", modelName: "GPT-4o mini", shortName: "GPT-4O MINI", inputCostPerMillion: 0.15, isFree: false),
+        LLMModelPricing(id: "o3-mini", providerKey: "codex", providerName: "OpenAI", modelName: "o3-mini", shortName: "O3-MINI", inputCostPerMillion: 1.10, isFree: false),
+        LLMModelPricing(id: "o1", providerKey: "codex", providerName: "OpenAI", modelName: "o1", shortName: "O1", inputCostPerMillion: 15.00, isFree: false),
+        
+        // xAI Grok
+        LLMModelPricing(id: "grok-2", providerKey: "grok", providerName: "xAI Grok", modelName: "Grok 2", shortName: "GROK 2", inputCostPerMillion: 2.00, isFree: false),
+        LLMModelPricing(id: "grok-2-mini", providerKey: "grok", providerName: "xAI Grok", modelName: "Grok 2 mini", shortName: "GROK MINI", inputCostPerMillion: 0.20, isFree: false),
+        
+        // Z.ai GLM
+        LLMModelPricing(id: "glm-4-plus", providerKey: "zai", providerName: "Z.ai (GLM)", modelName: "GLM-4 Plus", shortName: "GLM-4 PLUS", inputCostPerMillion: 0.50, isFree: false),
+        LLMModelPricing(id: "glm-4-flash", providerKey: "zai", providerName: "Z.ai (GLM)", modelName: "GLM-4 Flash", shortName: "GLM-4 FLASH", inputCostPerMillion: 0.01, isFree: true),
+        
+        // Ollama Local
+        LLMModelPricing(id: "ollama-local", providerKey: "ollama", providerName: "Ollama Local", modelName: "Ollama Local Models", shortName: "OLLAMA", inputCostPerMillion: 0.00, isFree: true)
+    ]
 }
 
 @MainActor
@@ -41,46 +85,54 @@ class DevToolsManager: ObservableObject {
     
     @Published var tokenCalcText: String = ""
     @Published var tokenEstimateCount: Int = 0
-    @Published var sonnetCostEstimate: Double = 0.0 // $3 / million input
-    @Published var gpt4oCostEstimate: Double = 0.0   // $2.5 / million input
     
-    var activeModelCosts: [ProviderTokenCost] {
+    // Model Selection (persisted)
+    @Published var selectedModelAId: String = UserDefaults.standard.string(forKey: "devTools_modelA_id") ?? "deepseek-v3" {
+        didSet { UserDefaults.standard.set(selectedModelAId, forKey: "devTools_modelA_id") }
+    }
+    @Published var selectedModelBId: String = UserDefaults.standard.string(forKey: "devTools_modelB_id") ?? "claude-3-7-sonnet" {
+        didSet { UserDefaults.standard.set(selectedModelBId, forKey: "devTools_modelB_id") }
+    }
+    
+    var allAvailableModels: [LLMModelPricing] {
+        var list = LLMModelPricing.catalog
+        for cp in LLMTrackerManager.shared.customProviders where cp.isEnabled {
+            list.append(LLMModelPricing(
+                id: "custom-\(cp.id)",
+                providerKey: "custom",
+                providerName: cp.name,
+                modelName: cp.name,
+                shortName: cp.name.uppercased(),
+                inputCostPerMillion: 1.00,
+                isFree: false
+            ))
+        }
+        return list
+    }
+    
+    var activeModelsFromQuotas: [LLMModelPricing] {
         let tracker = LLMTrackerManager.shared
-        var models: [ProviderTokenCost] = []
-        
-        if tracker.enableGemini || !tracker.geminiApiKey.isEmpty {
-            models.append(ProviderTokenCost(id: "gemini", name: "GEMINI 2.0", inputCostPerMillion: 0.10, isFree: true))
+        return allAvailableModels.filter { model in
+            switch model.providerKey {
+            case "gemini": return tracker.enableGemini || !tracker.geminiApiKey.isEmpty
+            case "deepseek": return tracker.enableDeepSeek || !tracker.deepSeekApiKey.isEmpty
+            case "claude": return tracker.enableClaude || !tracker.claudeSessionToken.isEmpty
+            case "codex": return tracker.enableCodex || !tracker.codexApiKey.isEmpty
+            case "grok": return tracker.enableGrok || !tracker.grokApiKey.isEmpty
+            case "zai": return tracker.enableZai || !tracker.zaiApiKey.isEmpty
+            case "ollama": return tracker.enableOllama
+            case "custom": return true
+            default: return false
+            }
         }
-        if tracker.enableDeepSeek || !tracker.deepSeekApiKey.isEmpty {
-            models.append(ProviderTokenCost(id: "deepseek", name: "DEEPSEEK V3", inputCostPerMillion: 0.14, isFree: false))
-        }
-        if tracker.enableClaude || !tracker.claudeSessionToken.isEmpty {
-            models.append(ProviderTokenCost(id: "claude", name: "CLAUDE 3.7", inputCostPerMillion: 3.00, isFree: false))
-        }
-        if tracker.enableCodex || !tracker.codexApiKey.isEmpty {
-            models.append(ProviderTokenCost(id: "codex", name: "GPT-4O", inputCostPerMillion: 2.50, isFree: false))
-        }
-        if tracker.enableGrok || !tracker.grokApiKey.isEmpty {
-            models.append(ProviderTokenCost(id: "grok", name: "GROK 2", inputCostPerMillion: 2.00, isFree: false))
-        }
-        if tracker.enableZai || !tracker.zaiApiKey.isEmpty {
-            models.append(ProviderTokenCost(id: "zai", name: "GLM-4 (Z.AI)", inputCostPerMillion: 0.50, isFree: false))
-        }
-        if tracker.enableOllama {
-            models.append(ProviderTokenCost(id: "ollama", name: "OLLAMA", inputCostPerMillion: 0.00, isFree: true))
-        }
-        for p in tracker.customProviders where p.isEnabled {
-            models.append(ProviderTokenCost(id: p.id.uuidString, name: p.name.uppercased(), inputCostPerMillion: 1.00, isFree: false))
-        }
-        
-        if models.isEmpty {
-            // Default benchmarks if no keys/providers are configured yet
-            models.append(ProviderTokenCost(id: "gemini", name: "GEMINI 2.0", inputCostPerMillion: 0.10, isFree: true))
-            models.append(ProviderTokenCost(id: "claude", name: "CLAUDE 3.7", inputCostPerMillion: 3.00, isFree: false))
-            models.append(ProviderTokenCost(id: "codex", name: "GPT-4O", inputCostPerMillion: 2.50, isFree: false))
-        }
-        
-        return models
+    }
+    
+    var selectedModelA: LLMModelPricing {
+        allAvailableModels.first(where: { $0.id == selectedModelAId }) ?? (allAvailableModels.first(where: { $0.id == "deepseek-v3" }) ?? allAvailableModels[0])
+    }
+    
+    var selectedModelB: LLMModelPricing {
+        allAvailableModels.first(where: { $0.id == selectedModelBId }) ?? (allAvailableModels.first(where: { $0.id == "claude-3-7-sonnet" }) ?? allAvailableModels[0])
     }
     
     private var scanTimer: Timer?
@@ -93,10 +145,6 @@ class DevToolsManager: ObservableObject {
         self.tokenCalcText = text
         let count = max(0, text.count / 4)
         self.tokenEstimateCount = count
-        // Sonnet 3.7: $3.00 per 1M input tokens
-        self.sonnetCostEstimate = (Double(count) / 1_000_000.0) * 3.00
-        // GPT-4o: $2.50 per 1M input tokens
-        self.gpt4oCostEstimate = (Double(count) / 1_000_000.0) * 2.50
     }
     
     func startPortScanning() {

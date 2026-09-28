@@ -135,7 +135,8 @@ struct DevToolsView: View {
                             devTools.updateTokenEstimate(for: newText)
                         }
                     
-                    HStack(spacing: 10) {
+                    HStack(spacing: 11) {
+                        // Tokens count
                         VStack(alignment: .leading, spacing: 2) {
                             Text(loc("TOKENS", "ТОКЕНЫ"))
                                 .font(.system(size: 8, weight: .bold, design: .monospaced))
@@ -146,28 +147,45 @@ struct DevToolsView: View {
                                 .foregroundStyle(V2Colors.livingIceHGradient)
                         }
                         
-                        ForEach(devTools.activeModelCosts.prefix(3)) { model in
-                            Rectangle()
-                                .fill(Color.white.opacity(0.08))
-                                .frame(width: 1, height: 24)
+                        Rectangle()
+                            .fill(Color.white.opacity(0.08))
+                            .frame(width: 1, height: 26)
+                        
+                        // Slot A: Model A Dropdown + Cost
+                        VStack(alignment: .leading, spacing: 3) {
+                            ModelDropdownMenu(
+                                selectedId: $devTools.selectedModelAId,
+                                activeModels: devTools.activeModelsFromQuotas,
+                                allModels: devTools.allAvailableModels
+                            )
                             
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(model.name)
-                                    .font(.system(size: 8, weight: .bold, design: .monospaced))
-                                    .foregroundStyle(V2Colors.faint)
-                                    .lineLimit(1)
-                                
-                                Text(model.formattedCost(tokens: devTools.tokenEstimateCount))
-                                    .font(.system(size: 11.5, weight: .bold, design: .monospaced))
-                                    .foregroundStyle(model.isFree ? V2Colors.ice1 : V2Colors.amber)
-                                    .lineLimit(1)
-                            }
+                            Text(devTools.selectedModelA.formattedCost(tokens: devTools.tokenEstimateCount))
+                                .font(.system(size: 11.5, weight: .bold, design: .monospaced))
+                                .foregroundStyle(devTools.selectedModelA.isFree ? V2Colors.ice1 : V2Colors.amber)
                         }
                         
                         Rectangle()
                             .fill(Color.white.opacity(0.08))
-                            .frame(width: 1, height: 24)
+                            .frame(width: 1, height: 26)
                         
+                        // Slot B: Model B Dropdown + Cost
+                        VStack(alignment: .leading, spacing: 3) {
+                            ModelDropdownMenu(
+                                selectedId: $devTools.selectedModelBId,
+                                activeModels: devTools.activeModelsFromQuotas,
+                                allModels: devTools.allAvailableModels
+                            )
+                            
+                            Text(devTools.selectedModelB.formattedCost(tokens: devTools.tokenEstimateCount))
+                                .font(.system(size: 11.5, weight: .bold, design: .monospaced))
+                                .foregroundStyle(devTools.selectedModelB.isFree ? V2Colors.ice1 : V2Colors.amber)
+                        }
+                        
+                        Rectangle()
+                            .fill(Color.white.opacity(0.08))
+                            .frame(width: 1, height: 26)
+                        
+                        // Chars count
                         VStack(alignment: .leading, spacing: 2) {
                             Text(loc("CHARS", "СИМВОЛЫ"))
                                 .font(.system(size: 8, weight: .bold, design: .monospaced))
@@ -189,5 +207,101 @@ struct DevToolsView: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 8)
         }
+    }
+}
+
+struct ModelDropdownMenu: View {
+    @Binding var selectedId: String
+    let activeModels: [LLMModelPricing]
+    let allModels: [LLMModelPricing]
+    @ObservedObject var localization = LocalizationManager.shared
+    
+    var currentModel: LLMModelPricing {
+        allModels.first(where: { $0.id == selectedId }) ?? (allModels.first ?? LLMModelPricing.catalog[0])
+    }
+    
+    var body: some View {
+        Menu {
+            if !activeModels.isEmpty {
+                Section(loc("★ Configured in AI Quota", "★ Активные в Квотах")) {
+                    ForEach(activeModels) { model in
+                        Button(action: { selectedId = model.id }) {
+                            HStack {
+                                Text(model.displayNameWithPrice)
+                                if selectedId == model.id {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            Section("DeepSeek") {
+                ForEach(allModels.filter { $0.providerKey == "deepseek" }) { model in
+                    Button(action: { selectedId = model.id }) {
+                        Text(model.displayNameWithPrice)
+                    }
+                }
+            }
+            
+            Section("Anthropic Claude") {
+                ForEach(allModels.filter { $0.providerKey == "claude" }) { model in
+                    Button(action: { selectedId = model.id }) {
+                        Text(model.displayNameWithPrice)
+                    }
+                }
+            }
+            
+            Section("OpenAI") {
+                ForEach(allModels.filter { $0.providerKey == "codex" }) { model in
+                    Button(action: { selectedId = model.id }) {
+                        Text(model.displayNameWithPrice)
+                    }
+                }
+            }
+            
+            Section("Google Gemini") {
+                ForEach(allModels.filter { $0.providerKey == "gemini" }) { model in
+                    Button(action: { selectedId = model.id }) {
+                        Text(model.displayNameWithPrice)
+                    }
+                }
+            }
+            
+            Section("xAI Grok & Z.ai") {
+                ForEach(allModels.filter { $0.providerKey == "grok" || $0.providerKey == "zai" }) { model in
+                    Button(action: { selectedId = model.id }) {
+                        Text(model.displayNameWithPrice)
+                    }
+                }
+            }
+            
+            Section("Ollama & Custom") {
+                ForEach(allModels.filter { $0.providerKey == "ollama" || $0.providerKey == "custom" }) { model in
+                    Button(action: { selectedId = model.id }) {
+                        Text(model.displayNameWithPrice)
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 3) {
+                Text(currentModel.shortName)
+                    .font(.system(size: 8, weight: .bold, design: .monospaced))
+                    .lineLimit(1)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.system(size: 6.5, weight: .bold))
+            }
+            .foregroundStyle(V2Colors.milk)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 2.5)
+            .background(V2Colors.ice.opacity(0.12))
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(V2Colors.ice.opacity(0.25), lineWidth: 1)
+            )
+        }
+        .menuStyle(.borderlessButton)
     }
 }
