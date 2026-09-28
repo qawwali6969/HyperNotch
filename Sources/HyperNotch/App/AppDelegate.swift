@@ -6,6 +6,14 @@ class NotchHostingView<Content: View>: NSHostingView<Content> {
         return true
     }
     
+    override func mouseDown(with event: NSEvent) {
+        if let window = self.window, !window.isKeyWindow {
+            window.makeKeyAndOrderFront(nil)
+        }
+        NSApp.activate(ignoringOtherApps: true)
+        super.mouseDown(with: event)
+    }
+    
     override func hitTest(_ point: NSPoint) -> NSView? {
         let coordinator = NotchStateCoordinator.shared
         
@@ -45,7 +53,7 @@ class NotchWindow: NSPanel, NSDraggingDestination {
     init(contentRect: NSRect) {
         super.init(
             contentRect: contentRect,
-            styleMask: [.borderless, .nonactivatingPanel],
+            styleMask: [.borderless],
             backing: .buffered,
             defer: false
         )
@@ -58,7 +66,7 @@ class NotchWindow: NSPanel, NSDraggingDestination {
         self.isMovable = false
         self.hasShadow = false
         self.isReleasedWhenClosed = false
-        self.becomesKeyOnlyIfNeeded = true
+        self.becomesKeyOnlyIfNeeded = false
         
         self.collectionBehavior = [
             .fullScreenAuxiliary,
@@ -78,7 +86,77 @@ class NotchWindow: NSPanel, NSDraggingDestination {
     }
     
     override var canBecomeKey: Bool { true }
-    override var canBecomeMain: Bool { false }
+    override var canBecomeMain: Bool { true }
+    
+    override func sendEvent(_ event: NSEvent) {
+        if event.type == .keyDown {
+            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            let isCmd = flags.contains(.command)
+            let isCtrl = flags.contains(.control)
+            
+            if isCmd || isCtrl {
+                if let chars = event.charactersIgnoringModifiers?.lowercased(), let key = chars.first {
+                    switch key {
+                    case "a":
+                        if let text = self.firstResponder as? NSText {
+                            text.selectAll(nil)
+                            return
+                        }
+                        if let responder = self.firstResponder, responder.tryToPerform(#selector(NSText.selectAll(_:)), with: nil) {
+                            return
+                        }
+                        if NSApp.sendAction(#selector(NSText.selectAll(_:)), to: nil, from: self) {
+                            return
+                        }
+                    case "c":
+                        if let text = self.firstResponder as? NSText {
+                            text.copy(nil)
+                            return
+                        }
+                        if let responder = self.firstResponder, responder.tryToPerform(#selector(NSText.copy(_:)), with: nil) {
+                            return
+                        }
+                        if NSApp.sendAction(#selector(NSText.copy(_:)), to: nil, from: self) {
+                            return
+                        }
+                    case "v":
+                        if let text = self.firstResponder as? NSText {
+                            text.paste(nil)
+                            return
+                        }
+                        if let responder = self.firstResponder, responder.tryToPerform(#selector(NSText.paste(_:)), with: nil) {
+                            return
+                        }
+                        if NSApp.sendAction(#selector(NSText.paste(_:)), to: nil, from: self) {
+                            return
+                        }
+                    case "x":
+                        if let text = self.firstResponder as? NSText {
+                            text.cut(nil)
+                            return
+                        }
+                        if let responder = self.firstResponder, responder.tryToPerform(#selector(NSText.cut(_:)), with: nil) {
+                            return
+                        }
+                        if NSApp.sendAction(#selector(NSText.cut(_:)), to: nil, from: self) {
+                            return
+                        }
+                    case "z":
+                        let sel = flags.contains(.shift) ? Selector(("redo:")) : Selector(("undo:"))
+                        if let responder = self.firstResponder, responder.tryToPerform(sel, with: nil) {
+                            return
+                        }
+                        if NSApp.sendAction(sel, to: nil, from: self) {
+                            return
+                        }
+                    default:
+                        break
+                    }
+                }
+            }
+        }
+        super.sendEvent(event)
+    }
     
     func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
         Task { @MainActor in
@@ -115,6 +193,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        setupMainMenu()
         setupStatusItem()
         setupNotchWindow()
         DragDetector.shared.startMonitoring()
@@ -125,6 +204,34 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             name: NSApplication.didChangeScreenParametersNotification,
             object: nil
         )
+    }
+    
+    private func setupMainMenu() {
+        let mainMenu = NSMenu()
+        
+        // App Menu
+        let appMenuItem = NSMenuItem()
+        let appMenu = NSMenu()
+        appMenu.addItem(withTitle: "Quit HyperNotch", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appMenuItem.submenu = appMenu
+        mainMenu.addItem(appMenuItem)
+        
+        // Edit Menu - ESSENTIAL for system-wide Cmd+C, Cmd+V, Cmd+A, Cmd+X, Cmd+Z dispatch
+        let editMenuItem = NSMenuItem()
+        let editMenu = NSMenu(title: "Edit")
+        
+        editMenu.addItem(NSMenuItem(title: "Undo", action: Selector(("undo:")), keyEquivalent: "z"))
+        editMenu.addItem(NSMenuItem(title: "Redo", action: Selector(("redo:")), keyEquivalent: "Z"))
+        editMenu.addItem(NSMenuItem.separator())
+        editMenu.addItem(NSMenuItem(title: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x"))
+        editMenu.addItem(NSMenuItem(title: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c"))
+        editMenu.addItem(NSMenuItem(title: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v"))
+        editMenu.addItem(NSMenuItem(title: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a"))
+        
+        editMenuItem.submenu = editMenu
+        mainMenu.addItem(editMenuItem)
+        
+        NSApp.mainMenu = mainMenu
     }
     
     @objc func screenParametersDidChange() {
