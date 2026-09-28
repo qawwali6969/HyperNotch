@@ -27,6 +27,9 @@ class NotchStateCoordinator: ObservableObject {
         withAnimation(.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)) {
             isExpanded.toggle()
         }
+        if isExpanded {
+            NSApp.windows.first(where: { $0 is NotchWindow })?.orderFrontRegardless()
+        }
     }
     
     func open(tab: NotchTab? = nil) {
@@ -36,6 +39,7 @@ class NotchStateCoordinator: ObservableObject {
         withAnimation(.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)) {
             isExpanded = true
         }
+        NSApp.windows.first(where: { $0 is NotchWindow })?.orderFrontRegardless()
     }
     
     func close(force: Bool = false) {
@@ -102,9 +106,44 @@ struct MainNotchView: View {
                 width: coordinator.isExpanded ? coordinator.openSize.width : coordinator.currentClosedSize.width,
                 height: coordinator.isExpanded ? coordinator.openSize.height : coordinator.currentClosedSize.height
             )
-            .background(Color.black)
-            .clipShape(BottomRoundedRectangle(radius: coordinator.isExpanded ? 24 : 14))
-            .contentShape(BottomRoundedRectangle(radius: coordinator.isExpanded ? 24 : 14))
+            .background(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 0,
+                    bottomLeadingRadius: coordinator.isExpanded ? 24 : 14,
+                    bottomTrailingRadius: coordinator.isExpanded ? 24 : 14,
+                    topTrailingRadius: 0,
+                    style: .continuous
+                )
+                .fill(Color.black)
+                .overlay(
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: 0,
+                        bottomLeadingRadius: coordinator.isExpanded ? 24 : 14,
+                        bottomTrailingRadius: coordinator.isExpanded ? 24 : 14,
+                        topTrailingRadius: 0,
+                        style: .continuous
+                    )
+                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                )
+            )
+            .clipShape(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 0,
+                    bottomLeadingRadius: coordinator.isExpanded ? 24 : 14,
+                    bottomTrailingRadius: coordinator.isExpanded ? 24 : 14,
+                    topTrailingRadius: 0,
+                    style: .continuous
+                )
+            )
+            .contentShape(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 0,
+                    bottomLeadingRadius: coordinator.isExpanded ? 24 : 14,
+                    bottomTrailingRadius: coordinator.isExpanded ? 24 : 14,
+                    topTrailingRadius: 0,
+                    style: .continuous
+                )
+            )
             .onDrop(of: [.fileURL], isTargeted: $shelfManager.isTargeted) { providers in
                 coordinator.open(tab: .shelf)
                 return shelfManager.handleDrop(providers: providers)

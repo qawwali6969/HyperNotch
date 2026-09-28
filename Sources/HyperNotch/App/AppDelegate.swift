@@ -57,11 +57,12 @@ class NotchWindow: NSPanel, NSDraggingDestination {
     init(contentRect: NSRect) {
         super.init(
             contentRect: contentRect,
-            styleMask: [.borderless],
+            styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
         
+        self.hidesOnDeactivate = false
         self.isFloatingPanel = true
         self.isOpaque = false
         self.titleVisibility = .hidden
@@ -79,7 +80,7 @@ class NotchWindow: NSPanel, NSDraggingDestination {
             .ignoresCycle
         ]
         
-        self.level = .mainMenu + 3
+        self.level = .statusBar + 2
         self.acceptsMouseMovedEvents = true
         
         // Register drag types for instant drag-and-drop support
