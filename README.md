@@ -68,7 +68,7 @@
 
 #### 4. 🎵 Music HUD & Dynamic Waveform (Музыка в вырезе)
 * **Живой эквалайзер:** Плавная анимация звуковой волны в компактном вырезе при воспроизведении музыки.
-* **Управление треками:** Поддержка Spotify и Apple Music — обложка, название трека, артист и кнопки управления воспроизведением.
+* **Управление треками:** Поддержка Spotify и Apple Music - обложка, название трека, артист и кнопки управления воспроизведением.
 
 #### 5. ⏱ Фокус-таймер и Помодоро
 * Встроенный таймер для работы короткими спринтами (25 мин Помодоро, 15 мин, 5 мин).
@@ -84,7 +84,7 @@
 
 #### 8. 🌐 Двуязычный интерфейс (English & Русский)
 * По умолчанию приложение открывается на **английском языке**.
-* В разделе **Настройки (Settings)** можно в 1 клик переключиться на **русский язык** — все вкладки, кнопки, формы и подсказки обновляются мгновенно и реактивно без перезапуска.
+* В разделе **Настройки (Settings)** можно в 1 клик переключиться на **русский язык** - все вкладки, кнопки, формы и подсказки обновляются мгновенно и реактивно без перезапуска.
 
 ---
 
@@ -185,7 +185,7 @@ HyperNotch спроектирован с философией **Zero-Trust** и 
 
 #### 8. 🌐 Dual-Language UI (English & Russian)
 * Defaults to **English** out of the box.
-* Switchable to **Russian** anytime with 1 click in **Settings** — all tabs, widgets, buttons, forms, and tooltips update instantly in real time without restarting.
+* Switchable to **Russian** anytime with 1 click in **Settings** - all tabs, widgets, buttons, forms, and tooltips update instantly in real time without restarting.
 
 ---
 
@@ -211,7 +211,7 @@ open build/HyperNotch.app
 
 | Application | Version | Platform | Architecture | Status |
 | :---: | :---: | :---: | :---: | :---: |
-| <img src="Resources/AppIcon.png" width="36" height="36" style="vertical-align: middle; border-radius: 8px;"/> **HyperNotch.app** | **v1.5** | macOS 14.0+ | Apple Silicon (M1–M4) & Intel | Production Ready |
+| <img src="Resources/AppIcon.png" width="36" height="36" style="vertical-align: middle; border-radius: 8px;"/>  **HyperNotch.app** | **v1.5** | macOS 14.0+ | Apple Silicon (M1–M4) & Intel | Production Ready |
 
 On first launch, grant **Screen Recording** permission in *System Settings → Privacy & Security* (required for Vision OCR and screen snips).
 
