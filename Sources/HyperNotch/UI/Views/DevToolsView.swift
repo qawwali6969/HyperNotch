@@ -3,6 +3,7 @@ import AppKit
 
 struct DevToolsView: View {
     @ObservedObject var devTools = DevToolsManager.shared
+    @ObservedObject var tracker = LLMTrackerManager.shared
     @ObservedObject var localization = LocalizationManager.shared
     
     var body: some View {
@@ -134,48 +135,38 @@ struct DevToolsView: View {
                             devTools.updateTokenEstimate(for: newText)
                         }
                     
-                    HStack(spacing: 12) {
+                    HStack(spacing: 10) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(loc("TOKENS", "ТОКЕНЫ"))
                                 .font(.system(size: 8, weight: .bold, design: .monospaced))
                                 .foregroundStyle(V2Colors.faint)
                             
                             Text("\(devTools.tokenEstimateCount)")
-                                .font(.system(size: 18, weight: .bold, design: .monospaced))
+                                .font(.system(size: 16, weight: .bold, design: .monospaced))
                                 .foregroundStyle(V2Colors.livingIceHGradient)
                         }
                         
-                        Rectangle()
-                            .fill(Color.white.opacity(0.08))
-                            .frame(width: 1, height: 26)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("CLAUDE 3.7")
-                                .font(.system(size: 8, weight: .bold, design: .monospaced))
-                                .foregroundStyle(V2Colors.faint)
+                        ForEach(devTools.activeModelCosts.prefix(3)) { model in
+                            Rectangle()
+                                .fill(Color.white.opacity(0.08))
+                                .frame(width: 1, height: 24)
                             
-                            Text(String(format: "$%.5f", devTools.sonnetCostEstimate))
-                                .font(.system(size: 12, weight: .bold, design: .monospaced))
-                                .foregroundStyle(V2Colors.amber)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(model.name)
+                                    .font(.system(size: 8, weight: .bold, design: .monospaced))
+                                    .foregroundStyle(V2Colors.faint)
+                                    .lineLimit(1)
+                                
+                                Text(model.formattedCost(tokens: devTools.tokenEstimateCount))
+                                    .font(.system(size: 11.5, weight: .bold, design: .monospaced))
+                                    .foregroundStyle(model.isFree ? V2Colors.ice1 : V2Colors.amber)
+                                    .lineLimit(1)
+                            }
                         }
                         
                         Rectangle()
                             .fill(Color.white.opacity(0.08))
-                            .frame(width: 1, height: 26)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("GPT-4O")
-                                .font(.system(size: 8, weight: .bold, design: .monospaced))
-                                .foregroundStyle(V2Colors.faint)
-                            
-                            Text(String(format: "$%.5f", devTools.gpt4oCostEstimate))
-                                .font(.system(size: 12, weight: .bold, design: .monospaced))
-                                .foregroundStyle(V2Colors.ice1)
-                        }
-                        
-                        Rectangle()
-                            .fill(Color.white.opacity(0.08))
-                            .frame(width: 1, height: 26)
+                            .frame(width: 1, height: 24)
                         
                         VStack(alignment: .leading, spacing: 2) {
                             Text(loc("CHARS", "СИМВОЛЫ"))
