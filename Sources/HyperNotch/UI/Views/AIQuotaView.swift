@@ -47,7 +47,7 @@ struct AIQuotaView: View {
             // V2 Module Header
             V2ModuleHeader(
                 tab: .aiQuota,
-                statusText: "\(tracker.activeQuotas.count) \(loc("PROVIDERS", "ПРОВАЙДЕРА")) · СБРОС СКОРО"
+                statusText: "\(tracker.activeQuotas.count) \(loc("PROVIDERS", "ПРОВАЙДЕРОВ")) · \(loc("ACTIVE", "АКТИВНО"))"
             ) {
                 V2GlassButton(
                     title: isManaging ? loc("Done", "Готово") : loc("Add", "Добавить"),
@@ -156,7 +156,7 @@ struct AIQuotaView: View {
                             .font(.system(size: 9, weight: .bold, design: .monospaced))
                             .foregroundStyle(.white.opacity(0.8))
                     }
-                    .frame(width: 80, height: 142)
+                    .frame(width: 80, height: 168)
                     .heroGlassCard(cornerRadius: 13)
                 }
                 .buttonStyle(.plain)

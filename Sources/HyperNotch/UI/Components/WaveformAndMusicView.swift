@@ -29,39 +29,49 @@ struct LiveWaveformView: View {
 
 struct CompactMusicHUDView: View {
     @ObservedObject var media = MediaManager.shared
+    @ObservedObject var themeManager = ThemeManager.shared
+    
+    private var accentColor: Color {
+        if themeManager.currentTheme == .engineeringV2 {
+            return V2Colors.ice1
+        }
+        return media.activeApp == .spotify ? Color.green : Color.pink
+    }
     
     var body: some View {
         if media.isPlaying || !media.trackTitle.isEmpty {
-            HStack(spacing: 7) {
+            HStack(spacing: 6) {
                 // Live Waveform & Player Icon
                 LiveWaveformView(
                     isPlaying: media.isPlaying,
-                    barColor: media.activeApp == .spotify ? Color.green : Color.pink,
-                    maxHeight: 12
+                    barColor: accentColor,
+                    maxHeight: 11
                 )
                 
-                // Track & Artist Info
+                // Track & Artist Info with capped width to reserve space
                 VStack(alignment: .leading, spacing: 0.5) {
                     Text(media.trackTitle)
                         .font(.system(size: 9.5, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
                         .lineLimit(1)
+                        .truncationMode(.tail)
                     
                     if !media.artist.isEmpty {
                         Text(media.artist)
                             .font(.system(size: 8, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.6))
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.dim : Color.white.opacity(0.6))
                             .lineLimit(1)
+                            .truncationMode(.tail)
                     }
                 }
-                .frame(maxWidth: 130, alignment: .leading)
+                .frame(maxWidth: 95, alignment: .leading)
                 
                 // Playback Controls
-                HStack(spacing: 3) {
+                HStack(spacing: 2) {
                     Button(action: { media.previousTrack() }) {
                         Image(systemName: "backward.fill")
                             .font(.system(size: 8))
-                            .foregroundStyle(.white.opacity(0.7))
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.dim : Color.white.opacity(0.7))
                             .frame(width: 16, height: 16)
                     }
                     .buttonStyle(.plain)
@@ -69,16 +79,18 @@ struct CompactMusicHUDView: View {
                     Button(action: { media.togglePlayPause() }) {
                         Image(systemName: media.isPlaying ? "pause.fill" : "play.fill")
                             .font(.system(size: 8.5, weight: .bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
                             .frame(width: 18, height: 18)
-                            .background(Circle().fill(Color.white.opacity(0.15)))
+                            .background(
+                                Circle().fill(themeManager.currentTheme == .engineeringV2 ? V2Colors.ice.opacity(0.15) : Color.white.opacity(0.15))
+                            )
                     }
                     .buttonStyle(.plain)
                     
                     Button(action: { media.nextTrack() }) {
                         Image(systemName: "forward.fill")
                             .font(.system(size: 8))
-                            .foregroundStyle(.white.opacity(0.7))
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.dim : Color.white.opacity(0.7))
                             .frame(width: 16, height: 16)
                     }
                     .buttonStyle(.plain)
@@ -88,9 +100,18 @@ struct CompactMusicHUDView: View {
             .padding(.vertical, 3)
             .background(
                 Capsule()
-                    .fill(Color.black.opacity(0.6))
+                    .fill(
+                        themeManager.currentTheme == .engineeringV2
+                            ? V2Colors.ink.opacity(0.88)
+                            : Color.black.opacity(0.65)
+                    )
                     .overlay(
-                        Capsule().stroke(Color.white.opacity(0.15), lineWidth: 1)
+                        Capsule().stroke(
+                            themeManager.currentTheme == .engineeringV2
+                                ? V2Colors.ice.opacity(0.2)
+                                : Color.white.opacity(0.15),
+                            lineWidth: 1
+                        )
                     )
             )
             .transition(.opacity.combined(with: .scale(scale: 0.95)))

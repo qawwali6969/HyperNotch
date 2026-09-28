@@ -41,12 +41,12 @@ struct ClipboardView: View {
                         
                         TextField(loc("Search...", "Поиск..."), text: $manager.searchQuery)
                             .textFieldStyle(.plain)
-                            .font(.system(size: 9.5, design: .monospaced))
+                            .font(.system(size: 11, design: .monospaced))
                             .foregroundStyle(V2Colors.milk)
                     }
                     .padding(.vertical, 3)
                     .padding(.horizontal, 7)
-                    .frame(width: 125)
+                    .frame(width: 135)
                     .heroInputBox(cornerRadius: 6)
                     
                     V2GlassButton(title: loc("Clear", "Очистить"), icon: "trash") {
@@ -62,7 +62,6 @@ struct ClipboardView: View {
                         Image(systemName: "doc.on.clipboard")
                             .font(.system(size: 26))
                             .foregroundStyle(V2Colors.ice.opacity(0.4))
-                            .shadow(color: V2Colors.ice.opacity(0.2), radius: 6)
                         
                         Text(loc("Clipboard is empty", "Буфер обмена пуст"))
                             .font(.system(size: 12, weight: .medium))
@@ -231,8 +230,8 @@ struct ClipboardRowView: View {
                         }
                     }
                 }) {
-                    Text(copiedId == item.id ? loc("Copied!", "Скопировано!") : loc("Paste", "Вставить"))
-                        .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                    Text(copiedId == item.id ? loc("Copied!", "Скопировано!") : loc("Copy", "Копировать"))
+                        .font(.system(size: 9.5, weight: .semibold, design: .monospaced))
                         .foregroundStyle(copiedId == item.id ? Color.green : V2Colors.milk)
                         .padding(.vertical, 3)
                         .padding(.horizontal, 7)

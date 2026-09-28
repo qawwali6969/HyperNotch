@@ -19,7 +19,7 @@ class UpdateManager: NSObject, ObservableObject, URLSessionDownloadDelegate {
     private var downloadContinuation: CheckedContinuation<URL, Error>?
     
     var currentVersion: String {
-        return Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.5"
+        return Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.6.0"
     }
     
     private let repoOwner = "qawwali6969"

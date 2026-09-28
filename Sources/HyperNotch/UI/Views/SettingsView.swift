@@ -122,25 +122,24 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 5) {
                         Image(systemName: "globe")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.white)
-                            .shadow(color: .white.opacity(0.4), radius: 3)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
                         
                         Text(loc("INTERFACE LANGUAGE", "ЯЗЫК ИНТЕРФЕЙСА"))
                             .font(.system(size: 10, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
                         
                         Spacer()
                         
                         Text(loc("Applied instantly", "Применяется мгновенно"))
                             .font(.system(size: 8.5, design: .monospaced))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.faint : Color.secondary)
                     }
                     
                     HStack(spacing: 16) {
                         Text(loc("Select Language:", "Выберите язык:"))
                             .font(.system(size: 9.5, weight: .medium, design: .monospaced))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.dim : Color.secondary)
                         
                         Picker("", selection: Binding(
                             get: { localization.currentLanguage },
@@ -162,20 +161,19 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 5) {
                         Image(systemName: "safari")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.white)
-                            .shadow(color: .white.opacity(0.4), radius: 3)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
                         
                         Text(loc("WEB TOOLS & BROWSER", "ВЕБ-ИНСТРУМЕНТЫ & БРАУЗЕР"))
                             .font(.system(size: 10, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
                     }
                     
                     HStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(loc("Default Browser:", "Браузер по умолчанию:"))
                                 .font(.system(size: 9, weight: .medium, design: .monospaced))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.dim : Color.secondary)
                             
                             Picker("", selection: $webTools.selectedBrowser) {
                                 ForEach(TargetBrowser.allCases) { browser in
@@ -190,7 +188,7 @@ struct SettingsView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(loc("Open Mode:", "Режим открытия:"))
                                 .font(.system(size: 9, weight: .medium, design: .monospaced))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.dim : Color.secondary)
                             
                             Picker("", selection: $webTools.openMode) {
                                 ForEach(OpenTargetMode.allCases) { mode in
@@ -210,26 +208,25 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 9) {
                     HStack(spacing: 5) {
                         Image(systemName: "sparkles")
-                            .font(.system(size: 11))
-                            .foregroundStyle(Color.cyan)
-                            .shadow(color: Color.cyan.opacity(0.4), radius: 3)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.ice1 : Color.white)
                         
                         Text(loc("QUICK AI & API PROVIDERS", "AI-ОТВЕТЫ И ВЫБОР ПРОВАЙДЕРА"))
                             .font(.system(size: 10, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
                         
                         Spacer()
                         
                         Text(quickAI.selectedProvider.localizedSubtitle)
                             .font(.system(size: 8.5, design: .monospaced))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.faint : Color.secondary)
                     }
                     
                     // Provider selector
                     HStack(spacing: 12) {
                         Text(loc("Provider for quick responses:", "Провайдер для быстрых ответов:"))
                             .font(.system(size: 9.5, weight: .medium, design: .monospaced))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.dim : Color.secondary)
                         
                         Picker("", selection: $quickAI.selectedProvider) {
                             ForEach(QuickAIProvider.allCases) { provider in
@@ -250,14 +247,12 @@ struct SettingsView: View {
                             HStack {
                                 Text("Google Gemini API:")
                                     .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.dim : Color.secondary)
                                 
                                 Spacer()
                                 
                                 if !llmTracker.geminiApiKey.isEmpty {
-                                    Text(loc("✓ Configured", "✓ Настроен"))
-                                        .font(.system(size: 8, weight: .bold, design: .monospaced))
-                                        .foregroundStyle(.green)
+                                    V2Chip(loc("Configured", "Настроен"), style: .ice, icon: "checkmark")
                                 }
                             }
                             
@@ -265,25 +260,17 @@ struct SettingsView: View {
                                 SecureField(llmTracker.geminiApiKey.isEmpty ? loc("Paste AIzaSy...", "Вставьте AIzaSy...") : "••••••••••••••••", text: $newGeminiKey)
                                     .textFieldStyle(.plain)
                                     .font(.system(size: 9.5, design: .monospaced))
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
                                     .padding(4)
-                                    .background(Color.white.opacity(0.06))
-                                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                                    .heroInputBox(cornerRadius: 6)
                                 
-                                Button(loc("Save", "Сохранить")) {
+                                V2GlassButton(title: loc("Save", "Сохранить"), icon: "checkmark", isKey: true) {
                                     let clean = newGeminiKey.trimmingCharacters(in: .whitespacesAndNewlines)
                                     if !clean.isEmpty {
                                         llmTracker.geminiApiKey = clean
                                         newGeminiKey = ""
                                     }
                                 }
-                                .buttonStyle(.plain)
-                                .font(.system(size: 9, weight: .semibold))
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 4)
-                                .background(Color.cyan.opacity(0.2))
-                                .foregroundStyle(Color.cyan)
-                                .clipShape(RoundedRectangle(cornerRadius: 5))
                             }
                         }
                         
@@ -292,14 +279,12 @@ struct SettingsView: View {
                             HStack {
                                 Text("Z.ai (BigModel) API:")
                                     .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.dim : Color.secondary)
                                 
                                 Spacer()
                                 
                                 if !llmTracker.zaiApiKey.isEmpty {
-                                    Text(loc("✓ Configured", "✓ Настроен"))
-                                        .font(.system(size: 8, weight: .bold, design: .monospaced))
-                                        .foregroundStyle(.green)
+                                    V2Chip(loc("Configured", "Настроен"), style: .ice, icon: "checkmark")
                                 }
                             }
                             
@@ -307,25 +292,17 @@ struct SettingsView: View {
                                 SecureField(llmTracker.zaiApiKey.isEmpty ? loc("Paste id.secret...", "Вставьте id.secret...") : "••••••••••••••••", text: $newZaiKey)
                                     .textFieldStyle(.plain)
                                     .font(.system(size: 9.5, design: .monospaced))
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
                                     .padding(4)
-                                    .background(Color.white.opacity(0.06))
-                                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                                    .heroInputBox(cornerRadius: 6)
                                 
-                                Button(loc("Save", "Сохранить")) {
+                                V2GlassButton(title: loc("Save", "Сохранить"), icon: "checkmark", isKey: true) {
                                     let clean = newZaiKey.trimmingCharacters(in: .whitespacesAndNewlines)
                                     if !clean.isEmpty {
                                         llmTracker.zaiApiKey = clean
                                         newZaiKey = ""
                                     }
                                 }
-                                .buttonStyle(.plain)
-                                .font(.system(size: 9, weight: .semibold))
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 4)
-                                .background(Color.purple.opacity(0.2))
-                                .foregroundStyle(Color.purple)
-                                .clipShape(RoundedRectangle(cornerRadius: 5))
                             }
                         }
                     }
@@ -334,13 +311,13 @@ struct SettingsView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "info.circle")
                             .font(.system(size: 8.5))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.dim : Color.secondary)
                         Text(loc(
                             "Usage: ~100–300 tokens per answer. Gemini 2.0 Flash is free (15 RPM / 1M tokens/day). All keys are encrypted in Apple Keychain.",
                             "Расход: ~100–300 токенов на ответ. Gemini 2.0 Flash бесплатен (15 RPM / 1M токенов/день). Все ключи хранятся в зашифрованном Apple Keychain."
                         ))
                         .font(.system(size: 8, design: .monospaced))
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.faint : Color.secondary)
                     }
                 }
                 .padding(10)
@@ -350,13 +327,12 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 5) {
                         Image(systemName: "wrench.and.screwdriver.fill")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.white)
-                            .shadow(color: .white.opacity(0.4), radius: 3)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
                         
                         Text(loc("DATA MANAGEMENT", "УПРАВЛЕНИЕ ДАННЫМИ"))
                             .font(.system(size: 10, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
                     }
                     
                     HStack(spacing: 10) {
@@ -383,39 +359,42 @@ struct SettingsView: View {
                         }) {
                             HStack(spacing: 4) {
                                 Image(systemName: clearedNotification ? "checkmark" : "trash")
+                                    .font(.system(size: 9))
                                 Text(clearedNotification ? loc("Clipboard cleared!", "Буфер очищен!") : loc("Clear clipboard history", "Очистить историю буфера"))
+                                    .font(.system(size: 9.5, weight: .medium, design: .monospaced))
                             }
-                            .font(.system(size: 9, weight: .medium, design: .monospaced))
-                            .foregroundStyle(clearedNotification ? Color.green : Color.red.opacity(0.85))
+                            .foregroundStyle(clearedNotification ? (themeManager.currentTheme == .engineeringV2 ? V2Colors.ice1 : Color.green) : V2Colors.red)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(clearedNotification ? Color.green.opacity(0.15) : Color.red.opacity(0.12))
-                            .clipShape(RoundedRectangle(cornerRadius: 5))
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(clearedNotification ? V2Colors.ice.opacity(0.12) : V2Colors.red.opacity(0.12))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(clearedNotification ? V2Colors.ice.opacity(0.3) : V2Colors.red.opacity(0.3), lineWidth: 1)
+                            )
                         }
                         .buttonStyle(.plain)
                     }
                 }
+                .padding(10)
+                .heroGlassCard(cornerRadius: 13)
+                
                 // Section 5: Software Updates & Version
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 5) {
                         Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.white)
-                            .shadow(color: .white.opacity(0.4), radius: 3)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
                         
                         Text(loc("SOFTWARE UPDATES", "ОБНОВЛЕНИЯ ПРОГРАММЫ"))
                             .font(.system(size: 10, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
                         
                         Spacer()
                         
-                        Text("v\(updater.currentVersion)")
-                            .font(.system(size: 9, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.green)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.green.opacity(0.15))
-                            .clipShape(Capsule())
+                        V2Chip("v\(updater.currentVersion)", style: .ice)
                     }
                     
                     if updater.updateAvailable {

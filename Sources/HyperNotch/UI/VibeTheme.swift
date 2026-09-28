@@ -26,12 +26,11 @@ struct VibeTabContainer<HeaderTrailing: View, Content: View>: View {
             HStack(spacing: 8) {
                 HStack(spacing: 5) {
                     Image(systemName: icon)
-                        .font(.system(size: 11))
+                        .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.ice1 : Color.white)
-                        .shadow(color: (themeManager.currentTheme == .engineeringV2 ? V2Colors.ice1 : Color.white).opacity(0.4), radius: 3)
                     
                     Text(title.uppercased())
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .font(.system(size: 10.5, weight: .bold, design: .monospaced))
                         .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
                 }
                 
@@ -45,7 +44,7 @@ struct VibeTabContainer<HeaderTrailing: View, Content: View>: View {
             content
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(themeManager.currentTheme == .engineeringV2 ? V2Colors.void : Color.black)
+        .background(Color.black)
     }
 }
 
@@ -292,7 +291,7 @@ struct V2ModuleHeader<TrailingContent: View>: View {
             
             // Tier Badge (Приём / Контур / Сервис)
             Text(tab.tier.localizedTitle.uppercased())
-                .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                .font(.system(size: 9, weight: .bold, design: .monospaced))
                 .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.dim : Color.secondary)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
@@ -309,7 +308,7 @@ struct V2ModuleHeader<TrailingContent: View>: View {
             
             // Dynamic Status Text
             Text(statusText.uppercased())
-                .font(.system(size: 9.5, weight: .medium, design: .monospaced))
+                .font(.system(size: 10.5, weight: .medium, design: .monospaced))
                 .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.faint : Color.secondary)
                 .lineLimit(1)
             
@@ -364,10 +363,10 @@ struct V2GlassButton: View {
             HStack(spacing: 4) {
                 if let icon = icon {
                     Image(systemName: icon)
-                        .font(.system(size: 9, weight: .semibold))
+                        .font(.system(size: 9.5, weight: .semibold))
                 }
                 Text(title)
-                    .font(.system(size: 9.5, weight: .semibold, design: .monospaced))
+                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
             }
             .foregroundStyle(fgColor)
             .padding(.horizontal, 8)
@@ -445,16 +444,16 @@ struct V2Chip: View {
     }
     
     var body: some View {
-        HStack(spacing: 3) {
+        HStack(spacing: 3.5) {
             if let icon = icon {
                 Image(systemName: icon)
-                    .font(.system(size: 7.5, weight: .bold))
+                    .font(.system(size: 8, weight: .bold))
             }
             Text(text)
-                .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                .font(.system(size: 9.5, weight: .bold, design: .monospaced))
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 2)
+        .padding(.horizontal, 7)
+        .padding(.vertical, 2.5)
         .foregroundStyle(fgColor)
         .background(Capsule().fill(bgColor))
         .overlay(Capsule().stroke(borderColor, lineWidth: 1))
