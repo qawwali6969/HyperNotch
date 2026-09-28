@@ -8,6 +8,7 @@ struct SettingsView: View {
     @ObservedObject var llmTracker = LLMTrackerManager.shared
     @ObservedObject var localization = LocalizationManager.shared
     @ObservedObject var updater = UpdateManager.shared
+    @ObservedObject var themeManager = ThemeManager.shared
     @State private var clearedNotification = false
     
     // API Key entry states
@@ -19,6 +20,97 @@ struct SettingsView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: true) {
             VStack(alignment: .leading, spacing: 10) {
+                // Section 0: Design Theme (Default: V2 Engineering HUD, Switchable to V1 Classic)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "paintpalette.fill")
+                            .font(.system(size: 11))
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.ice1 : Color.white)
+                            .shadow(color: (themeManager.currentTheme == .engineeringV2 ? V2Colors.ice1 : Color.white).opacity(0.4), radius: 3)
+                        
+                        Text(loc("DESIGN THEME", "ТЕМА ОФОРМЛЕНИЯ"))
+                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
+                        
+                        Spacer()
+                        
+                        Text(loc("Default: V2 Engineering", "По умолчанию: V2 Инженерный"))
+                            .font(.system(size: 8.5, design: .monospaced))
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.ice1 : Color.secondary)
+                    }
+                    
+                    HStack(spacing: 10) {
+                        ForEach(AppTheme.allCases) { theme in
+                            let isSelected = themeManager.currentTheme == theme
+                            Button(action: {
+                                themeManager.setTheme(theme)
+                            }) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: theme.icon)
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundStyle(
+                                            isSelected
+                                                ? (theme == .engineeringV2 ? V2Colors.ice1 : Color.white)
+                                                : Color.secondary
+                                        )
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        HStack(spacing: 5) {
+                                            Text(theme.displayName)
+                                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                                .foregroundStyle(isSelected ? (theme == .engineeringV2 ? V2Colors.milk : Color.white) : Color.secondary)
+                                            
+                                            if theme == .engineeringV2 {
+                                                Text("DEFAULT")
+                                                    .font(.system(size: 7.5, weight: .heavy, design: .monospaced))
+                                                    .padding(.horizontal, 4)
+                                                    .padding(.vertical, 1.5)
+                                                    .background(Capsule().fill(V2Colors.ice1.opacity(0.2)))
+                                                    .foregroundStyle(V2Colors.ice1)
+                                            }
+                                        }
+                                        
+                                        Text(theme.subtitle)
+                                            .font(.system(size: 8, design: .monospaced))
+                                            .foregroundStyle(Color.secondary)
+                                            .lineLimit(1)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    if isSelected {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .font(.system(size: 12))
+                                            .foregroundStyle(theme == .engineeringV2 ? V2Colors.ice1 : Color.white)
+                                    }
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(
+                                            isSelected
+                                                ? (theme == .engineeringV2 ? V2Colors.ice.opacity(0.12) : Color.white.opacity(0.12))
+                                                : Color.white.opacity(0.04)
+                                        )
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(
+                                            isSelected
+                                                ? (theme == .engineeringV2 ? V2Colors.ice2.opacity(0.6) : Color.white.opacity(0.4))
+                                                : Color.white.opacity(0.08),
+                                            lineWidth: 1
+                                        )
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+                .padding(10)
+                .heroGlassCard(cornerRadius: 13)
+                
                 // Section 1: Language Selection (Default: English, Switchable to Russian)
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 5) {

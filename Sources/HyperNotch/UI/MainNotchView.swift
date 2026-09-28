@@ -57,6 +57,7 @@ struct MainNotchView: View {
     @ObservedObject var llmTracker = LLMTrackerManager.shared
     @ObservedObject var mediaManager = MediaManager.shared
     @ObservedObject var localization = LocalizationManager.shared
+    @ObservedObject var themeManager = ThemeManager.shared
     @Namespace private var tabAnimation
     
     var body: some View {
@@ -109,28 +110,37 @@ struct MainNotchView: View {
             .background(
                 UnevenRoundedRectangle(
                     topLeadingRadius: 0,
-                    bottomLeadingRadius: coordinator.isExpanded ? 24 : 14,
-                    bottomTrailingRadius: coordinator.isExpanded ? 24 : 14,
+                    bottomLeadingRadius: coordinator.isExpanded ? (themeManager.currentTheme == .engineeringV2 ? 22 : 24) : 14,
+                    bottomTrailingRadius: coordinator.isExpanded ? (themeManager.currentTheme == .engineeringV2 ? 22 : 24) : 14,
                     topTrailingRadius: 0,
                     style: .continuous
                 )
-                .fill(Color.black)
+                .fill(
+                    themeManager.currentTheme == .engineeringV2
+                        ? AnyShapeStyle(V2Colors.panelGradient)
+                        : AnyShapeStyle(Color.black)
+                )
                 .overlay(
                     UnevenRoundedRectangle(
                         topLeadingRadius: 0,
-                        bottomLeadingRadius: coordinator.isExpanded ? 24 : 14,
-                        bottomTrailingRadius: coordinator.isExpanded ? 24 : 14,
+                        bottomLeadingRadius: coordinator.isExpanded ? (themeManager.currentTheme == .engineeringV2 ? 22 : 24) : 14,
+                        bottomTrailingRadius: coordinator.isExpanded ? (themeManager.currentTheme == .engineeringV2 ? 22 : 24) : 14,
                         topTrailingRadius: 0,
                         style: .continuous
                     )
-                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                    .stroke(
+                        themeManager.currentTheme == .engineeringV2
+                            ? LinearGradient(colors: [Color.white.opacity(0.12), V2Colors.ice.opacity(0.26)], startPoint: .top, endPoint: .bottom)
+                            : LinearGradient(colors: [Color.white.opacity(0.18), Color.white.opacity(0.08)], startPoint: .top, endPoint: .bottom),
+                        lineWidth: 1
+                    )
                 )
             )
             .clipShape(
                 UnevenRoundedRectangle(
                     topLeadingRadius: 0,
-                    bottomLeadingRadius: coordinator.isExpanded ? 24 : 14,
-                    bottomTrailingRadius: coordinator.isExpanded ? 24 : 14,
+                    bottomLeadingRadius: coordinator.isExpanded ? (themeManager.currentTheme == .engineeringV2 ? 22 : 24) : 14,
+                    bottomTrailingRadius: coordinator.isExpanded ? (themeManager.currentTheme == .engineeringV2 ? 22 : 24) : 14,
                     topTrailingRadius: 0,
                     style: .continuous
                 )
@@ -138,8 +148,8 @@ struct MainNotchView: View {
             .contentShape(
                 UnevenRoundedRectangle(
                     topLeadingRadius: 0,
-                    bottomLeadingRadius: coordinator.isExpanded ? 24 : 14,
-                    bottomTrailingRadius: coordinator.isExpanded ? 24 : 14,
+                    bottomLeadingRadius: coordinator.isExpanded ? (themeManager.currentTheme == .engineeringV2 ? 22 : 24) : 14,
+                    bottomTrailingRadius: coordinator.isExpanded ? (themeManager.currentTheme == .engineeringV2 ? 22 : 24) : 14,
                     topTrailingRadius: 0,
                     style: .continuous
                 )
@@ -148,7 +158,7 @@ struct MainNotchView: View {
                 coordinator.open(tab: .shelf)
                 return shelfManager.handleDrop(providers: providers)
             }
-            .shadow(color: .black.opacity(coordinator.isExpanded ? 0.45 : 0.0), radius: 15, x: 0, y: 8)
+            .shadow(color: (themeManager.currentTheme == .engineeringV2 ? Color(hex: "050608") : Color.black).opacity(coordinator.isExpanded ? 0.55 : 0.0), radius: 18, x: 0, y: 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .animation(.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0), value: coordinator.isExpanded)
@@ -183,20 +193,22 @@ struct MainNotchView: View {
                         }
                         .padding(.horizontal, 7)
                         .padding(.vertical, 4)
-                        .foregroundStyle(isSelected ? Color.white : Color.white.opacity(0.6))
-                        .shadow(color: isSelected ? Color.white.opacity(0.3) : Color.clear, radius: 4)
+                        .foregroundStyle(
+                            isSelected
+                                ? (themeManager.currentTheme == .engineeringV2 ? Color(hex: "050608") : Color.white)
+                                : (themeManager.currentTheme == .engineeringV2 ? V2Colors.dim : Color.white.opacity(0.6))
+                        )
+                        .shadow(color: isSelected ? (themeManager.currentTheme == .engineeringV2 ? V2Colors.ice1.opacity(0.5) : Color.white.opacity(0.3)) : Color.clear, radius: 4)
                         .background {
                             if isSelected {
                                 Capsule()
                                     .fill(
-                                        LinearGradient(
-                                            colors: [Color.white.opacity(0.22), Color.white.opacity(0.12)],
-                                            startPoint: .top,
-                                            endPoint: .bottom
-                                        )
+                                        themeManager.currentTheme == .engineeringV2
+                                            ? AnyShapeStyle(V2Colors.livingIceGradient)
+                                            : AnyShapeStyle(LinearGradient(colors: [Color.white.opacity(0.22), Color.white.opacity(0.12)], startPoint: .top, endPoint: .bottom))
                                     )
                                     .overlay(
-                                        Capsule().stroke(Color.white.opacity(0.25), lineWidth: 1)
+                                        Capsule().stroke(themeManager.currentTheme == .engineeringV2 ? Color.white.opacity(0.35) : Color.white.opacity(0.25), lineWidth: 1)
                                     )
                                     .matchedGeometryEffect(id: "activeTab", in: tabAnimation)
                             }
@@ -208,9 +220,9 @@ struct MainNotchView: View {
             .padding(2)
             .background(
                 Capsule()
-                    .fill(Color.black.opacity(0.65))
+                    .fill(themeManager.currentTheme == .engineeringV2 ? V2Colors.void.opacity(0.85) : Color.black.opacity(0.65))
                     .overlay(
-                        Capsule().stroke(Color.white.opacity(0.12), lineWidth: 1)
+                        Capsule().stroke(themeManager.currentTheme == .engineeringV2 ? V2Colors.ice.opacity(0.22) : Color.white.opacity(0.12), lineWidth: 1)
                     )
             )
             .fixedSize(horizontal: true, vertical: false)
