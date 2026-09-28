@@ -55,6 +55,9 @@ public struct V2Colors {
     public static let ice2 = Color(hex: "6FA9C4")
     public static let amber = Color(hex: "C7A15E")
     public static let red = Color(hex: "C4645A")
+    public static let edge = Color.white.opacity(0.09)
+    public static let edge2 = Color.white.opacity(0.16)
+    public static let line = Color.white.opacity(0.06)
     
     public static var livingIceGradient: LinearGradient {
         LinearGradient(colors: [ice1, ice2], startPoint: .top, endPoint: .bottom)

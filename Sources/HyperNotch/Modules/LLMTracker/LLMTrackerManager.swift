@@ -1,6 +1,7 @@
 import SwiftUI
 import Foundation
 import AppKit
+import UserNotifications
 
 extension Int {
     func formattedWithSeparator() -> String {
@@ -169,6 +170,12 @@ class LLMTrackerManager: ObservableObject {
     
     @Published var isRefreshing: Bool = false
     @Published var alarmSetItemId: UUID? = nil
+    @Published var activeAlarms: [String: Date] = [:] {
+        didSet {
+            let encoded = activeAlarms.mapValues { $0.timeIntervalSince1970 }
+            UserDefaults.standard.set(encoded, forKey: "HyperNotchActiveAlarms")
+        }
+    }
     private var refreshTimer: Timer?
     
     init() {
@@ -191,6 +198,17 @@ class LLMTrackerManager: ObservableObject {
                 }
             }
             self.customProviders = decoded
+        }
+        
+        if let saved = UserDefaults.standard.dictionary(forKey: "HyperNotchActiveAlarms") as? [String: Double] {
+            var restored: [String: Date] = [:]
+            for (k, v) in saved {
+                let d = Date(timeIntervalSince1970: v)
+                if d > Date() {
+                    restored[k] = d
+                }
+            }
+            self.activeAlarms = restored
         }
         
         startAutoRefresh()
@@ -389,6 +407,26 @@ class LLMTrackerManager: ObservableObject {
     }
     
     // MARK: - Clock & Alarm Integration
+    func isAlarmSet(for providerName: String) -> Bool {
+        guard let resetDate = activeAlarms[providerName] else { return false }
+        return resetDate > Date()
+    }
+    
+    func cancelAlarm(for quota: LLMQuotaInfo) {
+        activeAlarms.removeValue(forKey: quota.providerName)
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: ["quota_alarm_\(quota.providerName)"])
+        NSSound(named: "Bottle")?.play()
+    }
+    
+    func toggleAlarmForReset(quota: LLMQuotaInfo, targetResetDate: Date? = nil) {
+        if isAlarmSet(for: quota.providerName) {
+            cancelAlarm(for: quota)
+        } else {
+            setAlarmForReset(quota: quota, targetResetDate: targetResetDate)
+        }
+    }
+
     func setAlarmForReset(quota: LLMQuotaInfo, targetResetDate: Date? = nil) {
         // Find earliest future resetDate among candidate windows or quota.resetDate
         let candidateDates = quota.windows.compactMap { $0.resetDate }.filter { $0 > Date() }
@@ -407,69 +445,69 @@ class LLMTrackerManager: ObservableObject {
         let localFormatter = DateFormatter()
         localFormatter.timeZone = TimeZone.current
         localFormatter.locale = Locale(identifier: "ru_RU")
-        localFormatter.dateFormat = "HHmm"
-        let hhmmStr = localFormatter.string(from: chosenDate)
-        
         localFormatter.dateFormat = "HH:mm"
         let displayTimeStr = localFormatter.string(from: chosenDate)
         
         let diffSeconds = max(10, Int(chosenDate.timeIntervalSinceNow))
-        let hoursLeft = max(1, Int(ceil(Double(diffSeconds) / 3600.0)))
         let alarmTitle = "Сброс лимита \(quota.providerName)"
         
-        // 1. Set real Alarm in macOS Clock.app via UI Scripting
-        let clockScript = """
-        tell application "Clock"
-            reopen
-            activate
-        end tell
-        delay 0.5
-        tell application "System Events"
-            tell process "Clock"
-                set frontmost to true
-                try
-                    click radio button 2 of radio group 1 of toolbar 1 of front window
-                end try
-                delay 0.25
-                try
-                    click menu button 1 of toolbar 1 of front window
-                end try
-                delay 0.35
-                try
-                    keystroke "\(hhmmStr)"
-                    delay 0.2
-                    set value of text field 1 of sheet 1 of front window to "\(alarmTitle)"
-                    delay 0.2
-                    try
-                        click button "Сохранить" of sheet 1 of front window
-                    on error
-                        click button "Save" of sheet 1 of front window
-                    end try
-                end try
-            end tell
+        // 1. Audio and Visual feedback immediately in HyperNotch
+        NSSound(named: "Ping")?.play()
+        self.activeAlarms[quota.providerName] = chosenDate
+        self.alarmSetItemId = quota.id
+        
+        // 2. Schedule native local notification with critical alert
+        let center = UNUserNotificationCenter.current()
+        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+            let content = UNMutableNotificationContent()
+            content.title = "⏰ \(alarmTitle)"
+            content.body = "Лимит квоты для \(quota.providerName) успешно сброшен (\(displayTimeStr))! Можно продолжать генерацию."
+            content.sound = .defaultCritical
+            
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(diffSeconds), repeats: false)
+            let request = UNNotificationRequest(
+                identifier: "quota_alarm_\(quota.providerName)",
+                content: content,
+                trigger: trigger
+            )
+            center.add(request)
+        }
+        
+        // 3. Create real Calendar Event with Sound Alarm in Apple Calendar (syncs to iPhone/Watch & rings sound at exact minute)
+        let calendarScript = """
+        tell application "Calendar"
+            try
+                set cal to first calendar whose writable is true
+                set eventStart to (current date) + \(diffSeconds)
+                set eventEnd to eventStart + (15 * 60)
+                set newEvent to make new event at end of events of cal with properties {summary:"\(alarmTitle) (\(displayTimeStr))", start date:eventStart, end date:eventEnd, description:"HyperNotch Quota Alarm"}
+                tell newEvent
+                    make new sound alarm at end of sound alarms with properties {trigger interval:0, sound name:"Basso"}
+                end tell
+            end try
         end tell
         """
         
-        // 2. Set native reminder with alert & sound in Reminders as backup
+        // 4. Native Reminders with Alert
         let remindersScript = """
         tell application "Reminders"
-            set targetList to default list
-            set alertDate to (current date) + \(diffSeconds)
-            make new reminder at targetList with properties {name:"\(alarmTitle) (\(displayTimeStr))", remind me date:alertDate}
+            try
+                set targetList to default list
+                set alertDate to (current date) + \(diffSeconds)
+                make new reminder at targetList with properties {name:"\(alarmTitle) (\(displayTimeStr))", remind me date:alertDate}
+            end try
         end tell
+        """
+        
+        // 5. System Notification Banner
+        let notifyScript = """
+        display notification "\(alarmTitle) — будильник и напоминание поставлены на \(displayTimeStr)" with title "HyperNotch" sound name "Glass"
         """
         
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.executeAppleScript(clockScript)
+            self?.executeAppleScript(calendarScript)
             self?.executeAppleScript(remindersScript)
-        }
-        
-        // 3. Button feedback
-        self.alarmSetItemId = quota.id
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
-            if self?.alarmSetItemId == quota.id {
-                self?.alarmSetItemId = nil
-            }
+            self?.executeAppleScript(notifyScript)
         }
     }
     

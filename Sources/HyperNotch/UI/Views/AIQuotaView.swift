@@ -521,7 +521,7 @@ struct QuotaCard: View {
     @ObservedObject var tracker = LLMTrackerManager.shared
     
     private var isAlarmSet: Bool {
-        tracker.alarmSetItemId == quota.id
+        tracker.isAlarmSet(for: quota.providerName)
     }
     
     private var targetResetDate: Date {
@@ -639,7 +639,7 @@ struct QuotaCard: View {
                         icon: isAlarmSet ? "checkmark" : "alarm.fill",
                         isKey: isAlarmSet
                     ) {
-                        tracker.setAlarmForReset(quota: quota, targetResetDate: targetResetDate)
+                        tracker.toggleAlarmForReset(quota: quota, targetResetDate: targetResetDate)
                     }
                 }
             }

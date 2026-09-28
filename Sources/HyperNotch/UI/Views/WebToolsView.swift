@@ -18,6 +18,7 @@ struct VibeIconCategory: Identifiable {
 struct WebToolsView: View {
     @ObservedObject var manager = WebToolsManager.shared
     @ObservedObject var localization = LocalizationManager.shared
+    @ObservedObject var themeManager = ThemeManager.shared
     @State private var showingAddSheet = false
     @State private var hoveredItemId: UUID? = nil
     @State private var isAddHovered = false
@@ -470,7 +471,7 @@ struct WebToolsView: View {
                         }
                         
                         Rectangle()
-                            .fill(Color.white.opacity(0.12))
+                            .fill(themeManager.currentTheme == .engineeringV2 ? V2Colors.line : Color.white.opacity(0.12))
                             .frame(width: 1, height: 26)
                             .padding(.horizontal, 2)
                         
@@ -478,14 +479,7 @@ struct WebToolsView: View {
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 7)
-                    .background(
-                        Capsule()
-                            .fill(Color.black.opacity(0.85))
-                            .overlay(
-                                Capsule().stroke(Color.white.opacity(0.12), lineWidth: 1)
-                            )
-                            .shadow(color: .black.opacity(0.5), radius: 16, y: 6)
-                    )
+                    .background(dockPillBackground)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 16)
@@ -495,6 +489,46 @@ struct WebToolsView: View {
         .frame(height: 90)
     }
     
+    private var dockPillBackground: some View {
+        Capsule()
+            .fill(
+                themeManager.currentTheme == .engineeringV2
+                    ? AnyShapeStyle(LinearGradient(colors: [Color.white.opacity(0.065), Color.white.opacity(0.02)], startPoint: .top, endPoint: .bottom))
+                    : AnyShapeStyle(Color.black.opacity(0.85))
+            )
+            .overlay(
+                Capsule().stroke(
+                    themeManager.currentTheme == .engineeringV2 ? V2Colors.edge : Color.white.opacity(0.12),
+                    lineWidth: 1
+                )
+            )
+            .shadow(color: (themeManager.currentTheme == .engineeringV2 ? Color(hex: "050608") : Color.black).opacity(0.55), radius: 16, y: 6)
+    }
+    
+    private var dockAddFill: Color {
+        if themeManager.currentTheme == .engineeringV2 {
+            return isAddHovered ? V2Colors.ice.opacity(0.18) : Color.white.opacity(0.035)
+        } else {
+            return isAddHovered ? Color.white.opacity(0.18) : Color.white.opacity(0.08)
+        }
+    }
+    
+    private var dockAddStroke: Color {
+        if themeManager.currentTheme == .engineeringV2 {
+            return isAddHovered ? V2Colors.ice2.opacity(0.7) : V2Colors.edge
+        } else {
+            return isAddHovered ? Color.white.opacity(0.35) : Color.white.opacity(0.12)
+        }
+    }
+    
+    private var dockAddForeground: Color {
+        if themeManager.currentTheme == .engineeringV2 {
+            return isAddHovered ? V2Colors.ice1 : V2Colors.faint
+        } else {
+            return isAddHovered ? Color.white : Color.secondary
+        }
+    }
+
     private var dockAddButton: some View {
         Button(action: {
             withAnimation(.spring) {
@@ -502,56 +536,71 @@ struct WebToolsView: View {
             }
         }) {
             ZStack {
-                RoundedRectangle(cornerRadius: 13)
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.white.opacity(isAddHovered ? 0.18 : 0.08), Color.white.opacity(0.04)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
+                RoundedRectangle(cornerRadius: 11)
+                    .fill(dockAddFill)
                     .frame(width: 44, height: 44)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 13)
-                            .stroke(Color.white.opacity(isAddHovered ? 0.35 : 0.12), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 11)
+                            .stroke(dockAddStroke, lineWidth: 1)
                     )
                 
                 Image(systemName: showingAddSheet ? "xmark" : "plus")
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(isAddHovered ? .white : .secondary)
+                    .foregroundStyle(dockAddForeground)
             }
             .scaleEffect(isAddHovered ? 1.08 : 1.0)
-            .offset(y: isAddHovered ? -3 : 0)
+            .offset(y: isAddHovered ? -2 : 0)
         }
         .buttonStyle(.plain)
         .onHover { isAddHovered = $0 }
         .help(loc("Add web app to dock", "Добавить веб-сервис в док"))
     }
     
+    private var tooltipDefaultText: some View {
+        let browserName = manager.selectedBrowser.rawValue.uppercased()
+        let txt = loc("CLICK ICON TO OPEN IN \(browserName)", "КЛИКНИТЕ ДЛЯ ОТКРЫТИЯ В \(browserName)")
+        let fgColor = themeManager.currentTheme == .engineeringV2 ? V2Colors.faint : Color.secondary
+        return Text(txt)
+            .font(.system(size: 8.5, weight: .semibold, design: .monospaced))
+            .foregroundStyle(fgColor)
+    }
+    
+    @ViewBuilder
+    private func tooltipHoveredText(for item: WebToolItem) -> some View {
+        let titleColor = themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white
+        let hostColor = themeManager.currentTheme == .engineeringV2 ? V2Colors.ice1 : Color.secondary
+        let capsuleBg = themeManager.currentTheme == .engineeringV2 ? V2Colors.ice.opacity(0.12) : Color.white.opacity(0.08)
+        let capsuleStroke = themeManager.currentTheme == .engineeringV2 ? V2Colors.ice.opacity(0.25) : Color.white.opacity(0.12)
+        
+        HStack(spacing: 5) {
+            Text(item.title.uppercased())
+                .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+                .foregroundStyle(titleColor)
+            
+            Text("·")
+                .font(.system(size: 9.5, weight: .bold))
+                .foregroundStyle(V2Colors.faint)
+            
+            Text(cleanHost(item.url))
+                .font(.system(size: 9, design: .monospaced))
+                .foregroundStyle(hostColor)
+        }
+        .padding(.horizontal, 9)
+        .padding(.vertical, 3)
+        .background(
+            Capsule()
+                .fill(capsuleBg)
+                .overlay(Capsule().stroke(capsuleStroke, lineWidth: 1))
+        )
+        .transition(.opacity.combined(with: .scale(scale: 0.95)))
+    }
+    
     private var tooltipBar: some View {
         Group {
             if let id = hoveredItemId, let hovered = manager.items.first(where: { $0.id == id }) {
-                HStack(spacing: 5) {
-                    Text(hovered.title)
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(.white)
-                    
-                    Text("•")
-                        .font(.system(size: 8))
-                        .foregroundStyle(.tertiary)
-                    
-                    Text(cleanHost(hovered.url))
-                        .font(.system(size: 9, design: .monospaced))
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.horizontal, 9)
-                .padding(.vertical, 3)
-                .background(Capsule().fill(Color.white.opacity(0.08)))
-                .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                tooltipHoveredText(for: hovered)
             } else {
-                Text(loc("Click icon to open in \(manager.selectedBrowser.rawValue)", "Кликните на иконку, чтобы открыть в \(manager.selectedBrowser.rawValue)"))
-                    .font(.system(size: 9))
-                    .foregroundStyle(.tertiary)
+                tooltipDefaultText
             }
         }
     }
@@ -584,34 +633,56 @@ struct DockItemButton: View {
     let onDelete: () -> Void
     let onTap: () -> Void
     
+    @ObservedObject var themeManager = ThemeManager.shared
+    
+    private var bgFill: AnyShapeStyle {
+        if themeManager.currentTheme == .engineeringV2 {
+            if isHovered {
+                return AnyShapeStyle(LinearGradient(colors: [V2Colors.ice.opacity(0.22), V2Colors.ice.opacity(0.08)], startPoint: .top, endPoint: .bottom))
+            } else {
+                return AnyShapeStyle(LinearGradient(colors: [Color.white.opacity(0.065), Color.white.opacity(0.02)], startPoint: .top, endPoint: .bottom))
+            }
+        } else {
+            return AnyShapeStyle(LinearGradient(
+                colors: [
+                    Color(white: 0.16).opacity(isHovered ? 0.95 : 0.75),
+                    Color(white: 0.08).opacity(isHovered ? 0.95 : 0.85)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            ))
+        }
+    }
+    
+    private var strokeColor: Color {
+        if themeManager.currentTheme == .engineeringV2 {
+            return isHovered ? V2Colors.ice2.opacity(0.7) : V2Colors.edge
+        } else {
+            return isHovered ? Color.white.opacity(0.45) : Color.white.opacity(0.15)
+        }
+    }
+    
+    private var iconForeground: Color {
+        if themeManager.currentTheme == .engineeringV2 {
+            if item.colorName == "white" || item.displayColor == .white {
+                return isHovered ? V2Colors.milk : V2Colors.dim
+            } else {
+                return item.displayColor
+            }
+        } else {
+            return item.colorName == "white" || item.displayColor == .white ? Color.white : item.displayColor
+        }
+    }
+    
     var body: some View {
         Button(action: onTap) {
             ZStack(alignment: .topTrailing) {
-                RoundedRectangle(cornerRadius: 13)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color(white: 0.16).opacity(isHovered ? 0.95 : 0.75),
-                                Color(white: 0.08).opacity(isHovered ? 0.95 : 0.85)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
+                RoundedRectangle(cornerRadius: 11)
+                    .fill(bgFill)
                     .frame(width: 44, height: 44)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 13)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [
-                                        Color.white.opacity(isHovered ? 0.45 : 0.15),
-                                        Color.white.opacity(isHovered ? 0.2 : 0.05)
-                                    ],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                ),
-                                lineWidth: 1
-                            )
+                        RoundedRectangle(cornerRadius: 11)
+                            .stroke(strokeColor, lineWidth: 1)
                     )
                     .overlay(
                         Group {
@@ -625,26 +696,32 @@ struct DockItemButton: View {
                             } else {
                                 Image(systemName: item.iconName)
                                     .font(.system(size: 19, weight: .semibold))
-                                    .foregroundStyle(item.colorName == "white" || item.displayColor == .white ? Color.white : item.displayColor)
-                                    .shadow(color: (item.colorName == "white" || item.displayColor == .white ? Color.white : item.displayColor).opacity(isHovered ? 0.7 : 0.2), radius: isHovered ? 6 : 2, y: 1)
+                                    .foregroundStyle(iconForeground)
+                                    .shadow(color: (themeManager.currentTheme == .engineeringV2 ? V2Colors.ice : iconForeground).opacity(isHovered ? 0.5 : 0.1), radius: isHovered ? 6 : 1, y: 1)
                             }
                         }
                     )
-                    .shadow(color: (item.useCustomFavicon ? Color.white : (item.colorName == "white" || item.displayColor == .white ? Color.white : item.displayColor)).opacity(isHovered ? 0.35 : 0.05), radius: isHovered ? 10 : 2, y: isHovered ? 3 : 1)
+                    .shadow(
+                        color: themeManager.currentTheme == .engineeringV2
+                            ? V2Colors.ice.opacity(isHovered ? 0.35 : 0.0)
+                            : (item.useCustomFavicon ? Color.white : iconForeground).opacity(isHovered ? 0.35 : 0.05),
+                        radius: isHovered ? 10 : 2,
+                        y: isHovered ? 3 : 1
+                    )
                 
                 if isHovered {
                     Button(action: onDelete) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 11))
-                            .foregroundStyle(.white.opacity(0.9))
-                            .background(Circle().fill(.black.opacity(0.6)))
+                            .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : .white.opacity(0.9))
+                            .background(Circle().fill(themeManager.currentTheme == .engineeringV2 ? Color(hex: "0B0E12") : Color.black.opacity(0.6)))
                     }
                     .buttonStyle(.plain)
                     .offset(x: 2, y: -2)
                 }
             }
-            .scaleEffect(isHovered ? 1.09 : 1.0)
-            .offset(y: isHovered ? -3 : 0)
+            .scaleEffect(isHovered ? 1.08 : 1.0)
+            .offset(y: isHovered ? -2 : 0)
         }
         .buttonStyle(.plain)
         .onHover { onHover($0) }
