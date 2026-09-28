@@ -54,7 +54,6 @@ struct MainNotchView: View {
     @ObservedObject var mediaManager = MediaManager.shared
     @ObservedObject var localization = LocalizationManager.shared
     @Namespace private var tabAnimation
-    @State private var isHovering = false
     
     var body: some View {
         ZStack(alignment: .top) {
@@ -106,36 +105,6 @@ struct MainNotchView: View {
             .background(Color.black)
             .clipShape(BottomRoundedRectangle(radius: coordinator.isExpanded ? 24 : 14))
             .contentShape(BottomRoundedRectangle(radius: coordinator.isExpanded ? 24 : 14))
-            .onHover { hovering in
-                isHovering = hovering
-                if hovering {
-                    coordinator.open()
-                } else {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                        if !isHovering {
-                            // Check if cursor is truly outside the active notch rect
-                            let mouseLoc = NSEvent.mouseLocation
-                            if let screen = NSScreen.main {
-                                let activeWidth = coordinator.isExpanded ? coordinator.openSize.width : coordinator.currentClosedSize.width
-                                let activeHeight = coordinator.isExpanded ? coordinator.openSize.height : coordinator.currentClosedSize.height
-                                let screenFrame = screen.frame
-                                let notchScreenRect = NSRect(
-                                    x: screenFrame.midX - (activeWidth / 2) - 10,
-                                    y: screenFrame.maxY - activeHeight - 10,
-                                    width: activeWidth + 20,
-                                    height: activeHeight + 20
-                                )
-                                if notchScreenRect.contains(mouseLoc) {
-                                    // Mouse is still inside the notch zone! Keep open
-                                    isHovering = true
-                                    return
-                                }
-                            }
-                            coordinator.close()
-                        }
-                    }
-                }
-            }
             .onDrop(of: [.fileURL], isTargeted: $shelfManager.isTargeted) { providers in
                 coordinator.open(tab: .shelf)
                 return shelfManager.handleDrop(providers: providers)

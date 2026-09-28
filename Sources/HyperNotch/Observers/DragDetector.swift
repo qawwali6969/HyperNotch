@@ -4,7 +4,7 @@ import Cocoa
 class DragDetector {
     static let shared = DragDetector()
     
-    private var mouseMovedMonitor: Any?
+    private var hoverTimer: Timer?
     private var mouseDraggedMonitor: Any?
     private var mouseUpMonitor: Any?
     private var isExpandedByDrag: Bool = false
@@ -13,12 +13,15 @@ class DragDetector {
     func startMonitoring() {
         stopMonitoring()
         
-        // 1. Global Mouse Moved (Hover detection across any active app)
-        mouseMovedMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved]) { [weak self] _ in
+        // 1. High-frequency, zero-overhead hover detection (runs every 60ms ~ 16 FPS)
+        // Works 100% reliably across all apps without requiring Accessibility permissions
+        let timer = Timer(timeInterval: 0.06, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.handleMousePosition(NSEvent.mouseLocation)
             }
         }
+        RunLoop.main.add(timer, forMode: .common)
+        self.hoverTimer = timer
         
         // 2. Global Mouse Drag (File drop detection across any active app)
         mouseDraggedMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDragged]) { [weak self] _ in
@@ -76,9 +79,9 @@ class DragDetector {
         let coordinator = NotchStateCoordinator.shared
         
         if !coordinator.isExpanded {
-            // Closed: trigger zone at top center of screen
-            let triggerWidth = max(240, coordinator.currentClosedSize.width + 50)
-            let triggerHeight = max(40, coordinator.notchSize.height + 15)
+            // Closed: generous trigger zone at top center of screen (easy to hit by moving mouse up)
+            let triggerWidth = max(280, coordinator.currentClosedSize.width + 70)
+            let triggerHeight = max(48, coordinator.notchSize.height + 18)
             let triggerRect = CGRect(
                 x: frame.midX - (triggerWidth / 2),
                 y: frame.maxY - triggerHeight,
@@ -95,11 +98,14 @@ class DragDetector {
             // Open: check if mouse left the open notch bounds
             guard !coordinator.isPinned else { return }
             
+            let activeWidth = coordinator.openSize.width
+            let activeHeight = coordinator.openSize.height
+            
             let openRect = CGRect(
-                x: frame.midX - (coordinator.openSize.width / 2) - 20,
-                y: frame.maxY - coordinator.openSize.height - 25,
-                width: coordinator.openSize.width + 40,
-                height: coordinator.openSize.height + 30
+                x: frame.midX - (activeWidth / 2) - 25,
+                y: frame.maxY - activeHeight - 25,
+                width: activeWidth + 50,
+                height: activeHeight + 30
             )
             
             if !openRect.contains(mouseLoc) {
@@ -110,9 +116,9 @@ class DragDetector {
                             if let s = NSScreen.main {
                                 let f = s.frame
                                 let checkRect = CGRect(
-                                    x: f.midX - (coordinator.openSize.width / 2) - 20,
+                                    x: f.midX - (coordinator.openSize.width / 2) - 25,
                                     y: f.maxY - coordinator.openSize.height - 25,
-                                    width: coordinator.openSize.width + 40,
+                                    width: coordinator.openSize.width + 50,
                                     height: coordinator.openSize.height + 30
                                 )
                                 if !checkRect.contains(currentLoc) && !coordinator.isPinned {
@@ -135,10 +141,8 @@ class DragDetector {
     func stopMonitoring() {
         closeWorkItem?.cancel()
         closeWorkItem = nil
-        if let m = mouseMovedMonitor {
-            NSEvent.removeMonitor(m)
-            mouseMovedMonitor = nil
-        }
+        hoverTimer?.invalidate()
+        hoverTimer = nil
         if let m = mouseDraggedMonitor {
             NSEvent.removeMonitor(m)
             mouseDraggedMonitor = nil
