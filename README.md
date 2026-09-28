@@ -61,28 +61,32 @@
   * *«RU ↔ EN»* - мгновенный перевод с автоопределением языка.
 * **Быстрый промпт-бар:** Прямой запрос к моделям ИИ прямо из выпадающей шторки с выводом ответа в модальном окне.
 
-#### 3. 📸 Screen OCR & Скриншоты (Локальное распознавание текста)
+#### 3. 🛠 Dev Tools & Калькулятор токенов (Инструменты разработчика)
+* **Калькулятор токенов и стоимости:** Мгновенная оценка токенов (`EST. TOKENS`) и стоимости отправки в Claude 3.7 ($3/1M) и GPT-4o ($2.5/1M) с быстрой вставкой из буфера обмена.
+* **Сканер локальных портов:** Автоматический мониторинг запущенных dev-серверов (`localhost:3000`, `5173`, `8000`, `8080`, `11434` Ollama) с быстрым переходом в браузер.
+
+#### 4. 📸 Screen OCR & Скриншоты (Локальное распознавание текста)
 * **Захват области экрана (Screen to Text):** Удобная рамка выделения фрагмента экрана с автоматическим скрытием панели нотча, чтобы она не мешала обзору.
 * **Локальный Apple Vision:** Быстрое распознавание текста на русском, английском, китайском и других языках. Работает **100% офлайн, локально на процессоре Apple Silicon**, без отправки картинок на внешние серверы.
 * **Автоматическое копирование:** Текст моментально попадает в буфер обмена и сохраняется в истории.
 
-#### 4. 🎵 Music HUD & Dynamic Waveform (Музыка в вырезе)
+#### 5. 🎵 Music HUD & Dynamic Waveform (Музыка в вырезе)
 * **Анимированная звуковая волна:** Плавная индикация воспроизведения музыки в компактном вырезе.
 * **Управление треками:** Поддержка Spotify и Apple Music — обложка, название трека, артист и кнопки управления воспроизведением.
 
-#### 5. ⏱ Фокус-таймер и Помодоро
+#### 6. ⏱ Фокус-таймер и Помодоро
 * Встроенный таймер для работы короткими спринтами (25 мин Помодоро, 15 мин, 5 мин).
 * Индикация оставшегося времени прямо на компактной плашке выреза с мягким ненавязчивым звуковым уведомлением.
 
-#### 6. 📊 AI Quota Tracker & Будильник лимитов
+#### 7. 📊 AI Quota Tracker & Будильник лимитов
 * Отслеживание лимитов популярных AI-провайдеров с обратным отсчетом до сброса лимита.
 * **Умный будильник:** В 1 клик создает напоминание в Reminders и ставит будильник в приложении «Часы» macOS ровно на время сброса лимита, чтобы не пропустить восстановление квоты.
 
-#### 7. 🌐 Web Tools & Быстрый лаунчер
+#### 8. 🌐 Web Tools & Быстрый лаунчер
 * Быстрый запуск закрепленных ссылок на локальные серверы (`localhost:3000`), репозитории GitHub и дашборды с автоподгрузкой фавиконок.
 * Выбор целевого браузера (Safari, Google Chrome, Arc, Brave, Firefox) для каждого сервиса.
 
-#### 8. 🌐 Двуязычный интерфейс (English & Русский)
+#### 9. 🌐 Двуязычный интерфейс (English & Русский)
 * По умолчанию приложение открывается на **английском языке**.
 * В разделе **Настройки (Settings)** можно в 1 клик переключиться на **русский язык** - все вкладки, кнопки, формы и подсказки обновляются мгновенно и реактивно без перезапуска.
 
@@ -163,28 +167,32 @@ HyperNotch спроектирован с философией **Zero-Trust** и 
   * *Translate (RU ↔ EN)* - high-accuracy translation with language auto-detection.
 * **Inline Prompt Bar:** Prompt AI models directly from your notch drawer with instant modal response.
 
-#### 3. 📸 Screen OCR & Capture
+#### 3. 🛠 Dev Tools & Token Calculator
+* **Token & Cost Calculator:** Real-time token estimation (`EST. TOKENS`) and cost calculation for Claude 3.7 ($3/1M) and GPT-4o ($2.5/1M) with 1-click clipboard paste.
+* **Localhost Port Scanner:** Real-time background detection of active dev servers (`localhost:3000`, `5173`, `8000`, `8080`, `11434` Ollama) with 1-click open.
+
+#### 4. 📸 Screen OCR & Capture
 * **Interactive Area Capture:** High-precision crosshairs with notch auto-collapse to give you unobstructed screen access.
 * **100% Offline Apple Vision OCR:** Fast on-device neural text recognition supporting Russian, English, Chinese, and more. No external servers or API keys required.
 * **Instant Copy:** Recognized text is instantly placed into your clipboard and notch history.
 
-#### 4. 🎵 Music HUD & Live Waveform
+#### 5. 🎵 Music HUD & Live Waveform
 * **Animated Waveform:** Smooth playback state wave animation in the compact notch.
 * **Playback Controls:** Seamless Spotify & Apple Music track info, album art, and `[⏮ ⏯ ⏭]` controls.
 
-#### 5. ⏱ Pomodoro & Focus Timer
+#### 6. ⏱ Pomodoro & Focus Timer
 * Minimalist focus sprints (25 min Pomodoro, 15 min, 5 min presets).
 * Live timer in the notch with gentle completion chime.
 
-#### 6. 📊 AI Quota & Limits Monitor
+#### 7. 📊 AI Quota & Limits Monitor
 * Real-time monitoring of AI quota reset windows.
 * **Smart Alarm:** One-click integration with macOS Clock & Reminders to set alerts exactly when your quota window resets.
 
-#### 7. 🌐 Developer Web Launcher
+#### 8. 🌐 Developer Web Launcher
 * Quick-launch pinned bookmarks to localhost dev servers (`localhost:3000`), GitHub, cloud consoles, and dashboards with automatic favicon fetching.
 * Per-link browser targeting (Safari, Google Chrome, Arc, Brave, Firefox).
 
-#### 8. 🌐 Dual-Language UI (English & Russian)
+#### 9. 🌐 Dual-Language UI (English & Russian)
 * Defaults to **English** out of the box.
 * Switchable to **Russian** anytime with 1 click in **Settings** - all tabs, widgets, buttons, forms, and tooltips update instantly in real time without restarting.
 

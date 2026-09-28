@@ -15,7 +15,7 @@ struct DevToolsView: View {
                             .foregroundStyle(.white)
                             .shadow(color: .white.opacity(0.4), radius: 3)
                         
-                        Text("LOCALHOST SERVERS")
+                        Text(loc("LOCALHOST SERVERS", "ЛОКАЛЬНЫЕ СЕРВЕРЫ"))
                             .font(.system(size: 10, weight: .bold, design: .monospaced))
                             .foregroundStyle(.white)
                     }
@@ -30,6 +30,7 @@ struct DevToolsView: View {
                             .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
+                    .help(loc("Refresh ports", "Обновить порты"))
                 }
                 
                 VStack(spacing: 5) {
@@ -47,7 +48,7 @@ struct DevToolsView: View {
                             Spacer()
                             
                             if port.isOpen {
-                                Button("Open") {
+                                Button(loc("Open", "Открыть")) {
                                     if let url = URL(string: "http://localhost:\(port.id)") {
                                         NSWorkspace.shared.open(url)
                                     }
@@ -67,7 +68,7 @@ struct DevToolsView: View {
                 
                 Spacer()
             }
-            .frame(width: 230)
+            .frame(width: 235)
             .padding(10)
             .heroGlassCard(cornerRadius: 13)
             
@@ -79,12 +80,48 @@ struct DevToolsView: View {
                         .foregroundStyle(.white)
                         .shadow(color: .white.opacity(0.4), radius: 3)
                     
-                    Text("TOKEN & COST CALCULATOR")
+                    Text(loc("TOKEN & COST CALCULATOR", "КАЛЬКУЛЯТОР ТОКЕНОВ И СТОИМОСТИ"))
                         .font(.system(size: 10, weight: .bold, design: .monospaced))
                         .foregroundStyle(.white)
+                    
+                    Spacer()
+                    
+                    // Paste from clipboard button
+                    Button(action: {
+                        if let pasteText = NSPasteboard.general.string(forType: .string) {
+                            devTools.tokenCalcText = pasteText
+                            devTools.updateTokenEstimate(for: pasteText)
+                        }
+                    }) {
+                        HStack(spacing: 3) {
+                            Image(systemName: "doc.on.clipboard")
+                            Text(loc("Paste", "Вставить"))
+                        }
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundStyle(.cyan)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(Color.cyan.opacity(0.12))
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                    }
+                    .buttonStyle(.plain)
+                    
+                    // Clear button
+                    if !devTools.tokenCalcText.isEmpty {
+                        Button(action: {
+                            devTools.tokenCalcText = ""
+                            devTools.updateTokenEstimate(for: "")
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.white.opacity(0.6))
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
                 
-                TextField("Вставьте текст или промпт для оценки токенов...", text: $devTools.tokenCalcText)
+                TextField(loc("Paste text or prompt to estimate tokens...", "Вставьте текст или промпт для оценки токенов..."), text: $devTools.tokenCalcText, axis: .vertical)
+                    .lineLimit(2...3)
                     .textFieldStyle(.plain)
                     .font(.system(size: 10, design: .monospaced))
                     .foregroundStyle(.white)
@@ -96,12 +133,12 @@ struct DevToolsView: View {
                 
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("EST. TOKENS")
+                        Text(loc("EST. TOKENS", "ТОКЕНЫ (~TOK)"))
                             .font(.system(size: 8, weight: .bold, design: .monospaced))
                             .foregroundStyle(.secondary)
                         
                         Text("\(devTools.tokenEstimateCount)")
-                            .font(.system(size: 17, weight: .bold, design: .monospaced))
+                            .font(.system(size: 16, weight: .bold, design: .monospaced))
                             .foregroundStyle(.cyan)
                     }
                     
@@ -115,7 +152,7 @@ struct DevToolsView: View {
                             .foregroundStyle(.secondary)
                         
                         Text(String(format: "$%.5f", devTools.sonnetCostEstimate))
-                            .font(.system(size: 13, weight: .bold, design: .monospaced))
+                            .font(.system(size: 12, weight: .bold, design: .monospaced))
                             .foregroundStyle(.orange)
                     }
                     
@@ -129,8 +166,22 @@ struct DevToolsView: View {
                             .foregroundStyle(.secondary)
                         
                         Text(String(format: "$%.5f", devTools.gpt4oCostEstimate))
-                            .font(.system(size: 13, weight: .bold, design: .monospaced))
+                            .font(.system(size: 12, weight: .bold, design: .monospaced))
                             .foregroundStyle(.green)
+                    }
+                    
+                    Rectangle()
+                        .fill(Color.white.opacity(0.1))
+                        .frame(width: 1, height: 26)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(loc("CHARS", "СИМВОЛЫ"))
+                            .font(.system(size: 8, weight: .bold, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                        
+                        Text("\(devTools.tokenCalcText.count)")
+                            .font(.system(size: 12, weight: .bold, design: .monospaced))
+                            .foregroundStyle(.white.opacity(0.8))
                     }
                 }
                 .padding(.top, 4)

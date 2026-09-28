@@ -75,6 +75,8 @@ struct MainNotchView: View {
                             ShelfView()
                         case .clipboard:
                             ClipboardView()
+                        case .devTools:
+                            DevToolsView()
                         case .webTools:
                             WebToolsView()
                         case .myDashboard:
