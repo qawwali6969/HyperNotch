@@ -183,16 +183,12 @@ struct MainNotchView: View {
     
     private var tabRailView: some View {
         HStack(spacing: 2) {
-            // Tier 1: Ingest (Приём)
-            tierLabel(loc("Ingest", "Приём"))
             tabButton(for: .shelf)
             tabButton(for: .clipboard)
             tabButton(for: .screenshots)
             
             railSeparator
             
-            // Tier 2: System (Контур)
-            tierLabel(loc("System", "Контур"))
             tabButton(for: .devTools)
             tabButton(for: .webTools)
             tabButton(for: .myDashboard)
@@ -200,7 +196,6 @@ struct MainNotchView: View {
             
             railSeparator
             
-            // Tier 3: Service (Сервис)
             tabButton(for: .settings)
         }
         .padding(.horizontal, 5)
@@ -331,14 +326,6 @@ struct MainNotchView: View {
                 .overlay(Capsule().stroke(Color.white.opacity(0.25), lineWidth: 1))
                 .matchedGeometryEffect(id: "activeTab", in: tabAnimation)
         }
-    }
-    
-    @ViewBuilder
-    private func tierLabel(_ text: String) -> some View {
-        Text(text.uppercased())
-            .font(.system(size: 8, weight: .bold, design: .monospaced))
-            .foregroundStyle(V2Colors.faint)
-            .padding(.horizontal, 4)
     }
     
     private var railSeparator: some View {
