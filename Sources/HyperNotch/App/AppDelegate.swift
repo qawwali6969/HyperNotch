@@ -7,6 +7,10 @@ class NotchHostingView<Content: View>: NSHostingView<Content> {
     }
     
     override func mouseDown(with event: NSEvent) {
+        let coordinator = NotchStateCoordinator.shared
+        if !coordinator.isExpanded {
+            coordinator.open()
+        }
         if let window = self.window, !window.isKeyWindow {
             window.makeKeyAndOrderFront(nil)
         }
@@ -27,14 +31,14 @@ class NotchHostingView<Content: View>: NSHostingView<Content> {
                 height: activeHeight
             )
             if notchRect.contains(point) {
-                return super.hitTest(point)
+                return super.hitTest(point) ?? self
             }
             return nil
         }
         
-        // When closed, activate across the full closed width (including music wings) plus a generous hover buffer!
-        let activeClosedWidth = max(coordinator.notchSize.width, coordinator.currentClosedSize.width) + 30
-        let activeClosedHeight = coordinator.notchSize.height + 14
+        // When closed, activate across the full closed width plus generous buffer!
+        let activeClosedWidth = max(coordinator.notchSize.width, coordinator.currentClosedSize.width) + 40
+        let activeClosedHeight = max(40, coordinator.notchSize.height + 16)
         let centerNotchRect = NSRect(
             x: (bounds.width - activeClosedWidth) / 2,
             y: bounds.height - activeClosedHeight,
@@ -42,7 +46,7 @@ class NotchHostingView<Content: View>: NSHostingView<Content> {
             height: activeClosedHeight
         )
         if centerNotchRect.contains(point) {
-            return super.hitTest(point)
+            return super.hitTest(point) ?? self
         }
         
         return nil
@@ -76,6 +80,7 @@ class NotchWindow: NSPanel, NSDraggingDestination {
         ]
         
         self.level = .mainMenu + 3
+        self.acceptsMouseMovedEvents = true
         
         // Register drag types for instant drag-and-drop support
         self.registerForDraggedTypes([
@@ -242,17 +247,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem?.button {
             button.image = NSImage(systemSymbolName: "sparkles.rectangle.stack.fill", accessibilityDescription: "HyperNotch")
+            button.target = self
+            button.action = #selector(statusItemClicked)
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
-        
-        let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "HyperNotch v1.5", action: nil, keyEquivalent: ""))
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Toggle Notch", action: #selector(toggleNotch), keyEquivalent: "n"))
-        menu.addItem(NSMenuItem(title: "Clear File Shelf", action: #selector(clearShelf), keyEquivalent: ""))
-        menu.addItem(NSMenuItem(title: "Refresh AI Quotas", action: #selector(refreshAI), keyEquivalent: "r"))
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Quit HyperNotch", action: #selector(quitApp), keyEquivalent: "q"))
-        statusItem?.menu = menu
+    }
+    
+    @objc private func statusItemClicked() {
+        guard let event = NSApp.currentEvent else { return }
+        if event.type == .rightMouseUp || event.modifierFlags.contains(.control) {
+            let menu = NSMenu()
+            menu.addItem(NSMenuItem(title: "HyperNotch v1.5", action: nil, keyEquivalent: ""))
+            menu.addItem(NSMenuItem.separator())
+            menu.addItem(NSMenuItem(title: "Toggle Notch", action: #selector(toggleNotch), keyEquivalent: "n"))
+            menu.addItem(NSMenuItem(title: "Clear File Shelf", action: #selector(clearShelf), keyEquivalent: ""))
+            menu.addItem(NSMenuItem(title: "Refresh AI Quotas", action: #selector(refreshAI), keyEquivalent: "r"))
+            menu.addItem(NSMenuItem.separator())
+            menu.addItem(NSMenuItem(title: "Quit HyperNotch", action: #selector(quitApp), keyEquivalent: "q"))
+            statusItem?.menu = menu
+            statusItem?.button?.performClick(nil)
+            statusItem?.menu = nil
+        } else {
+            toggleNotch()
+        }
     }
     
     @objc private func toggleNotch() {

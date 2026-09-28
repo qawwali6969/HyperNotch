@@ -93,6 +93,10 @@ struct MainNotchView: View {
                     .transition(.opacity.animation(.easeInOut(duration: 0.2)))
                 } else {
                     closedNotchView
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            coordinator.open()
+                        }
                 }
             }
             .frame(
