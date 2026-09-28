@@ -26,7 +26,7 @@
 <img src="Resources/preview.gif?v=3" alt="HyperNotch Interactive Preview" width="880" style="border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.6);" />
 
 <p align="center">
-  <sub>✨ <i>Интерактивная демонстрация смарт-выреза: Shelf • Web Apps • AI Quota • Screen OCR • Metrics HUD</i></sub>
+  <sub>✨ <i>Интерактивная демонстрация смарт-выреза: Shelf • Web Apps • AI Quota • Screen OCR • Dev Tools HUD</i></sub>
 </p>
 
 <br/>
@@ -62,7 +62,10 @@
 * **Быстрый промпт-бар:** Прямой запрос к моделям ИИ прямо из выпадающей шторки с выводом ответа в модальном окне.
 
 #### 3. 🛠 Dev Tools & Калькулятор токенов (Инструменты разработчика)
-* **Калькулятор токенов и стоимости:** Мгновенная оценка токенов (`EST. TOKENS`) и стоимости отправки в Claude 3.7 ($3/1M) и GPT-4o ($2.5/1M) с быстрой вставкой из буфера обмена.
+* **Динамический мультипровайдерный калькулятор токенов и стоимости:** Автоматически подтягивает активные провайдеры из вкладки **«Квоты» (AI Quota)** (Z.ai, Google Gemini, DeepSeek, Claude, OpenAI, Grok, OpenRouter, Ollama и кастомные API).
+* **Умное соответствие вашим API:** Количество колонок и цен строго соответствует активным ключам/галочкам (1 API = 1 цена, 2 API = 2 цены и т.д.).
+* **Изолированный выбор моделей:** Внутри каждого провайдера открывается свой выпадающий список со всеми моделями и ценами за 1M токенов (например, в Z.ai — `GLM-4 Plus`, `GLM-4 Flash`, `GLM-4 Air`, в Gemini — `2.0 Flash`, `2.0 Pro`, `1.5 Flash`).
+* **Живое обновление моделей по API (Live Fetch):** Кнопка синхронизации в один клик запрашивает актуальный список доступных моделей напрямую у провайдеров (`/v1/models`, Gemini Models API, OpenRouter API с живыми тарифами).
 * **Сканер локальных портов:** Автоматический мониторинг запущенных dev-серверов (`localhost:3000`, `5173`, `8000`, `8080`, `11434` Ollama) с быстрым переходом в браузер.
 
 #### 4. 📸 Screen OCR & Скриншоты (Локальное распознавание текста)
@@ -70,23 +73,27 @@
 * **Локальный Apple Vision:** Быстрое распознавание текста на русском, английском, китайском и других языках. Работает **100% офлайн, локально на процессоре Apple Silicon**, без отправки картинок на внешние серверы.
 * **Автоматическое копирование:** Текст моментально попадает в буфер обмена и сохраняется в истории.
 
-#### 5. 🎵 Music HUD & Dynamic Waveform (Музыка в вырезе)
+#### 5. 🎨 Темы оформления: Engineering V2 & Classic
+* **Engineering V2 (По умолчанию):** Глубокий монохромный чёрный фон `#000000`, идеально сливающийся с физическим вырезом MacBook Notch, акценты Living Ice, тонкие границы со световыми градиентами и техническая типографика.
+* **Переключатель тем:** В разделе **Настройки (Settings)** можно в 1 клик переключиться между новой темой Engineering V2 и классической темой Classic Glass.
+
+#### 6. 🎵 Music HUD & Dynamic Waveform (Музыка в вырезе)
 * **Анимированная звуковая волна:** Плавная индикация воспроизведения музыки в компактном вырезе.
 * **Управление треками:** Поддержка Spotify и Apple Music — обложка, название трека, артист и кнопки управления воспроизведением.
 
-#### 6. ⏱ Фокус-таймер и Помодоро
+#### 7. ⏱ Фокус-таймер и Помодоро
 * Встроенный таймер для работы короткими спринтами (25 мин Помодоро, 15 мин, 5 мин).
 * Индикация оставшегося времени прямо на компактной плашке выреза с мягким ненавязчивым звуковым уведомлением.
 
-#### 7. 📊 AI Quota Tracker & Будильник лимитов
+#### 8. 📊 AI Quota Tracker & Будильник лимитов
 * Отслеживание лимитов популярных AI-провайдеров с обратным отсчетом до сброса лимита.
 * **Умный будильник:** В 1 клик создает напоминание в Reminders и ставит будильник в приложении «Часы» macOS ровно на время сброса лимита, чтобы не пропустить восстановление квоты.
 
-#### 8. 🌐 Web Tools & Быстрый лаунчер
+#### 9. 🌐 Web Tools & Быстрый лаунчер
 * Быстрый запуск закрепленных ссылок на локальные серверы (`localhost:3000`), репозитории GitHub и дашборды с автоподгрузкой фавиконок.
 * Выбор целевого браузера (Safari, Google Chrome, Arc, Brave, Firefox) для каждого сервиса.
 
-#### 9. 🌐 Двуязычный интерфейс (English & Русский)
+#### 10. 🌐 Двуязычный интерфейс (English & Русский)
 * По умолчанию приложение открывается на **английском языке**.
 * В разделе **Настройки (Settings)** можно в 1 клик переключиться на **русский язык** - все вкладки, кнопки, формы и подсказки обновляются мгновенно и реактивно без перезапуска.
 
@@ -114,7 +121,7 @@ open build/HyperNotch.app
 
 | Приложение | Версия | Платформа | Архитектура | Статус |
 | :---: | :---: | :---: | :---: | :---: |
-| <img src="Resources/AppIcon.png" width="36" height="36" style="vertical-align: middle; border-radius: 8px;"/> **HyperNotch.app** | **v1.5** | macOS 14.0+ | Apple Silicon (M1–M4) & Intel | Готов к релизу |
+| <img src="Resources/AppIcon.png" width="36" height="36" style="vertical-align: middle; border-radius: 8px;"/> **HyperNotch.app** | **v1.6.0** | macOS 14.0+ | Apple Silicon (M1–M4) & Intel | Production Ready |
 
 При первом запуске разрешите приложению доступ к **Записи экрана** в *Системных настройках → Конфиденциальность и безопасность* (необходимо для работы инструмента OCR и создания скриншотов).
 
@@ -168,31 +175,38 @@ HyperNotch спроектирован с философией **Zero-Trust** и 
 * **Inline Prompt Bar:** Prompt AI models directly from your notch drawer with instant modal response.
 
 #### 3. 🛠 Dev Tools & Token Calculator
-* **Token & Cost Calculator:** Real-time token estimation (`EST. TOKENS`) and cost calculation for Claude 3.7 ($3/1M) and GPT-4o ($2.5/1M) with 1-click clipboard paste.
-* **Localhost Port Scanner:** Real-time background detection of active dev servers (`localhost:3000`, `5173`, `8000`, `8080`, `11434` Ollama) with 1-click open.
+* **Dynamic Multi-Provider Token & Cost Estimator:** Automatically links with active providers configured in your **AI Quota** tab (Z.ai, Google Gemini, DeepSeek, Claude, OpenAI, Grok, OpenRouter, Ollama, and custom proxies).
+* **Accurate 1:1 API Columns:** Renders price columns strictly matching your enabled providers (1 active API = 1 price column, 2 APIs = 2 columns, etc.).
+* **Provider-Scoped Model Dropdowns:** Each provider features an isolated dropdown containing only its models and official per-1M token rates (e.g. Z.ai lists `GLM-4 Plus`, `GLM-4 Flash`, `GLM-4 Air`, while Gemini lists `2.0 Flash`, `2.0 Pro`, `1.5 Flash`).
+* **Live API Model Discovery (Live Fetch):** 1-click sync button actively queries provider endpoints (`/v1/models`, Gemini Models API, OpenRouter live pricing) to discover custom and newly launched models in real time.
+* **Localhost Port Scanner:** Real-time background detection of active dev servers (`localhost:3000`, `5173`, `8000`, `8080`, `11434` Ollama) with 1-click open in browser.
 
 #### 4. 📸 Screen OCR & Capture
 * **Interactive Area Capture:** High-precision crosshairs with notch auto-collapse to give you unobstructed screen access.
 * **100% Offline Apple Vision OCR:** Fast on-device neural text recognition supporting Russian, English, Chinese, and more. No external servers or API keys required.
 * **Instant Copy:** Recognized text is instantly placed into your clipboard and notch history.
 
-#### 5. 🎵 Music HUD & Live Waveform
+#### 5. 🎨 Design Themes: Engineering V2 & Classic
+* **Engineering V2 (Default):** Deep true OLED black `#000000` background blending invisibly into the hardware MacBook notch, Living Ice cyber highlights, micro-borders, and technical monospaced typography.
+* **Theme Switcher:** Effortlessly switch between Engineering V2 and the legacy Classic Glass theme directly in **Settings**.
+
+#### 6. 🎵 Music HUD & Live Waveform
 * **Animated Waveform:** Smooth playback state wave animation in the compact notch.
 * **Playback Controls:** Seamless Spotify & Apple Music track info, album art, and `[⏮ ⏯ ⏭]` controls.
 
-#### 6. ⏱ Pomodoro & Focus Timer
+#### 7. ⏱ Pomodoro & Focus Timer
 * Minimalist focus sprints (25 min Pomodoro, 15 min, 5 min presets).
 * Live timer in the notch with gentle completion chime.
 
-#### 7. 📊 AI Quota & Limits Monitor
+#### 8. 📊 AI Quota & Limits Monitor
 * Real-time monitoring of AI quota reset windows.
 * **Smart Alarm:** One-click integration with macOS Clock & Reminders to set alerts exactly when your quota window resets.
 
-#### 8. 🌐 Developer Web Launcher
+#### 9. 🌐 Developer Web Launcher
 * Quick-launch pinned bookmarks to localhost dev servers (`localhost:3000`), GitHub, cloud consoles, and dashboards with automatic favicon fetching.
 * Per-link browser targeting (Safari, Google Chrome, Arc, Brave, Firefox).
 
-#### 9. 🌐 Dual-Language UI (English & Russian)
+#### 10. 🌐 Dual-Language UI (English & Russian)
 * Defaults to **English** out of the box.
 * Switchable to **Russian** anytime with 1 click in **Settings** - all tabs, widgets, buttons, forms, and tooltips update instantly in real time without restarting.
 
@@ -220,7 +234,7 @@ open build/HyperNotch.app
 
 | Application | Version | Platform | Architecture | Status |
 | :---: | :---: | :---: | :---: | :---: |
-| <img src="Resources/AppIcon.png" width="36" height="36" style="vertical-align: middle; border-radius: 8px;"/>  **HyperNotch.app** | **v1.5** | macOS 14.0+ | Apple Silicon (M1–M4) & Intel | Production Ready |
+| <img src="Resources/AppIcon.png" width="36" height="36" style="vertical-align: middle; border-radius: 8px;"/>  **HyperNotch.app** | **v1.6.0** | macOS 14.0+ | Apple Silicon (M1–M4) & Intel | Production Ready |
 
 On first launch, grant **Screen Recording** permission in *System Settings → Privacy & Security* (required for Vision OCR and screen snips).
 
