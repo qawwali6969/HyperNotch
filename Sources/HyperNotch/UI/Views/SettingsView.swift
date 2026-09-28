@@ -7,6 +7,7 @@ struct SettingsView: View {
     @ObservedObject var quickAI = QuickAIEngine.shared
     @ObservedObject var llmTracker = LLMTrackerManager.shared
     @ObservedObject var localization = LocalizationManager.shared
+    @ObservedObject var updater = UpdateManager.shared
     @State private var clearedNotification = false
     
     // API Key entry states
@@ -293,6 +294,109 @@ struct SettingsView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 5))
                         }
                         .buttonStyle(.plain)
+                    }
+                }
+                // Section 5: Software Updates & Version
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.white)
+                            .shadow(color: .white.opacity(0.4), radius: 3)
+                        
+                        Text(loc("SOFTWARE UPDATES", "ОБНОВЛЕНИЯ ПРОГРАММЫ"))
+                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .foregroundStyle(.white)
+                        
+                        Spacer()
+                        
+                        Text("v\(updater.currentVersion)")
+                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .foregroundStyle(.green)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.green.opacity(0.15))
+                            .clipShape(Capsule())
+                    }
+                    
+                    if updater.updateAvailable {
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack {
+                                Image(systemName: "sparkles")
+                                    .foregroundStyle(.yellow)
+                                Text(loc("New version \(updater.latestVersion) is available!", "Доступна новая версия \(updater.latestVersion)!"))
+                                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                    .foregroundStyle(.white)
+                                
+                                Spacer()
+                                
+                                if updater.isDownloading {
+                                    HStack(spacing: 6) {
+                                        ProgressView()
+                                            .controlSize(.small)
+                                        Text(loc("Installing...", "Установка..."))
+                                            .font(.system(size: 9, design: .monospaced))
+                                            .foregroundStyle(.secondary)
+                                    }
+                                } else {
+                                    Button(action: {
+                                        Task {
+                                            await updater.installUpdate()
+                                        }
+                                    }) {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "arrow.down.circle.fill")
+                                            Text(loc("Update & Relaunch", "Обновить и перезапустить"))
+                                        }
+                                        .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+                                        .foregroundStyle(.black)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 5)
+                                        .background(Color.green)
+                                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            
+                            if !updater.releaseNotes.isEmpty {
+                                Text(updater.releaseNotes.prefix(200) + (updater.releaseNotes.count > 200 ? "..." : ""))
+                                    .font(.system(size: 8.5, design: .monospaced))
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(3)
+                            }
+                        }
+                        .padding(8)
+                        .background(Color.white.opacity(0.06))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    } else {
+                        HStack(spacing: 10) {
+                            VibeInteractiveHoverButton(
+                                text: updater.isChecking ? loc("Checking...", "Проверка...") : loc("Check for Updates", "Проверить обновления"),
+                                leadingIcon: updater.isChecking ? "arrow.triangle.2.circlepath" : "arrow.clockwise",
+                                icon: "",
+                                fontSize: 9.5,
+                                horizontalPadding: 10,
+                                verticalPadding: 5,
+                                minHeight: 24
+                            ) {
+                                Task {
+                                    await updater.checkForUpdates(silent: false)
+                                }
+                            }
+                            
+                            if let msg = updater.statusMessage {
+                                Text(msg)
+                                    .font(.system(size: 8.5, design: .monospaced))
+                                    .foregroundStyle(updater.isUpToDate ? Color.green : Color.secondary)
+                            }
+                            
+                            if let err = updater.errorMessage {
+                                Text(err)
+                                    .font(.system(size: 8.5, design: .monospaced))
+                                    .foregroundStyle(Color.red.opacity(0.85))
+                            }
+                        }
                     }
                 }
                 .padding(10)

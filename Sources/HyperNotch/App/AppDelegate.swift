@@ -209,6 +209,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             name: NSApplication.didChangeScreenParametersNotification,
             object: nil
         )
+        
+        // Background silent check for updates on launch
+        Task {
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            await UpdateManager.shared.checkForUpdates(silent: true)
+        }
     }
     
     private func setupMainMenu() {
@@ -257,7 +263,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard let event = NSApp.currentEvent else { return }
         if event.type == .rightMouseUp || event.modifierFlags.contains(.control) {
             let menu = NSMenu()
-            menu.addItem(NSMenuItem(title: "HyperNotch v1.5", action: nil, keyEquivalent: ""))
+            menu.addItem(NSMenuItem(title: "HyperNotch v\(UpdateManager.shared.currentVersion)", action: nil, keyEquivalent: ""))
+            
+            if UpdateManager.shared.updateAvailable {
+                menu.addItem(NSMenuItem(title: "⚡️ Доступно обновление \(UpdateManager.shared.latestVersion)!", action: #selector(openUpdatesTab), keyEquivalent: "u"))
+            } else {
+                menu.addItem(NSMenuItem(title: "Проверить обновления...", action: #selector(checkUpdatesMenu), keyEquivalent: ""))
+            }
+            
             menu.addItem(NSMenuItem.separator())
             menu.addItem(NSMenuItem(title: "Toggle Notch", action: #selector(toggleNotch), keyEquivalent: "n"))
             menu.addItem(NSMenuItem(title: "Clear File Shelf", action: #selector(clearShelf), keyEquivalent: ""))
@@ -269,6 +282,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             statusItem?.menu = nil
         } else {
             toggleNotch()
+        }
+    }
+    
+    @objc private func openUpdatesTab() {
+        NotchStateCoordinator.shared.open(tab: .settings)
+    }
+    
+    @objc private func checkUpdatesMenu() {
+        NotchStateCoordinator.shared.open(tab: .settings)
+        Task {
+            await UpdateManager.shared.checkForUpdates(silent: false)
         }
     }
     
