@@ -59,7 +59,7 @@
   * *«Объяснить»* - подробный разбор логики функции или текста ошибки.
   * *«Саммари»* - моментальная выжимка сути текста.
   * *«RU ↔ EN»* - мгновенный перевод с автоопределением языка.
-* **Быстрый промпт-бар:** Отправка разовых запросов к Google Gemini и Z.ai прямо из выпадающей шторки с выводом результата в модальном окне.
+* **Быстрый промпт-бар:** Прямой запрос к моделям ИИ прямо из выпадающей шторки с выводом ответа в модальном окне.
 
 #### 3. 📸 Screen OCR & Скриншоты (Локальное распознавание текста)
 * **Захват области экрана (Screen to Text):** Удобная рамка выделения фрагмента экрана с автоматическим скрытием панели нотча, чтобы она не мешала обзору.
@@ -161,7 +161,7 @@ HyperNotch спроектирован с философией **Zero-Trust** и 
   * *Explain* - deep dive into error traces and complex code blocks.
   * *Summarize* - key takeaways from lengthy texts.
   * *Translate (RU ↔ EN)* - high-accuracy translation with language auto-detection.
-* **Inline Prompt Bar:** Send quick one-shot prompts to Google Gemini or Z.ai directly from the notch drawer.
+* **Inline Prompt Bar:** Prompt AI models directly from your notch drawer with instant modal response.
 
 #### 3. 📸 Screen OCR & Capture
 * **Interactive Area Capture:** High-precision crosshairs with notch auto-collapse to give you unobstructed screen access.
