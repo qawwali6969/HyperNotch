@@ -23,7 +23,7 @@
 
 <br/>
 
-<img src="Resources/preview.gif" alt="HyperNotch Interactive Preview" width="880" style="border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.6);" />
+<img src="Resources/preview.gif?v=3" alt="HyperNotch Interactive Preview" width="880" style="border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.6);" />
 
 <p align="center">
   <sub>✨ <i>Интерактивная демонстрация смарт-выреза: Shelf • Web Apps • AI Quota • Screen OCR • Metrics HUD</i></sub>
