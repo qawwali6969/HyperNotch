@@ -187,18 +187,36 @@ struct MainNotchView: View {
     }
     
     // Header when notch is expanded (positioned cleanly below the physical camera notch)
-    // Header when notch is expanded (positioned cleanly below the physical camera notch)
+    private var hasActiveMusic: Bool {
+        mediaManager.isPlaying || !mediaManager.trackTitle.isEmpty
+    }
+    
     private var openHeaderView: some View {
         HStack(spacing: 8) {
+            if !hasActiveMusic {
+                // Invisible balance block matching the right side buttons (pin + collapse = 56px)
+                // so that tabRailView is mathematically centered in the entire notch header
+                Color.clear
+                    .frame(width: 56, height: 24)
+                Spacer()
+            }
+            
             tabRailView
+            
             Spacer()
-            CompactMusicHUDView()
+            
+            if hasActiveMusic {
+                CompactMusicHUDView()
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+            }
+            
             pinButton
             collapseButton
         }
         .padding(.horizontal, 16)
         .padding(.top, 2)
         .padding(.bottom, 6)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: hasActiveMusic)
     }
     
     private var tabRailView: some View {
