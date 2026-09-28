@@ -8,11 +8,11 @@
 *Сверхскоростной смарт-вырез для разработчиков, криейторов и вайбкодеров*
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v1.5-success?style=for-the-badge" alt="Version 1.5">
-  <a href="#-русская-версия"><img src="https://img.shields.io/badge/Язык-Русский-blue?style=for-the-badge" alt="Русская версия"></a>
-  <a href="#-english-version"><img src="https://img.shields.io/badge/Language-English-red?style=for-the-badge" alt="English version"></a>
+  <a href="https://github.com/qawwali6969/HyperNotch/releases/latest"><img src="https://img.shields.io/badge/Download-HyperNotch.dmg-007AFF?style=for-the-badge&logo=apple&logoColor=white" alt="Download HyperNotch DMG"></a>
+  <a href="https://qawwali6969.github.io/HyperNotch/"><img src="https://img.shields.io/badge/Live_Showcase-Interactive_Film-FF2D55?style=for-the-badge&logo=safari&logoColor=white" alt="Live Showcase"></a>
   <img src="https://img.shields.io/badge/macOS-14.0%2B-black?style=for-the-badge&logo=apple" alt="macOS 14+">
   <img src="https://img.shields.io/badge/Swift-5.9%2B-orange?style=for-the-badge&logo=swift" alt="Swift">
+  <a href="https://github.com/qawwali6969/HyperNotch/actions"><img src="https://img.shields.io/badge/Security-CodeQL_Verified-green?style=for-the-badge&logo=githubactions&logoColor=white" alt="CodeQL Verified"></a>
 </p>
 
 ---

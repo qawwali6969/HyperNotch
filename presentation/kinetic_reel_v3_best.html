@@ -689,14 +689,11 @@ try handler.perform([request], on: cgImage)</div>
     }
 
     // ==========================================================
-    // 2. WEB AUDIO & SOUNDTRACK SYNCHRONIZER
+    // 2. WEB AUDIO SYNTHESIZER ENGINE
     // ==========================================================
     let audioCtx = null;
     let isSoundOn = true;
     let isPlaying = false;
-    const bgmTrack = new Audio('audio/bgm/cat-walk.mp3');
-    bgmTrack.preload = 'auto';
-    bgmTrack.volume = 0.55;
 
     function initAudio() {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -884,7 +881,6 @@ try handler.perform([request], on: cgImage)</div>
         onComplete: () => {
           document.getElementById('btn-play').textContent = '↺ Replay';
           isPlaying = false;
-          try { bgmTrack.pause(); bgmTrack.currentTime = 0; } catch (e) {}
         }
       });
 
@@ -1567,22 +1563,11 @@ try handler.perform([request], on: cgImage)</div>
       initAudio();
       if (isPlaying) {
         master.pause();
-        try { bgmTrack.pause(); } catch (e) {}
-        btnPlay.textContent = '▶ Play Launch Film';
+        btnPlay.textContent = '▶ Play One-Take';
         isPlaying = false;
       } else {
-        if (master.progress() === 1) {
-          master.restart();
-          try { bgmTrack.currentTime = 0; } catch (e) {}
-        } else {
-          master.play();
-        }
-        if (isSoundOn) {
-          try {
-            bgmTrack.currentTime = master.time();
-            bgmTrack.play().catch(() => {});
-          } catch (e) {}
-        }
+        if (master.progress() === 1) master.restart();
+        else master.play();
         btnPlay.textContent = '⏸ Pause';
         isPlaying = true;
       }
@@ -1592,23 +1577,6 @@ try handler.perform([request], on: cgImage)</div>
     btnSound.addEventListener('click', () => {
       isSoundOn = !isSoundOn;
       btnSound.textContent = isSoundOn ? '🔊 Sound: On' : '🔇 Sound: Off';
-      if (!isSoundOn) {
-        try { bgmTrack.pause(); } catch (e) {}
-      } else if (isPlaying) {
-        try { bgmTrack.currentTime = master.time(); bgmTrack.play().catch(() => {}); } catch (e) {}
-      }
-    });
-
-    const scrubTrack = document.getElementById('scrub-track');
-    scrubTrack.addEventListener('click', (e) => {
-      const rect = scrubTrack.getBoundingClientRect();
-      const p = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-      master.pause();
-      master.progress(p);
-      try {
-        bgmTrack.currentTime = p * TOTAL_DURATION;
-        if (isPlaying && isSoundOn) bgmTrack.play().catch(() => {});
-      } catch (e) {}
     });
 
     const btnAspect = document.getElementById('btn-aspect');

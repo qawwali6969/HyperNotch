@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HyperNotch — Apple Keynote Product Film (20s • 4K)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+    body {
+      background: #030304;
+      color: #f5f5f7;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 4K 16:9 Viewport Stage (3840x2160 logical scale) */
+    #viewport-container {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      background: #050506;
+      overflow: hidden;
+      box-shadow: 0 40px 140px rgba(0,0,0,0.98);
+      transform-origin: center center;
+    }
+
+    /* Cel-shaded top-left ambient lighting */
+    .top-left-key-light {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 25% 15%, rgba(255, 255, 255, 0.04) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Virtual Camera Rig (continuous slow push-in from 24mm to 50mm) */
+    #camera-rig {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transform-origin: center 38%;
+      transform: perspective(1400px) rotateX(7deg) scale(0.85); /* slight low angle looking up */
+      z-index: 10;
+    }
+
+    /* MacBook Bezel Negative Space (#050506) */
+    .macbook-canvas {
+      position: relative;
+      width: 1720px;
+      height: 980px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 140px;
+    }
+
+    /* Aluminum Bezel Edge & Cool Rim Light */
+    .aluminum-top-rim {
+      position: absolute;
+      top: 136px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1540px;
+      height: 2px;
+      background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.08) 20%, 
+        rgba(200, 225, 255, 0.28) 45%, 
+        rgba(255, 255, 255, 0.15) 55%, 
+        transparent 100%);
+      pointer-events: none;
+    }
+
+    /* The Notch Breathing Pill & Glow */
+    .notch-anchor {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 20;
+    }
+
+    /* Shifting Accent Glow Container */
+    .notch-glow-aura {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 220px;
+      height: 70px;
+      border-radius: 40px;
+      background: #8b5cf6; /* Base violet */
+      filter: blur(35px);
+      opacity: 0;
+      pointer-events: none;
+      transition: background 0.6s ease;
+      z-index: 1;
+    }
+
+    /* Physical Notch Pill */
+    .notch-pill {
+      position: relative;
+      width: 210px;
+      height: 38px;
+      background: #000000;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+      box-shadow: 
+        0 14px 40px rgba(0,0,0,0.9),
+        0 1px 0 rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      z-index: 5;
+      padding: 0 16px;
+    }
+
+    /* Idle Notch Sensor (Camera + Ambient Sensor) */
+    .notch-sensors {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      opacity: 1;
+    }
+    .sensor-lens {
+      width: 11px;
+      height: 11px;
+      background: #08080a;
+      border: 1px solid #1c1c20;
+      border-radius: 50%;
+      position: relative;
+    }
+    .sensor-lens::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 3.5px;
+      height: 3.5px;
+      background: rgba(147, 197, 253, 0.45);
+      border-radius: 50%;
+    }
+    .sensor-led {
+      width: 4px;
+      height: 4px;
+      background: #22c55e;
+      border-radius: 50%;
+      opacity: 0;
+      box-shadow: 0 0 6px #22c55e;
+    }
+
+    /* ========================================================
+       WIDGET LAYERS INSIDE THE EXPANDING NOTCH
+       ======================================================== */
+    .widget-container {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* 04-10s Build Widget 1: Blue Folder & Progress Bar */
+    #widget-folder {
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+      padding: 0 20px;
+    }
+    .folder-top-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .folder-icon {
+      font-size: 15px;
+      filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4));
+    }
+    .folder-text {
+      font-size: 12px;
+      font-weight: 500;
+      color: #f5f5f7;
+      letter-spacing: -0.2px;
+    }
+    .progress-track {
+      width: 100%;
+      height: 3.5px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      background: #3b82f6; /* Blue accent */
+      border-radius: 4px;
+      box-shadow: 0 0 8px #3b82f6;
+    }
+
+    /* 04-10s Build Widget 2: Masked Password & Orange Strike-through */
+    #widget-password {
+      gap: 12px;
+    }
+    .pass-dots {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      letter-spacing: 4px;
+      color: #f5f5f7;
+      position: relative;
+    }
+    .pass-strike-line {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 0%;
+      height: 2px;
+      background: #f97316; /* Orange accent */
+      box-shadow: 0 0 8px #f97316;
+    }
+    .pass-lock-icon {
+      font-size: 14px;
+      color: #f97316;
+      transition: transform 0.15s ease;
+    }
+
+    /* 04-10s Build Widget 3: Cyan Scanner Rectangle */
+    #widget-scanner {
+      gap: 14px;
+      align-items: center;
+    }
+    .scan-reticle {
+      position: relative;
+      width: 140px;
+      height: 24px;
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      border-radius: 4px;
+      overflow: hidden;
+      background: rgba(6, 182, 212, 0.04);
+    }
+    .scan-laser {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: #06b6d4; /* Cyan accent */
+      box-shadow: 0 0 10px #06b6d4;
+    }
+    .scan-label {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500;
+      color: #06b6d4;
+      letter-spacing: 0.5px;
+    }
+
+    /* 10-16s Crack: Full Multi-Widget Array (Tiled Left to Right) */
+    #widget-crack-array {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0 24px;
+    }
+    /* Pink Waveform Bars */
+    .crack-waveform {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 22px;
+    }
+    .wave-bar {
+      width: 3px;
+      height: 6px;
+      background: #ec4899; /* Pink accent */
+      border-radius: 2px;
+      box-shadow: 0 0 6px rgba(236, 72, 153, 0.6);
+    }
+    /* Green Focus Timer Ring */
+    .crack-timer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .timer-ring-svg {
+      width: 24px;
+      height: 24px;
+      transform: rotate(-90deg);
+    }
+    .timer-circle-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.12);
+      stroke-width: 2.5;
+    }
+    .timer-circle-bar {
+      fill: none;
+      stroke: #22c55e; /* Green focus ring */
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-dasharray: 63;
+      stroke-dashoffset: 0;
+    }
+    .timer-digits {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: #22c55e;
+    }
+    /* Teal Lock Icon */
+    .crack-teal-lock {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #14b8a6; /* Teal accent */
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* 16-20s Resolution: Thin Off-White Wordmark "HyperNotch" */
+    .wordmark-container {
+      margin-top: 38px;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 20;
+    }
+    .wordmark-title {
+      font-size: 28px;
+      font-weight: 300;
+      letter-spacing: 6px;
+      color: #f5f5f7; /* Off-white UI ink */
+      text-transform: uppercase;
+    }
+
+    /* Clean Subtle HUD Timeline Indicator */
+    .film-time-badge {
+      position: absolute;
+      bottom: 40px;
+      right: 48px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: rgba(245, 245, 247, 0.35);
+      letter-spacing: 1px;
+      z-index: 100;
+    }
+
+    /* Playback overlay controls */
+    #director-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(18, 18, 22, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 100px;
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      z-index: 999;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    }
+    .btn-keynote {
+      background: transparent;
+      border: none;
+      color: #f5f5f7;
+      font-family: -apple-system, sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 100px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .btn-keynote:hover {
+      background: rgba(255,255,255,0.08);
+    }
+    .btn-keynote.play-btn {
+      background: #f5f5f7;
+      color: #050506;
+      font-weight: 600;
+    }
+    .track-line {
+      width: 260px;
+      height: 4px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 2px;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .track-progress {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 0%;
+      background: #f5f5f7;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- VIEWPORT STAGE -->
+  <div id="viewport-container">
+    
+    <!-- Top-Left Soft Key Light -->
+    <div class="top-left-key-light"></div>
+
+    <!-- Virtual Camera Rig (Slow 24mm -> 50mm Push-In) -->
+    <div id="camera-rig">
+
+      <div class="macbook-canvas">
+        <!-- Aluminum Top Rim Light -->
+        <div class="aluminum-top-rim"></div>
+
+        <!-- The Notch & Widgets -->
+        <div class="notch-anchor">
+          <!-- Shifting Accent Aura -->
+          <div class="notch-glow-aura" id="notch-aura"></div>
+
+          <!-- The Notch Pill -->
+          <div class="notch-pill" id="notch-pill">
+            
+            <!-- Default Sensor -->
+            <div class="notch-sensors" id="notch-sensors">
+              <div class="sensor-lens"></div>
+              <div class="sensor-led" id="sensor-led"></div>
+            </div>
+
+            <!-- Build Widget 1: Blue Folder & Progress -->
+            <div class="widget-container" id="widget-folder">
+              <div class="folder-top-row">
+                <span class="folder-icon">📁</span>
+                <span class="folder-text">HyperNotch_Core.bundle</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="folder-progress"></div>
+              </div>
+            </div>
+
+            <!-- Build Widget 2: Masked Password & Orange Strike -->
+            <div class="widget-container" id="widget-password">
+              <span class="pass-dots" id="pass-dots">
+                <span id="pass-text">••••••••••</span>
+                <div class="pass-strike-line" id="pass-strike"></div>
+              </span>
+              <span class="pass-lock-icon" id="pass-lock">🔒</span>
+            </div>
+
+            <!-- Build Widget 3: Cyan Scanline -->
+            <div class="widget-container" id="widget-scanner">
+              <div class="scan-reticle">
+                <div class="scan-laser" id="scan-laser"></div>
+              </div>
+              <span class="scan-label">OCR SCAN ACTIVE</span>
+            </div>
+
+            <!-- Crack Widget: Multi-Widget Array -->
+            <div class="widget-container" id="widget-crack-array">
+              <!-- Pink Waveform -->
+              <div class="crack-waveform" id="crack-waveform">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+              </div>
+              <!-- Green Timer -->
+              <div class="crack-timer">
+                <svg class="timer-ring-svg" viewBox="0 0 24 24">
+                  <circle class="timer-circle-bg" cx="12" cy="12" r="10" />
+                  <circle class="timer-circle-bar" id="timer-bar" cx="12" cy="12" r="10" />
+                </svg>
+                <span class="timer-digits" id="timer-digits">25:00</span>
+              </div>
+              <!-- Teal Lock -->
+              <div class="crack-teal-lock">
+                <span>🛡️</span>
+                <span>SECURED</span>
+              </div>
+            </div>
+
+          </div> <!-- End #notch-pill -->
+
+          <!-- Wordmark Resolution -->
+          <div class="wordmark-container" id="wordmark-box">
+            <div class="wordmark-title">HyperNotch</div>
+          </div>
+
+        </div> <!-- End .notch-anchor -->
+
+      </div> <!-- End .macbook-canvas -->
+
+    </div> <!-- End #camera-rig -->
+
+    <div class="film-time-badge" id="film-timecode">00.0s / 20.0s</div>
+
+  </div> <!-- End #viewport-container -->
+
+  <!-- Director Playback Bar -->
+  <div id="director-bar">
+    <button class="btn-keynote play-btn" id="btn-play">▶ Play Film</button>
+    <button class="btn-keynote" id="btn-sound">Sound: On</button>
+    <div class="track-line" id="film-track">
+      <div class="track-progress" id="film-progress"></div>
+    </div>
+    <span style="font-size:11px; color:#f5f5f7; width:35px;" id="time-display">00s</span>
+    <button class="btn-keynote" id="btn-fs">⛶</button>
+  </div>
+
+  <script>
+    // Scale viewport responsive
+    function resizeViewport() {
+      const container = document.getElementById('viewport-container');
+      const scaleX = window.innerWidth / 1920;
+      const scaleY = window.innerHeight / 1080;
+      const scale = Math.min(scaleX, scaleY);
+      container.style.transform = `scale(${scale})`;
+    }
+    window.addEventListener('resize', resizeViewport);
+    resizeViewport();
+
+    // ==========================================================
+    // SOUND ENGINE (Web Audio API)
+    // 40Hz room-tone hum, rising synth plucks, bass swell, chime
+    // ==========================================================
+    let audioCtx = null;
+    let isSoundOn = true;
+    let isPlaying = false;
+    let roomHumOsc = null;
+    let roomHumGain = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function startRoomHum() {
+      if (!isSoundOn || !audioCtx) return;
+      stopRoomHum();
+      roomHumOsc = audioCtx.createOscillator();
+      roomHumGain = audioCtx.createGain();
+      roomHumOsc.type = 'sine';
+      roomHumOsc.frequency.setValueAtTime(40, audioCtx.currentTime); // 40Hz low hum
+      roomHumGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+      roomHumGain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 1.5);
+      roomHumOsc.connect(roomHumGain);
+      roomHumGain.connect(audioCtx.destination);
+      roomHumOsc.start();
+    }
+
+    function stopRoomHum(fadeTime = 0.5) {
+      if (roomHumOsc && roomHumGain && audioCtx) {
+        roomHumGain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + fadeTime);
+        setTimeout(() => {
+          try { roomHumOsc.stop(); } catch(e){}
+          roomHumOsc = null;
+        }, fadeTime * 1000);
+      }
+    }
+
+    // Soft synth pluck (pitch rising with every beat)
+    function playPluck(freq) {
+      if (!isSoundOn || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const filter = audioCtx.createBiquadFilter();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(freq * 3, audioCtx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(freq * 0.8, audioCtx.currentTime + 0.35);
+
+      gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.4);
+    }
+
+    // Low bass swell under the Crack (10-16s)
+    function playBassSwell() {
+      if (!isSoundOn || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(55, audioCtx.currentTime);
+      osc.frequency.linearRampToValueAtTime(75, audioCtx.currentTime + 5.0);
+
+      gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 2.0);
+      gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 5.5);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 5.5);
+    }
+
+    // Pure Apple Keynote resolution chime
+    function playFinalChime() {
+      if (!isSoundOn || !audioCtx) return;
+      const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5 major harmonic
+      freqs.forEach((f, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, audioCtx.currentTime + idx * 0.04);
+        gain.gain.setValueAtTime(0.12 / (idx + 1), audioCtx.currentTime + idx * 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2.5);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + idx * 0.04);
+        osc.stop(audioCtx.currentTime + 2.6);
+      });
+    }
+
+    // ==========================================================
+    // GSAP FILM TIMELINE (Exactly 20.0 Seconds)
+    // ==========================================================
+    const cameraRig = document.getElementById('camera-rig');
+    const notchPill = document.getElementById('notch-pill');
+    const notchAura = document.getElementById('notch-aura');
+    const notchSensors = document.getElementById('notch-sensors');
+    const wordmarkBox = document.getElementById('wordmark-box');
+    const filmTimecode = document.getElementById('film-timecode');
+    const filmProgress = document.getElementById('film-progress');
+    const timeDisplay = document.getElementById('time-display');
+
+    const film = gsap.timeline({
+      paused: true,
+      onUpdate: () => {
+        const cur = film.time();
+        const p = film.progress();
+        filmTimecode.textContent = `${cur.toFixed(1).padStart(4, '0')}s / 20.0s`;
+        timeDisplay.textContent = `${Math.floor(cur)}s`;
+        filmProgress.style.width = `${p * 100}%`;
+      },
+      onComplete: () => {
+        document.getElementById('btn-play').textContent = '↺ Replay';
+        isPlaying = false;
+        stopRoomHum();
+      }
+    });
+
+    // 00-20s. CONTINUOUS CAMERA PUSH-IN (24mm wide -> 50mm medium)
+    film.to(cameraRig, {
+      scale: 1.25, // 24mm wide (0.85) to 50mm (1.25)
+      rotateX: 4,  // gentle settling angle
+      duration: 20.0,
+      ease: 'none'
+    }, 0);
+
+    // ----------------------------------------------------------
+    // 00-04s. HOOK
+    // Soft violet glow pulses at base twice (0.3s expand / 0.4s contract)
+    // 40Hz low room tone hum
+    // ----------------------------------------------------------
+    film.add(() => { startRoomHum(); }, 0);
+
+    // Pulse 1
+    film.to(notchAura, { opacity: 0.35, scaleX: 1.3, duration: 0.3, ease: 'power2.out' }, 1.0)
+        .to(notchAura, { opacity: 0, scaleX: 1.0, duration: 0.4, ease: 'power2.in' }, 1.3);
+
+    // Pulse 2
+    film.to(notchAura, { opacity: 0.45, scaleX: 1.4, duration: 0.3, ease: 'power2.out' }, 2.5)
+        .to(notchAura, { opacity: 0, scaleX: 1.0, duration: 0.4, ease: 'power2.in' }, 2.8);
+
+    // ----------------------------------------------------------
+    // 04-10s. BUILD
+    // Snaps wider (0.35s ease-out) into each widget with rising plucks
+    // ----------------------------------------------------------
+
+    // Build 1: Blue Folder & Progress (04.0s - 06.0s)
+    film.add(() => { playPluck(330); }, 4.0); // E4
+    film.to(notchAura, { background: '#3b82f6', opacity: 0.3, duration: 0.2 }, 4.0);
+    film.to(notchSensors, { opacity: 0, duration: 0.1 }, 4.0);
+    film.to(notchPill, { width: 340, height: 44, duration: 0.35, ease: 'power2.out' }, 4.0);
+    film.to('#widget-folder', { opacity: 1, duration: 0.15 }, 4.1);
+    film.to('#folder-progress', { width: '100%', duration: 1.4, ease: 'power1.inOut' }, 4.2);
+    film.to('#widget-folder', { opacity: 0, duration: 0.1 }, 5.9);
+
+    // Build 2: Masked Password & Orange Strike (06.0s - 08.0s)
+    film.add(() => { playPluck(440); }, 6.0); // A4
+    film.to(notchAura, { background: '#f97316', opacity: 0.35, duration: 0.2 }, 6.0);
+    film.to(notchPill, { width: 280, duration: 0.1 }, 6.0); // hard 0.1s snap
+    film.to('#widget-password', { opacity: 1, duration: 0.1 }, 6.05);
+    // Strike through in orange
+    film.to('#pass-strike', { width: '100%', duration: 0.5, ease: 'power3.out' }, 6.6);
+    film.to('#pass-lock', { rotate: 20, duration: 0.1, yoyo: true, repeat: 1 }, 7.0);
+    film.to('#widget-password', { opacity: 0, duration: 0.1 }, 7.9);
+
+    // Build 3: Cyan Scanner Rectangle (08.0s - 10.0s)
+    film.add(() => { playPluck(587.33); }, 8.0); // D5
+    film.to(notchAura, { background: '#06b6d4', opacity: 0.35, duration: 0.2 }, 8.0);
+    film.to(notchPill, { width: 320, duration: 0.1 }, 8.0); // hard 0.1s snap
+    film.to('#widget-scanner', { opacity: 1, duration: 0.1 }, 8.05);
+    film.fromTo('#scan-laser', { top: 0 }, { top: '100%', duration: 1.4, ease: 'linear' }, 8.2);
+    film.to('#widget-scanner', { opacity: 0, duration: 0.1 }, 9.9);
+
+    // ----------------------------------------------------------
+    // 10-16s. CRACK
+    // Widens to full span (0.5s elastic overshoot), all widgets tiled
+    // Glow blooms into 5 accent colors, low bass swell
+    // ----------------------------------------------------------
+    film.add(() => { 
+      playPluck(880); // High A5
+      playBassSwell(); 
+    }, 10.0);
+
+    film.to(notchAura, { 
+      background: 'radial-gradient(circle, #ec4899 0%, #22c55e 35%, #14b8a6 70%, #8b5cf6 100%)',
+      width: 580,
+      opacity: 0.55,
+      filter: 'blur(45px)',
+      duration: 0.6 
+    }, 10.0);
+
+    film.to(notchPill, {
+      width: 560,
+      height: 48,
+      duration: 0.5,
+      ease: 'back.out(1.8)' // elastic overshoot
+    }, 10.0);
+
+    film.to('#widget-crack-array', { opacity: 1, duration: 0.2 }, 10.2);
+
+    // Animate crack widgets (10s - 15.8s)
+    film.to('.wave-bar', {
+      height: 18,
+      stagger: { each: 0.08, repeat: 16, yoyo: true },
+      duration: 0.16,
+      ease: 'power1.inOut'
+    }, 10.2);
+
+    film.to('#timer-bar', {
+      strokeDashoffset: 40,
+      duration: 5.4,
+      ease: 'linear'
+    }, 10.2);
+
+    // ----------------------------------------------------------
+    // 16-20s. RESOLUTION
+    // Snaps back into pill in 0.4s contraction, glow to calm violet
+    // Hard silence, then wordmark HyperNotch fades in, closing chime
+    // ----------------------------------------------------------
+    film.add(() => {
+      stopRoomHum(0.2); // hard silence
+    }, 16.0);
+
+    film.to('#widget-crack-array', { opacity: 0, duration: 0.1 }, 16.0);
+    film.to(notchPill, {
+      width: 210,
+      height: 38,
+      duration: 0.4,
+      ease: 'power3.inOut'
+    }, 16.0);
+
+    film.to(notchSensors, { opacity: 1, duration: 0.3 }, 16.3);
+
+    // Single calm violet pulse
+    film.to(notchAura, {
+      background: '#8b5cf6',
+      width: 220,
+      opacity: 0.3,
+      duration: 0.4
+    }, 16.0);
+    film.to(notchAura, { opacity: 0, duration: 0.8, ease: 'power2.out' }, 16.6);
+
+    // Wordmark fades in beneath it
+    film.to(wordmarkBox, { opacity: 1, duration: 1.2, ease: 'power2.out' }, 17.2);
+
+    // Held in silence for the last 1.5s, closing on one soft chime
+    film.add(() => { playFinalChime(); }, 18.5);
+
+    // ==========================================================
+    // CONTROLS HANDLERS
+    // ==========================================================
+    const btnPlay = document.getElementById('btn-play');
+    btnPlay.addEventListener('click', () => {
+      initAudio();
+      if (isPlaying) {
+        film.pause();
+        stopRoomHum();
+        btnPlay.textContent = '▶ Play Film';
+        isPlaying = false;
+      } else {
+        if (film.progress() === 1) film.restart();
+        else film.play();
+        btnPlay.textContent = '⏸ Pause';
+        isPlaying = true;
+      }
+    });
+
+    // Sound toggle
+    const btnSound = document.getElementById('btn-sound');
+    btnSound.addEventListener('click', () => {
+      isSoundOn = !isSoundOn;
+      btnSound.textContent = isSoundOn ? 'Sound: On' : 'Sound: Off';
+      if (!isSoundOn) stopRoomHum();
+    });
+
+    // Scrubbing
+    const filmTrack = document.getElementById('film-track');
+    filmTrack.addEventListener('click', (e) => {
+      const rect = filmTrack.getBoundingClientRect();
+      const p = (e.clientX - rect.left) / rect.width;
+      film.progress(Math.max(0, Math.min(1, p)));
+    });
+
+    // Fullscreen
+    document.getElementById('btn-fs').addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    // Auto-start after a brief delay
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        btnPlay.click();
+      }, 400);
+    });
+  </script>
+</body>
+</html>

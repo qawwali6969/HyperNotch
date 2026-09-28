@@ -1,0 +1,45 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Build macOS DMG & Release
+    runs-on: macos-14
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Release Binary
+        run: |
+          swift build -c release
+          mkdir -p build/HyperNotch.app/Contents/MacOS
+          mkdir -p build/HyperNotch.app/Contents/Resources
+          cp .build/release/HyperNotch build/HyperNotch.app/Contents/MacOS/HyperNotch
+          if [ -f "Resources/Info.plist" ]; then cp Resources/Info.plist build/HyperNotch.app/Contents/Info.plist; fi
+          if [ -f "Resources/AppIcon.icns" ]; then cp Resources/AppIcon.icns build/HyperNotch.app/Contents/Resources/AppIcon.icns; fi
+          codesign --force --deep -s - build/HyperNotch.app
+
+      - name: Create DMG & ZIP
+        run: |
+          DMG_STAGING=$(mktemp -d)
+          cp -R build/HyperNotch.app "$DMG_STAGING/"
+          ln -s /Applications "$DMG_STAGING/Applications"
+          hdiutil create -volname "HyperNotch" -srcfolder "$DMG_STAGING" -ov -format UDZO build/HyperNotch.dmg
+          rm -rf "$DMG_STAGING"
+          cd build && zip -r -y -q HyperNotch-macOS.zip HyperNotch.app
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/HyperNotch.dmg
+            build/HyperNotch-macOS.zip
+          generate_release_notes: true

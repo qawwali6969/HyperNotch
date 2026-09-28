@@ -1,4 +1,9 @@
-<!DOCTYPE html>
+const fs = require('fs');
+const path = require('path');
+
+const BEAT = 60 / 130; // 0.461538s
+
+const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -877,9 +882,9 @@ try handler.perform([request], on: cgImage)</div>
         onUpdate: () => {
           const t = master.time();
           const p = master.progress();
-          hudBl.textContent = `${t.toFixed(2).padStart(5, '0')}s / ${TOTAL_DURATION.toFixed(2)}s`;
-          tcDisplay.textContent = `${t.toFixed(1)}s / ${TOTAL_DURATION.toFixed(1)}s`;
-          scrubFill.style.width = `${p * 100}%`;
+          hudBl.textContent = \`\${t.toFixed(2).padStart(5, '0')}s / \${TOTAL_DURATION.toFixed(2)}s\`;
+          tcDisplay.textContent = \`\${t.toFixed(1)}s / \${TOTAL_DURATION.toFixed(1)}s\`;
+          scrubFill.style.width = \`\${p * 100}%\`;
         },
         onComplete: () => {
           document.getElementById('btn-play').textContent = '↺ Replay';
@@ -1128,7 +1133,7 @@ try handler.perform([request], on: cgImage)</div>
         duration: b(2.5),
         ease: 'power3.out',
         onUpdate: () => {
-          tokenRollTxt.textContent = `⚡️ ${Math.round(tokenTarget.val).toLocaleString('en-US')} TOKENS CALCULATED`;
+          tokenRollTxt.textContent = \`⚡️ \${Math.round(tokenTarget.val).toLocaleString('en-US')} TOKENS CALCULATED\`;
         }
       }, b(8.5));
 
@@ -1551,7 +1556,7 @@ try handler.perform([request], on: cgImage)</div>
       const scaleX = (window.innerWidth - 32) / w;
       const scaleY = (window.innerHeight - 32) / h;
       const scale = Math.min(scaleX, scaleY, 1.0);
-      stage.style.transform = `scale(${scale})`;
+      stage.style.transform = \`scale(\${scale})\`;
     }
 
     window.addEventListener('resize', autoScaleStage);
@@ -1628,3 +1633,9 @@ try handler.perform([request], on: cgImage)</div>
   </script>
 </body>
 </html>
+`;
+
+fs.writeFileSync(path.resolve(__dirname, 'kinetic_reel_v4.html'), html, 'utf8');
+fs.writeFileSync(path.resolve(__dirname, 'kinetic_reel.html'), html, 'utf8');
+fs.writeFileSync(path.resolve(__dirname, 'index.html'), html, 'utf8');
+console.log('Successfully generated kinetic_reel_v4.html, kinetic_reel.html and index.html (v4 Cinema Launch Film)!');

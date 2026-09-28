@@ -13,6 +13,20 @@ build/
 *.dSYM/
 *.dmg
 *.zip
+node_modules/
+presentation/node_modules/
+presentation/snap_*.png
+presentation/frame_*.png
+presentation/v2_*.png
+presentation/v3_*.png
+presentation/v4_*.png
+presentation/cozmo_*.png
+presentation/reel_new_*.png
+presentation/*.mp4
+presentation/*.webm
+presentation/HyperNotch_Launch.gif
+*_backup*
+*.bak
 
 # macOS
 .DS_Store

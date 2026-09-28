@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HyperNotch — Bold 2D Graphic Motion Reel</title>
+  <!-- Google Fonts: Inter Display & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <!-- GSAP 3 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background: #000000;
+      color: #000000;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* MASTER 1920x1080 / 1080x1920 CANVAS (PURE FLAT 2D) */
+    #stage {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      background: #d9ff00; /* Starts directly with high-energy Acid Lime */
+      overflow: hidden;
+      transform-origin: center center;
+    }
+
+    #stage.vertical-9-16 {
+      width: 1080px;
+      height: 1920px;
+    }
+
+    /* SOLID COLOR BLOCKS (No Gradients) */
+    .color-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      will-change: background-color;
+    }
+
+    /* ARCHITECTURAL DOT-MATRIX BLUEPRINT GRID (Teenage Engineering Style) */
+    .dot-grid-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 12;
+      background-image: radial-gradient(rgba(0, 0, 0, 0.14) 1.5px, transparent 1.5px);
+      background-size: 32px 32px;
+      mix-blend-mode: multiply;
+      opacity: 0.65;
+    }
+
+    @keyframes blink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    /* GLOBAL 2D GRAPHIC OVERLAYS */
+    .fui-corner-mark {
+      position: absolute;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      z-index: 90;
+      pointer-events: none;
+    }
+    .fui-tl { top: 36px; left: 40px; }
+    .fui-tr { top: 36px; right: 40px; text-align: right; }
+    .fui-bl { bottom: 36px; left: 40px; }
+    .fui-br { bottom: 36px; right: 40px; text-align: right; }
+
+    /* THE GRAPHIC NOTCH (Solid Black Geometric Silhouette) */
+    #graphic-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 220px;
+      height: 38px;
+      background: #000000;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+      z-index: 80;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+      transform-origin: top center;
+      will-change: width, height, background-color;
+    }
+
+    /* --------------------------------------------------------
+       AUTHENTIC 2D COZMO DIGITAL ROBOT EYES (Pure Flat Vector)
+       Proportions & Geometry directly from pycozmo specification:
+       Screen: 128x32/64 | Eye aspect: 28:40 (0.7) | Radius: ~20%
+       -------------------------------------------------------- */
+    .cozmo-eyes-container {
+      width: 100%;
+      height: 38px;
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+    }
+    .cozmo-eyes-face {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 13px; /* PyCozmo exact proportional eye gap */
+      transform-origin: center center;
+      will-change: transform;
+    }
+    .cozmo-eye {
+      width: 17px;
+      height: 24px;
+      background: #34d399; /* Solid flat 2D emerald green, no gradients */
+      border-radius: 5px; /* PyCozmo squircle corner radius */
+      position: relative;
+      overflow: hidden;
+      transform-origin: center center;
+      will-change: transform, border-radius, height, width;
+      /* STRICT FLAT 2D: Zero box-shadow, zero inset glow, zero 3D blur */
+      box-shadow: none;
+      border: none;
+    }
+
+    /* NOTCH EXPANDED GRAPHIC CONTENT */
+    .notch-inner-box {
+      width: 100%;
+      height: calc(100% - 38px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      opacity: 0;
+      color: #ffffff;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* SCENE CONTAINERS (Orthographic 2D Planes) */
+    .scene-plane {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+
+    /* ========================================================
+       SCENE 1: SMART FILE SHELF (Acid Lime & Pitch Black)
+       ======================================================== */
+    #scene-shelf {
+      background: #d9ff00;
+      color: #000000;
+    }
+    .shelf-headline {
+      font-size: 88px;
+      font-weight: 900;
+      letter-spacing: -3px;
+      text-transform: uppercase;
+      line-height: 0.95;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .shelf-badge-strip {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .solid-tag {
+      background: #000000;
+      color: #d9ff00;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 8px 18px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+    }
+
+    /* 2D Flying File Card */
+    #drag-file-card {
+      position: absolute;
+      top: 55%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #000000;
+      color: #ffffff;
+      padding: 16px 28px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+      z-index: 85;
+      opacity: 0;
+      box-shadow: 12px 12px 0px rgba(0, 0, 0, 0.25);
+    }
+    .file-pill-tag {
+      background: #d9ff00;
+      color: #000000;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    /* Counter Hero Box */
+    #token-roll-box {
+      position: absolute;
+      bottom: 120px;
+      background: #000000;
+      color: #d9ff00;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 36px;
+      font-weight: 800;
+      padding: 14px 32px;
+      border-radius: 8px;
+      opacity: 0;
+      transform: translateY(20px);
+      letter-spacing: 1px;
+    }
+
+    /* ========================================================
+       SCENE 2: ZERO-LEAK SECURITY CLIPBOARD (International Orange)
+       ======================================================== */
+    #scene-security {
+      background: #ff4700;
+      color: #ffffff;
+    }
+    .sec-regex-hud {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 800;
+      color: #000000;
+      background: #ffffff;
+      border: 3px solid #000000;
+      padding: 6px 18px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 6px 6px 0px #000000;
+    }
+    .blinking-dot {
+      color: #ff4700;
+      font-size: 16px;
+      animation: blink 0.7s infinite;
+    }
+    .sec-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      background: #000000;
+      color: #ff4700;
+      padding: 6px 16px;
+      border-radius: 4px;
+      margin-bottom: 24px;
+    }
+    .sec-key-card {
+      background: #ffffff;
+      color: #000000;
+      border: 4px solid #000000;
+      border-radius: 16px;
+      padding: 24px 44px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 16px 16px 0px #000000;
+      position: relative;
+    }
+    .key-text-line {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      position: relative;
+    }
+    .key-strike-bar {
+      position: absolute;
+      top: 50%;
+      left: -4%;
+      width: 0%;
+      height: 6px;
+      background: #ff4700;
+      transform: translateY(-50%);
+    }
+    .keychain-stamp, .keychain-seal {
+      background: #000000;
+      color: #d9ff00;
+      border: 3px solid #000000;
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-size: 20px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      letter-spacing: 2px;
+      opacity: 0;
+      transform: scale(0.6) rotate(-3deg);
+      box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.35);
+    }
+
+    /* ========================================================
+       SCENE 3: ON-DEVICE APPLE VISION OCR (Electric Cobalt Blue)
+       ======================================================== */
+    #scene-ocr {
+      background: #0047ff;
+      color: #ffffff;
+    }
+    .ocr-header-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      background: #00f0ff;
+      color: #000000;
+      padding: 6px 18px;
+      border-radius: 4px;
+      margin-bottom: 24px;
+    }
+    .ocr-reticle-box {
+      width: 780px;
+      height: 240px;
+      border: 4px solid #ffffff;
+      background: #000000;
+      border-radius: 16px;
+      box-shadow: 16px 16px 0px #00f0ff;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 24px;
+    }
+    .ocr-code-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffffff;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .ocr-scanner-blade {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background: #00f0ff;
+    }
+    .ocr-meta-strip {
+      margin-top: 30px;
+      display: flex;
+      gap: 20px;
+    }
+    .ocr-pill {
+      background: #ffffff;
+      color: #0047ff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 800;
+      padding: 8px 20px;
+      border-radius: 6px;
+    }
+
+    .ocr-telemetry-hud {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #00f0ff;
+    }
+    .ocr-corner-bracket {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-color: #00f0ff;
+      border-style: solid;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .ocr-corner-bracket.tl { top: -4px; left: -4px; border-width: 4px 0 0 4px; }
+    .ocr-corner-bracket.tr { top: -4px; right: -4px; border-width: 4px 4px 0 0; }
+    .ocr-corner-bracket.bl { bottom: -4px; left: -4px; border-width: 0 0 4px 4px; }
+    .ocr-corner-bracket.br { bottom: -4px; right: -4px; border-width: 0 4px 4px 0; }
+
+    /* ========================================================
+       SCENE 4: KINETIC MANIFESTO STROBE (High Impact Cuts)
+       ======================================================== */
+    #scene-manifesto {
+      background: #0a0a0c;
+      color: #ffffff;
+      z-index: 50;
+    }
+    .manifesto-big-word {
+      font-size: 150px;
+      font-weight: 900;
+      text-transform: uppercase;
+      line-height: 0.9;
+      letter-spacing: -6px;
+      text-align: center;
+      will-change: transform, color;
+    }
+    .manifesto-sub-line {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      margin-top: 24px;
+      text-transform: uppercase;
+    }
+
+    /* ========================================================
+       SCENE 5: SWISS MINIMALIST POSTER PACKSHOT
+       ======================================================== */
+    #scene-packshot {
+      background: #f5f5f7;
+      color: #0a0a0c;
+      z-index: 60;
+    }
+    .poster-card {
+      width: 860px;
+      background: #ffffff;
+      border: 4px solid #0a0a0c;
+      border-radius: 24px;
+      box-shadow: 20px 20px 0px #0a0a0c;
+      padding: 44px 56px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .poster-app-icon {
+      width: 104px;
+      height: 104px;
+      border-radius: 24px;
+      border: 3px solid #0a0a0c;
+      margin-bottom: 20px;
+      box-shadow: 6px 6px 0px #0a0a0c;
+    }
+    .poster-brand-title {
+      font-size: 64px;
+      font-weight: 900;
+      letter-spacing: -3px;
+      margin-bottom: 10px;
+      color: #0a0a0c;
+    }
+    .poster-tagline {
+      font-size: 20px;
+      font-weight: 600;
+      color: #4b5563;
+      margin-bottom: 26px;
+    }
+    .poster-specs-grid {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .spec-box {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 8px 18px;
+      background: #0a0a0c;
+      color: #ffffff;
+      border-radius: 6px;
+    }
+    .spec-box.accent-box {
+      background: #d9ff00;
+      color: #0a0a0c;
+      border: 2px solid #0a0a0c;
+    }
+    .poster-cta-terminal {
+      margin-top: 24px;
+      width: 600px;
+      background: #000000;
+      border: 3px solid #000000;
+      border-radius: 12px;
+      box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      text-align: left;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .terminal-top-row {
+      background: #18181b;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #27272a;
+    }
+    .term-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .term-dot.r { background: #ef4444; }
+    .term-dot.y { background: #eab308; }
+    .term-dot.g { background: #22c55e; }
+    .term-title {
+      font-size: 11px;
+      color: #a1a1aa;
+      margin-left: 6px;
+      letter-spacing: 1px;
+    }
+    .terminal-body {
+      padding: 14px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.6;
+    }
+    .term-prompt {
+      color: #d9ff00;
+      font-weight: 800;
+    }
+    .term-cursor {
+      color: #d9ff00;
+      font-weight: 900;
+      animation: blink 0.7s infinite;
+      margin-left: 2px;
+    }
+    .term-line-2 {
+      font-size: 13px;
+      color: #34d399;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Director Controls Bar */
+    #director-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      background: #000000;
+      border: 2px solid #ffffff;
+      border-radius: 40px;
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      color: #ffffff;
+      transition: opacity 0.3s ease;
+    }
+    .btn-ctl {
+      background: #ffffff;
+      color: #000000;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-ctl.secondary {
+      background: #222226;
+      color: #ffffff;
+      border: 1px solid #444;
+    }
+    .btn-aspect {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #888;
+    }
+    .btn-aspect.active {
+      color: #00f0ff;
+      background: #18181b;
+    }
+    .scrub-track {
+      width: 160px;
+      height: 6px;
+      background: #333338;
+      border-radius: 3px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .scrub-fill {
+      height: 100%;
+      width: 0%;
+      background: #d9ff00;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MASTER 2D STAGE -->
+  <div id="stage">
+
+    <!-- Architectural Dot Grid Blueprint Texture -->
+    <div class="dot-grid-overlay"></div>
+
+    <!-- FUI Minimal Graphic Telemetry -->
+    <div class="fui-corner-mark fui-tl" id="hud-tl">⚡️ HYPERNOTCH // 2D REEL</div>
+    <div class="fui-corner-mark fui-tr" id="hud-tr">60 FPS • APPLE SILICON</div>
+    <div class="fui-corner-mark fui-bl" id="hud-bl">00.00s / 20.00s • [BEAT 01: SHELF]</div>
+    <div class="fui-corner-mark fui-br" id="hud-br">REC ● SWIFT 5.9</div>
+
+    <!-- THE GRAPHIC BLACK NOTCH (Central UI Actor) -->
+    <div id="graphic-notch">
+      <!-- AUTHENTIC 2D COZMO DIGITAL ROBOT EYES (Pure Flat Vector) -->
+      <div class="cozmo-eyes-container" id="cozmo-container">
+        <div class="cozmo-eyes-face" id="cozmo-face">
+          <div class="cozmo-eye left" id="eye-left"></div>
+          <div class="cozmo-eye right" id="eye-right"></div>
+        </div>
+      </div>
+
+      <!-- Notch Inner Expanded Display -->
+      <div class="notch-inner-box" id="notch-display">
+        <span id="notch-title-slot" style="font-weight:800; font-size:14px; color:#d9ff00;">FILE ABSORBED</span>
+        <span id="notch-detail-slot" style="font-size:12px; color:#ffffff;">142,800 TOKENS</span>
+      </div>
+    </div>
+
+    <!-- FLYING FILE CARD (Act 1) -->
+    <div id="drag-file-card">
+      <span style="font-size:22px;">📦</span>
+      <span>core_agent.py</span>
+      <span class="file-pill-tag">48 KB</span>
+    </div>
+
+    <!-- ACT 1: SMART FILE SHELF (Acid Lime #d9ff00) -->
+    <div class="scene-plane" id="scene-shelf">
+      <div class="shelf-headline">DROP FILES<br/>INTO YOUR NOTCH</div>
+      <div class="shelf-badge-strip">
+        <div class="solid-tag">DRAG & DROP SHELF</div>
+        <div class="solid-tag">TOKEN CALCULATOR</div>
+        <div class="solid-tag">WEBP / BASE64</div>
+      </div>
+      <div id="token-roll-box">⚡️ 142,800 TOKENS CALCULATED</div>
+    </div>
+
+    <!-- ACT 2: ZERO-LEAK SECURITY (International Orange #ff4700) -->
+    <div class="scene-plane" id="scene-security">
+      <div class="sec-regex-hud" id="sec-regex-badge">
+        <span class="blinking-dot">●</span> REGEX MATCH: /^sk-ant-[a-zA-Z0-9]{24}/
+      </div>
+      <div class="sec-sub">DEVELOPER CLIPBOARD FILTER</div>
+      <div class="sec-key-card">
+        <div class="key-text-line">
+          sk-ant-api03-98x21a4f009b
+          <div class="key-strike-bar" id="strike-bar"></div>
+        </div>
+        <div class="keychain-seal" id="keychain-stamp">
+          <span style="font-size:24px;">🔒</span>
+          <span>KEYCHAIN ENCRYPTED // ZERO LEAKS</span>
+        </div>
+      </div>
+      <div style="font-family:'JetBrains Mono'; font-weight:800; font-size:16px; margin-top:28px; background:#000000; color:#ffffff; padding:8px 20px; border-radius:6px; box-shadow:6px 6px 0px rgba(0,0,0,0.25);">
+        API KEYS NEVER TOUCH DISK OR CLOUD
+      </div>
+    </div>
+
+    <!-- ACT 3: ON-DEVICE APPLE VISION OCR (Electric Cobalt #0047ff) -->
+    <div class="scene-plane" id="scene-ocr">
+      <div class="ocr-header-tag">100% OFFLINE LOCAL OCR</div>
+      <div class="ocr-telemetry-hud">
+        <span>[ CONFIDENCE: 99.8% ]</span>
+        <span>[ LATENCY: 7.2MS ]</span>
+        <span>[ APPLE VISION NPU ]</span>
+      </div>
+      <div class="ocr-reticle-box">
+        <div class="ocr-corner-bracket tl"></div>
+        <div class="ocr-corner-bracket tr"></div>
+        <div class="ocr-corner-bracket bl"></div>
+        <div class="ocr-corner-bracket br"></div>
+        <div class="ocr-scanner-blade" id="ocr-blade"></div>
+        <div class="ocr-code-text" id="ocr-code-block">
+          func streamTokens() -> AsyncStream&lt;Token&gt; {<br/>
+          &nbsp;&nbsp;return neuralCoordinator.generate()<br/>
+          }
+        </div>
+      </div>
+      <div class="ocr-meta-strip">
+        <div class="ocr-pill">APPLE VISION API</div>
+        <div class="ocr-pill">&lt; 8MS RESPONSE</div>
+        <div class="ocr-pill">ZERO SERVER UPLOAD</div>
+      </div>
+    </div>
+
+    <!-- ACT 4: KINETIC MANIFESTO STROBE (High Impact Fullscreen Slams) -->
+    <div class="scene-plane" id="scene-manifesto">
+      <div class="manifesto-big-word" id="slam-title">ZERO CLOUD</div>
+      <div class="manifesto-sub-line" id="slam-sub">100% ON-DEVICE HARDWARE ACCELERATION</div>
+    </div>
+
+    <!-- ACT 5: SWISS MINIMALIST POSTER PACKSHOT -->
+    <div class="scene-plane" id="scene-packshot">
+      <div class="poster-card">
+        <img src="../Resources/AppIcon.png" alt="HyperNotch Icon" class="poster-app-icon" onerror="this.style.display='none'" />
+        <div class="poster-brand-title">HyperNotch</div>
+        <div class="poster-tagline">The Ultimate AI & Developer HUD for macOS</div>
+        <div class="poster-specs-grid">
+          <div class="spec-box accent-box">v1.5</div>
+          <div class="spec-box">Swift 5.9</div>
+          <div class="spec-box">Native Metal</div>
+          <div class="spec-box">Apple Silicon NPU</div>
+          <div class="spec-box">Zero-Trust</div>
+        </div>
+        <div class="poster-cta-terminal">
+          <div class="terminal-top-row">
+            <span class="term-dot r"></span>
+            <span class="term-dot y"></span>
+            <span class="term-dot g"></span>
+            <span class="term-title">terminal — zsh</span>
+          </div>
+          <div class="terminal-body">
+            <div class="term-line-1"><span class="term-prompt">$</span> <span id="term-cmd">brew install --cask hypernotch</span><span class="term-cursor" id="term-cursor">█</span></div>
+            <div class="term-line-2" id="term-result" style="opacity: 0;">✔ Installed HyperNotch.app • Swift 5.9 native [0.3s]</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- End #stage -->
+
+  <!-- Director Playback Bar -->
+  <div id="director-bar">
+    <button class="btn-ctl" id="btn-play">▶ Play 2D Reel</button>
+    <button class="btn-ctl secondary" id="btn-sound">🔊 Sound: On</button>
+    <div class="btn-aspect active" id="btn-16-9">16:9</div>
+    <div class="btn-aspect" id="btn-9-16">9:16</div>
+    <div class="scrub-track" id="scrub-track">
+      <div class="scrub-fill" id="scrub-fill"></div>
+    </div>
+    <span style="font-size:11px; font-family:'JetBrains Mono'; width:32px;" id="tc-display">00s</span>
+  </div>
+
+  <script>
+    // ==========================================================
+    // 1. STAGE AUTO-SCALE & CONFIGURATION
+    // ==========================================================
+    let currentAspect = '16:9';
+    const CONFIG = {
+      '16:9': { width: 1920, height: 1080, duration: 20.0 },
+      '9:16': { width: 1080, height: 1920, duration: 20.0 }
+    };
+
+    function autoScaleStage() {
+      const stage = document.getElementById('stage');
+      const cfg = CONFIG[currentAspect];
+      const scaleX = window.innerWidth / cfg.width;
+      const scaleY = window.innerHeight / cfg.height;
+      const scale = Math.min(scaleX, scaleY) * 0.95;
+      stage.style.transform = `scale(${scale})`;
+    }
+    window.addEventListener('resize', autoScaleStage);
+
+    // ==========================================================
+    // 2. PROCEDURAL 808 & SYNTH AUDIO ENGINE
+    // ==========================================================
+    let audioCtx = null;
+    let isSoundOn = true;
+    let isPlaying = false;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    // Heavy 808 Kick Impact
+    function play808(t, freq = 120) {
+      if (!isSoundOn || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      osc.frequency.exponentialRampToValueAtTime(32, t + 0.35);
+      gain.gain.setValueAtTime(0.4, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.38);
+    }
+
+    // Snappy Mechanical Click
+    function playSnapClick(t) {
+      if (!isSoundOn || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(2400, t);
+      osc.frequency.exponentialRampToValueAtTime(400, t + 0.04);
+      gain.gain.setValueAtTime(0.25, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.05);
+    }
+
+    // Laser slash / zap
+    function playLaserSlash(t) {
+      if (!isSoundOn || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(1800, t);
+      osc.frequency.exponentialRampToValueAtTime(160, t + 0.12);
+      gain.gain.setValueAtTime(0.2, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.14);
+    }
+
+    // High Tech Scan Beep
+    function playScanBeep(t) {
+      if (!isSoundOn || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, t);
+      osc.frequency.linearRampToValueAtTime(1760, t + 0.15);
+      gain.gain.setValueAtTime(0.12, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.2);
+    }
+
+    // Sub-Bass Tension Riser
+    function playRiser(t, duration = 0.22) {
+      if (!isSoundOn || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(45, t);
+      osc.frequency.exponentialRampToValueAtTime(180, t + duration);
+      gain.gain.setValueAtTime(0.01, t);
+      gain.gain.linearRampToValueAtTime(0.2, t + duration * 0.85);
+      gain.gain.linearRampToValueAtTime(0.001, t + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + duration);
+    }
+
+    // Mechanical Haptic Click (Double transient snap)
+    function playHapticClack(t) {
+      if (!isSoundOn || !audioCtx) return;
+      playSnapClick(t);
+      setTimeout(() => {
+        if (isPlaying && audioCtx) playSnapClick(audioCtx.currentTime);
+      }, 15);
+    }
+
+    // High-Tech Cozmo Robot Playful Chirp / Boop
+    function playCozmoChirp(t, freq = 920) {
+      if (!isSoundOn || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.5, t + 0.08);
+      gain.gain.setValueAtTime(0.18, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.1);
+    }
+
+    // Pristine Resolution Piano Chime
+    function playOutroChime(t) {
+      if (!isSoundOn || !audioCtx) return;
+      const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+      notes.forEach((f, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, t + i * 0.04);
+        gain.gain.setValueAtTime(0.15 / (i + 1), t + i * 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.8);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t + i * 0.04);
+        osc.stop(t + 2.9);
+      });
+    }
+
+    // ==========================================================
+    // 3. MASTER 2D KINETIC TIMELINE
+    // ==========================================================
+    const stage = document.getElementById('stage');
+    const graphicNotch = document.getElementById('graphic-notch');
+    const notchDisplay = document.getElementById('notch-display');
+    const cozmoContainer = document.getElementById('cozmo-container');
+    const cozmoFace = document.getElementById('cozmo-face');
+    const eyeLeft = document.getElementById('eye-left');
+    const eyeRight = document.getElementById('eye-right');
+    const dragFileCard = document.getElementById('drag-file-card');
+    const tokenRollBox = document.getElementById('token-roll-box');
+
+    // Scenes
+    const sceneShelf = document.getElementById('scene-shelf');
+    const sceneSecurity = document.getElementById('scene-security');
+    const sceneOcr = document.getElementById('scene-ocr');
+    const sceneManifesto = document.getElementById('scene-manifesto');
+    const scenePackshot = document.getElementById('scene-packshot');
+
+    // Sub elements
+    const secRegexBadge = document.getElementById('sec-regex-badge');
+    const strikeBar = document.getElementById('strike-bar');
+    const keychainStamp = document.getElementById('keychain-stamp');
+    const ocrBlade = document.getElementById('ocr-blade');
+    const slamTitle = document.getElementById('slam-title');
+    const slamSub = document.getElementById('slam-sub');
+    const termCmd = document.getElementById('term-cmd');
+    const termResult = document.getElementById('term-result');
+
+    // FUI Meta
+    const hudTl = document.getElementById('hud-tl');
+    const hudTr = document.getElementById('hud-tr');
+    const hudBl = document.getElementById('hud-bl');
+    const hudBr = document.getElementById('hud-br');
+    const scrubFill = document.getElementById('scrub-fill');
+    const tcDisplay = document.getElementById('tc-display');
+
+    let master = null;
+
+    // Helper: Deterministic Glyph Decryption Scrambler
+    function applyScramble(el, targetText, progress) {
+      if (progress >= 1) {
+        el.textContent = targetText;
+        return;
+      }
+      const chars = '01#@%&*/_?!X';
+      const resolved = Math.floor(progress * targetText.length);
+      let str = targetText.slice(0, resolved);
+      for (let i = resolved; i < targetText.length; i++) {
+        if (targetText[i] === ' ') str += ' ';
+        else str += chars[(i + Math.floor(progress * 18)) % chars.length];
+      }
+      el.textContent = str;
+    }
+
+    function buildMasterTimeline() {
+      if (master) master.kill();
+
+      master = gsap.timeline({
+        paused: true,
+        onUpdate: () => {
+          const t = master.time();
+          const p = master.progress();
+          hudBl.textContent = `${t.toFixed(2).padStart(5, '0')}s / 20.00s`;
+          tcDisplay.textContent = `${Math.floor(t)}s`;
+          scrubFill.style.width = `${p * 100}%`;
+        },
+        onComplete: () => {
+          document.getElementById('btn-play').textContent = '↺ Replay';
+          isPlaying = false;
+        }
+      });
+
+      window.master = master;
+      window.__SET_TIME__ = function(timeMs) {
+        if (master) {
+          master.pause();
+          master.time(timeMs / 1000);
+        }
+      };
+
+      // --------------------------------------------------------
+      // INITIAL 2D STATE RESETS
+      // --------------------------------------------------------
+      master.set(graphicNotch, { width: 220, height: 38, borderRadius: '0 0 20px 20px', background: '#000000' }, 0);
+      master.set(notchDisplay, { opacity: 0 }, 0);
+      master.set(cozmoContainer, { opacity: 1, scale: 1 }, 0);
+      master.set(cozmoFace, { x: 0, y: 0, scale: 1, rotate: 0 }, 0);
+      master.set([eyeLeft, eyeRight], {
+        width: 17,
+        height: 24,
+        borderRadius: '5px',
+        scaleX: 1,
+        scaleY: 1,
+        x: 0,
+        y: 0,
+        rotate: 0,
+        opacity: 1,
+        background: '#34d399',
+        boxShadow: 'none',
+        border: 'none'
+      }, 0);
+      master.set(dragFileCard, { opacity: 0, y: 140, scale: 0.8 }, 0);
+      master.set(tokenRollBox, { opacity: 0, y: 30, textContent: '⚡️ 0 TOKENS CALCULATED' }, 0);
+      master.set(secRegexBadge, { opacity: 0, y: -10 }, 0);
+      master.set(strikeBar, { width: '0%' }, 0);
+      master.set(keychainStamp, { opacity: 0, scale: 0.6, rotate: -3 }, 0);
+      master.set('.ocr-corner-bracket', { opacity: 0, scale: 1.3 }, 0);
+      master.set(termCmd, { textContent: '' }, 0);
+      master.set(termResult, { opacity: 0, y: 6 }, 0);
+      master.set([sceneShelf, sceneSecurity, sceneOcr, sceneManifesto, scenePackshot], { opacity: 0 }, 0);
+
+      // --------------------------------------------------------
+      // ACT 1: 00.0s – 03.5s | SMART FILE SHELF (Acid Lime #d9ff00)
+      // --------------------------------------------------------
+      master.add(() => {
+        if (isPlaying && audioCtx) play808(audioCtx.currentTime, 140);
+        hudTl.textContent = '⚡️ HYPERNOTCH // [ACT 1: SMART SHELF]';
+        hudTl.style.color = '#000000';
+        hudTr.style.color = '#000000';
+        hudBl.style.color = '#000000';
+        hudBr.style.color = '#000000';
+      }, 0);
+
+      master.set(sceneShelf, { opacity: 1 }, 0);
+
+      // 0.15s: Natural flat 2D OLED scanline blink
+      master.to([eyeLeft, eyeRight], { scaleY: 0.05, duration: 0.06, ease: 'power2.in' }, 0.15);
+      master.to([eyeLeft, eyeRight], { scaleY: 1, duration: 0.12, ease: 'back.out(2)' }, 0.21);
+
+      // 0.4s: File card springs up from bottom
+      master.fromTo(dragFileCard, 
+        { opacity: 0, y: 140, scale: 0.7 },
+        { opacity: 1, y: 40, scale: 1, duration: 0.5, ease: 'back.out(2)' },
+        0.4
+      );
+
+      // 0.45s: Cozmo eyes react in surprise! (PyCozmo Surprise: scale 1.25)
+      master.add(() => {
+        if (isPlaying && audioCtx) playCozmoChirp(audioCtx.currentTime, 750);
+      }, 0.45);
+      master.to([eyeLeft, eyeRight], {
+        height: 27,
+        scale: 1.25,
+        borderRadius: '6px',
+        y: 3,
+        duration: 0.35,
+        ease: 'back.out(2.5)'
+      }, 0.45);
+      master.to(eyeLeft, { rotate: 4, duration: 0.3 }, 0.45);
+      master.to(eyeRight, { rotate: -4, duration: 0.3 }, 0.45);
+
+      // 0.9s: Excited double blink while looking down
+      master.to([eyeLeft, eyeRight], { scaleY: 0.08, duration: 0.06 }, 0.9);
+      master.to([eyeLeft, eyeRight], { scaleY: 1.25, duration: 0.1, ease: 'power2.out' }, 0.96);
+
+      // 1.3s: File card snaps straight up into the notch! Eyes track up!
+      master.to(dragFileCard, {
+        y: -360,
+        scale: 0.6,
+        duration: 0.45,
+        ease: 'power3.in'
+      }, 1.3);
+
+      master.to([eyeLeft, eyeRight], {
+        y: -3,
+        rotate: 0,
+        scaleX: 1.15,
+        scaleY: 1.2,
+        duration: 0.35,
+        ease: 'power2.out'
+      }, 1.3);
+
+      // 1.55s: Sub-bass riser anticipation
+      master.add(() => {
+        if (isPlaying && audioCtx) playRiser(audioCtx.currentTime, 0.2);
+      }, 1.55);
+
+      // 1.65s: Anticipation squash right before the bite!
+      master.to([eyeLeft, eyeRight], {
+        scaleX: 1.3,
+        scaleY: 0.65,
+        y: 0,
+        duration: 0.1,
+        ease: 'power2.in'
+      }, 1.65);
+
+      // 1.75s: Notch swallows the file! Haptic snap click!
+      master.add(() => {
+        if (isPlaying && audioCtx) {
+          playHapticClack(audioCtx.currentTime);
+          play808(audioCtx.currentTime, 90);
+          playCozmoChirp(audioCtx.currentTime, 980);
+        }
+      }, 1.75);
+
+      master.set(dragFileCard, { opacity: 0 }, 1.75);
+
+      // Notch expands downwards like a mechanical shelf
+      master.to(graphicNotch, {
+        width: 480,
+        height: 96,
+        borderRadius: '0 0 24px 24px',
+        duration: 0.35,
+        ease: 'back.out(2.4)'
+      }, 1.75);
+
+      // 1.75s: Cozmo signature Joyful Smile (^ ^) on file swallow!
+      master.to([eyeLeft, eyeRight], {
+        borderRadius: '12px 12px 2px 2px',
+        height: 11,
+        scaleY: 0.9,
+        scaleX: 1.15,
+        duration: 0.12,
+        ease: 'power2.out'
+      }, 1.75);
+
+      // Joyful double-hop bounce!
+      master.to(cozmoFace, { y: -2, duration: 0.1, ease: 'power2.out' }, 1.75);
+      master.to(cozmoFace, { y: 1, duration: 0.1, ease: 'power2.in' }, 1.85);
+      master.to(cozmoFace, { y: -1, duration: 0.08, ease: 'power2.out' }, 1.95);
+      master.to(cozmoFace, { y: 0, duration: 0.08, ease: 'power2.in' }, 2.03);
+
+      master.to(notchDisplay, { opacity: 1, duration: 0.2 }, 1.85);
+
+      // 2.0s: Token count banner pops up with digital odometer roll
+      master.to(tokenRollBox, {
+        opacity: 1,
+        y: 0,
+        duration: 0.4,
+        ease: 'back.out(2)'
+      }, 2.0);
+
+      const tokenTarget = { val: 0 };
+      master.to(tokenTarget, {
+        val: 142800,
+        duration: 0.6,
+        ease: 'power3.out',
+        onUpdate: () => {
+          tokenRollBox.textContent = `⚡️ ${Math.round(tokenTarget.val).toLocaleString('en-US')} TOKENS CALCULATED`;
+        }
+      }, 2.0);
+
+      // 2.15s: Eyes pop open, round, happy & proud:
+      master.to([eyeLeft, eyeRight], {
+        borderRadius: '5px',
+        height: 24,
+        scaleX: 1,
+        scaleY: 1,
+        y: 0,
+        duration: 0.22,
+        ease: 'back.out(2.2)'
+      }, 2.15);
+
+      // 2.4s: Eyes look down inside expanded notch at token counter roll:
+      master.to([eyeLeft, eyeRight], { y: 2, duration: 0.2, ease: 'power2.out' }, 2.4);
+
+      // 2.7s: Cheeky flat 2D wink!
+      master.to(eyeLeft, { scaleY: 0.05, duration: 0.1, ease: 'power2.in' }, 2.7);
+      master.to(eyeLeft, { scaleY: 1, duration: 0.15, ease: 'back.out(2)' }, 2.8);
+      master.to(eyeRight, { scale: 1.08, rotate: -4, duration: 0.1 }, 2.7);
+      master.to(eyeRight, { scale: 1, rotate: 0, duration: 0.15 }, 2.8);
+      master.to([eyeLeft, eyeRight], { y: 0, duration: 0.2 }, 2.9);
+
+      // --------------------------------------------------------
+      // ACT 2: 03.5s – 07.0s | ZERO-LEAK SECURITY (Orange #ff4700)
+      // --------------------------------------------------------
+      master.add(() => {
+        if (isPlaying && audioCtx) play808(audioCtx.currentTime, 160);
+        hudTl.textContent = '⚡️ HYPERNOTCH // [ACT 2: ZERO-LEAK KEYCHAIN]';
+        hudTl.style.color = '#ffffff';
+        hudTr.style.color = '#ffffff';
+        hudBl.style.color = '#ffffff';
+        hudBr.style.color = '#ffffff';
+      }, 3.5);
+
+      master.set(sceneShelf, { opacity: 0 }, 3.5);
+      master.set(sceneSecurity, { opacity: 1 }, 3.5);
+
+      // Reset notch to compact pill
+      master.to(graphicNotch, {
+        width: 220,
+        height: 38,
+        borderRadius: '0 0 20px 20px',
+        duration: 0.25,
+        ease: 'power3.out'
+      }, 3.5);
+      master.set(notchDisplay, { opacity: 0 }, 3.5);
+
+      // Cozmo eyes center back in compact notch
+      master.to(cozmoFace, { x: 0, y: 0, duration: 0.2 }, 3.5);
+
+      // 3.6s: Regex Engine HUD badge snaps in. Cozmo enters Guardian/Detective mode!
+      master.fromTo(secRegexBadge,
+        { opacity: 0, y: -12, scale: 0.9 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: 'back.out(2)' },
+        3.6
+      );
+
+      master.to([eyeLeft, eyeRight], {
+        height: 13,
+        borderRadius: '4px',
+        duration: 0.25,
+        ease: 'power3.out'
+      }, 3.6);
+      master.to(eyeLeft, { rotate: 8, duration: 0.25 }, 3.6);
+      master.to(eyeRight, { rotate: -8, duration: 0.25 }, 3.6);
+
+      // 4.0s: Eyes scan across the exposed secret string:
+      master.to(cozmoFace, { x: -6, duration: 0.22, ease: 'power1.inOut' }, 4.0);
+      master.to(cozmoFace, { x: 6, duration: 0.22, ease: 'power1.inOut' }, 4.22);
+
+      // 4.3s: Laser slash strikes through exposed API key! Eyes snap wide in sharp focus!
+      master.add(() => {
+        if (isPlaying && audioCtx) playLaserSlash(audioCtx.currentTime);
+      }, 4.3);
+
+      master.to(strikeBar, { width: '108%', duration: 0.28, ease: 'power4.out' }, 4.3);
+      master.to([eyeLeft, eyeRight], { height: 18, scaleX: 1.2, duration: 0.1 }, 4.3);
+
+      // 4.4s: Pre-drop tension riser
+      master.add(() => {
+        if (isPlaying && audioCtx) playRiser(audioCtx.currentTime, 0.2);
+      }, 4.4);
+
+      // 4.6s: Keychain Stamp slams down with heavy 808 impact!
+      master.add(() => {
+        if (isPlaying && audioCtx) play808(audioCtx.currentTime, 75);
+      }, 4.6);
+
+      master.to(keychainStamp, {
+        opacity: 1,
+        scale: 1,
+        rotate: -2,
+        duration: 0.35,
+        ease: 'back.out(2.5)'
+      }, 4.6);
+
+      // Cozmo nods with firm approval at secure lock:
+      master.to(cozmoFace, { y: 2, duration: 0.14, ease: 'power2.out' }, 4.6);
+      master.to(cozmoFace, { y: 0, x: 0, duration: 0.16, ease: 'power2.in' }, 4.74);
+      master.to([eyeLeft, eyeRight], {
+        rotate: 0,
+        height: 24,
+        borderRadius: '5px',
+        scaleX: 1,
+        scaleY: 1,
+        duration: 0.25,
+        ease: 'back.out(2)'
+      }, 4.74);
+
+      // --------------------------------------------------------
+      // ACT 3: 07.0s – 10.5s | APPLE VISION OCR (Electric Blue #0047ff)
+      // --------------------------------------------------------
+      master.add(() => {
+        if (isPlaying && audioCtx) {
+          play808(audioCtx.currentTime, 130);
+          playScanBeep(audioCtx.currentTime);
+        }
+        hudTl.textContent = '⚡️ HYPERNOTCH // [ACT 3: LOCAL VISION OCR]';
+        hudTl.style.color = '#ffffff';
+        hudTr.style.color = '#ffffff';
+        hudBl.style.color = '#ffffff';
+        hudBr.style.color = '#ffffff';
+      }, 7.0);
+
+      master.set(sceneSecurity, { opacity: 0 }, 7.0);
+      master.set(sceneOcr, { opacity: 1 }, 7.0);
+
+      // Corner reticles lock in & eyes look down at code
+      master.fromTo('.ocr-corner-bracket',
+        { opacity: 0, scale: 1.4 },
+        { opacity: 1, scale: 1, duration: 0.25, stagger: 0.05, ease: 'back.out(2)' },
+        7.0
+      );
+      master.to([eyeLeft, eyeRight], { y: 2, duration: 0.2 }, 7.0);
+
+      // Scanner blade sweeps across the code block
+      master.fromTo(ocrBlade,
+        { top: 0 },
+        { top: '100%', duration: 0.75, ease: 'linear' },
+        7.1
+      );
+
+      // 7.6s: Pre-drop riser
+      master.add(() => {
+        if (isPlaying && audioCtx) playRiser(audioCtx.currentTime, 0.2);
+      }, 7.6);
+
+      // 7.8s: Notch transforms into OCR scanner HUD
+      master.to(graphicNotch, {
+        width: 380,
+        height: 72,
+        borderRadius: '0 0 20px 20px',
+        duration: 0.3,
+        ease: 'power3.out'
+      }, 7.8);
+
+      master.add(() => {
+        document.getElementById('notch-title-slot').textContent = 'OCR EXTRACTED';
+        document.getElementById('notch-title-slot').style.color = '#00f0ff';
+        document.getElementById('notch-detail-slot').textContent = '< 8MS LOCAL VISION';
+      }, 7.8);
+      master.to(notchDisplay, { opacity: 1, duration: 0.2 }, 7.9);
+
+      // Eyes track horizontal laser scan
+      master.to(cozmoFace, { x: -8, duration: 0.38, ease: 'power1.inOut' }, 7.9);
+      master.to(cozmoFace, { x: 8, duration: 0.38, ease: 'power1.inOut' }, 8.28);
+      master.to(cozmoFace, { x: 0, duration: 0.25, ease: 'power2.out' }, 8.66);
+
+      // 9.2s: OCR extracted! Clean flat 2D scanline blink:
+      master.to([eyeLeft, eyeRight], { scaleY: 0.05, duration: 0.07 }, 9.2);
+      master.to([eyeLeft, eyeRight], { scaleY: 1, duration: 0.12, ease: 'back.out(2)' }, 9.27);
+      master.to([eyeLeft, eyeRight], { y: 0, duration: 0.2 }, 9.4);
+
+      // --------------------------------------------------------
+      // ACT 4: 10.5s – 15.0s | KINETIC MANIFESTO (60 FPS Slams + Glyph Scrambler)
+      // --------------------------------------------------------
+      master.set(sceneOcr, { opacity: 0 }, 10.5);
+      master.set(sceneManifesto, { opacity: 1 }, 10.5);
+      master.set(notchDisplay, { opacity: 0 }, 10.5);
+
+      // Notch shrinks out of way during typography slams
+      master.to(graphicNotch, {
+        height: 0,
+        duration: 0.2,
+        ease: 'power2.in'
+      }, 10.5);
+      master.to(cozmoContainer, { opacity: 0, scale: 0.5, duration: 0.15 }, 10.5);
+
+      // Slam 1: ZERO CLOUD (Acid Lime Background #d9ff00 / Pitch Black Text)
+      master.add(() => {
+        if (isPlaying && audioCtx) play808(audioCtx.currentTime, 150);
+        hudTl.textContent = '⚡️ HYPERNOTCH // [MANIFESTO: ZERO CLOUD]';
+        hudTl.style.color = '#000000';
+        hudTr.style.color = '#000000';
+        hudBl.style.color = '#000000';
+        hudBr.style.color = '#000000';
+      }, 10.5);
+
+      master.set(sceneManifesto, { background: '#d9ff00', color: '#000000' }, 10.5);
+      master.set(slamTitle, { color: '#000000', scale: 1.8 }, 10.5);
+      master.set(slamSub, { textContent: '100% LOCAL ON-DEVICE COMPUTING', color: '#000000' }, 10.5);
+      master.to(slamTitle, { scale: 1, duration: 0.35, ease: 'power4.out' }, 10.5);
+
+      const scramble1 = { p: 0 };
+      master.to(scramble1, {
+        p: 1,
+        duration: 0.24,
+        ease: 'linear',
+        onUpdate: () => applyScramble(slamTitle, 'ZERO CLOUD', scramble1.p)
+      }, 10.5);
+
+      // Slam 2: ZERO LATENCY (Electric Cyan #00f0ff / Pitch Black Text)
+      master.add(() => {
+        if (isPlaying && audioCtx) play808(audioCtx.currentTime, 160);
+        hudTl.textContent = '⚡️ HYPERNOTCH // [MANIFESTO: ZERO LATENCY]';
+        hudTl.style.color = '#000000';
+        hudTr.style.color = '#000000';
+        hudBl.style.color = '#000000';
+        hudBr.style.color = '#000000';
+      }, 11.6);
+
+      master.set(sceneManifesto, { background: '#00f0ff', color: '#000000' }, 11.6);
+      master.set(slamTitle, { color: '#000000', scale: 1.8 }, 11.6);
+      master.set(slamSub, { textContent: 'SUB-MILLISECOND RESPONSE SPEED', color: '#000000' }, 11.6);
+      master.to(slamTitle, { scale: 1, duration: 0.35, ease: 'power4.out' }, 11.6);
+
+      const scramble2 = { p: 0 };
+      master.to(scramble2, {
+        p: 1,
+        duration: 0.24,
+        ease: 'linear',
+        onUpdate: () => applyScramble(slamTitle, 'ZERO LATENCY', scramble2.p)
+      }, 11.6);
+
+      // Slam 3: ZERO LEAKS (International Orange #ff4700 / Crisp White Text)
+      master.add(() => {
+        if (isPlaying && audioCtx) play808(audioCtx.currentTime, 170);
+        hudTl.textContent = '⚡️ HYPERNOTCH // [MANIFESTO: ZERO LEAKS]';
+        hudTl.style.color = '#ffffff';
+        hudTr.style.color = '#ffffff';
+        hudBl.style.color = '#ffffff';
+        hudBr.style.color = '#ffffff';
+      }, 12.7);
+
+      master.set(sceneManifesto, { background: '#ff4700', color: '#ffffff' }, 12.7);
+      master.set(slamTitle, { color: '#ffffff', scale: 1.8 }, 12.7);
+      master.set(slamSub, { textContent: 'HARDWARE KEYCHAIN ENCLAVE ISOLATION', color: '#ffffff' }, 12.7);
+      master.to(slamTitle, { scale: 1, duration: 0.35, ease: 'power4.out' }, 12.7);
+
+      const scramble3 = { p: 0 };
+      master.to(scramble3, {
+        p: 1,
+        duration: 0.24,
+        ease: 'linear',
+        onUpdate: () => applyScramble(slamTitle, 'ZERO LEAKS', scramble3.p)
+      }, 12.7);
+
+      // Slam 4: SUPERCHARGED (Obsidian #0a0a0c / Pure White Text)
+      master.add(() => {
+        if (isPlaying && audioCtx) play808(audioCtx.currentTime, 120);
+        hudTl.textContent = '⚡️ HYPERNOTCH // [MANIFESTO: SUPERCHARGED]';
+        hudTl.style.color = '#ffffff';
+        hudTr.style.color = '#ffffff';
+        hudBl.style.color = '#ffffff';
+        hudBr.style.color = '#ffffff';
+      }, 13.8);
+
+      master.set(sceneManifesto, { background: '#0a0a0c', color: '#ffffff' }, 13.8);
+      master.set(slamTitle, { color: '#ffffff', scale: 2.1 }, 13.8);
+      master.set(slamSub, { textContent: 'THE ULTIMATE HUD FOR THE MACBOOK NOTCH', color: '#d9ff00' }, 13.8);
+      master.to(slamTitle, { scale: 1, duration: 0.4, ease: 'power4.out' }, 13.8);
+
+      const scramble4 = { p: 0 };
+      master.to(scramble4, {
+        p: 1,
+        duration: 0.26,
+        ease: 'linear',
+        onUpdate: () => applyScramble(slamTitle, 'SUPERCHARGED', scramble4.p)
+      }, 13.8);
+
+      // --------------------------------------------------------
+      // ACT 5: 15.0s – 20.0s | SWISS MINIMALIST POSTER PACKSHOT
+      // --------------------------------------------------------
+      master.add(() => {
+        if (isPlaying && audioCtx) playOutroChime(audioCtx.currentTime);
+        hudTl.textContent = '⚡️ HYPERNOTCH // [OFFICIAL RELEASE v1.5]';
+        hudTl.style.color = '#000000';
+        hudTr.style.color = '#000000';
+        hudBl.style.color = '#000000';
+        hudBr.style.color = '#000000';
+        document.getElementById('notch-title-slot').textContent = '';
+        document.getElementById('notch-detail-slot').textContent = '';
+      }, 15.0);
+
+      master.set(sceneManifesto, { opacity: 0 }, 15.0);
+      master.set(scenePackshot, { opacity: 1 }, 15.0);
+      master.set(notchDisplay, { opacity: 0 }, 15.0);
+
+      // Restore Notch as minimal top pill
+      master.to(graphicNotch, {
+        width: 200,
+        height: 36,
+        borderRadius: '0 0 18px 18px',
+        duration: 0.4,
+        ease: 'back.out(2)'
+      }, 15.1);
+
+      // Restore and awaken Cozmo eyes with energetic pop!
+      master.set(cozmoContainer, { opacity: 1, scale: 1 }, 15.1);
+      master.fromTo(cozmoFace,
+        { scale: 0, y: 0, x: 0 },
+        { scale: 1, duration: 0.35, ease: 'back.out(2.5)' },
+        15.1
+      );
+      master.set([eyeLeft, eyeRight], {
+        rotate: 0,
+        height: 24,
+        borderRadius: '5px',
+        scaleX: 1,
+        scaleY: 1,
+        y: 0,
+        x: 0,
+        boxShadow: 'none',
+        border: 'none'
+      }, 15.1);
+
+      // Pop in the poster card with crisp physical bounce
+      master.fromTo('.poster-card',
+        { scale: 0.88, opacity: 0, y: 40 },
+        { scale: 1, opacity: 1, y: 0, duration: 0.7, ease: 'back.out(2)' },
+        15.1
+      );
+
+      // 15.4s: Eyes look down attentively at the live typewriter terminal:
+      master.to([eyeLeft, eyeRight], { y: 2, duration: 0.25, ease: 'power2.out' }, 15.4);
+
+      // 15.6s – 16.5s: Live Terminal Typewriter Effect
+      const termTarget = { p: 0 };
+      const fullCmd = 'brew install --cask hypernotch';
+      master.to(termTarget, {
+        p: 1,
+        duration: 0.85,
+        ease: 'none',
+        onUpdate: () => {
+          const charsCount = Math.floor(termTarget.p * fullCmd.length);
+          termCmd.textContent = fullCmd.slice(0, charsCount);
+        }
+      }, 15.6);
+
+      // 16.6s: Terminal execution result confirmation fades in
+      master.to(termResult, {
+        opacity: 1,
+        y: 0,
+        duration: 0.3,
+        ease: 'power2.out'
+      }, 16.6);
+
+      master.add(() => {
+        if (isPlaying && audioCtx) playSnapClick(audioCtx.currentTime);
+      }, 16.6);
+
+      // 16.8s: Cozmo celebration! Terminal installed -> joyful squint (^ ^) and playful chirp!
+      master.add(() => {
+        if (isPlaying && audioCtx) playCozmoChirp(audioCtx.currentTime, 1100);
+      }, 16.8);
+
+      master.to([eyeLeft, eyeRight], {
+        borderRadius: '12px 12px 2px 2px',
+        height: 11,
+        scaleY: 0.9,
+        scaleX: 1.15,
+        y: -1,
+        duration: 0.15,
+        ease: 'power2.out'
+      }, 16.8);
+      master.to(cozmoFace, { y: -2, duration: 0.1, ease: 'power2.out' }, 16.8);
+      master.to(cozmoFace, { y: 0, duration: 0.12, ease: 'bounce.out' }, 16.9);
+
+      // 17.8s: Eyes open back up into big bright happy eyes:
+      master.to([eyeLeft, eyeRight], {
+        borderRadius: '5px',
+        height: 24,
+        scaleX: 1.1,
+        scaleY: 1.1,
+        y: 0,
+        duration: 0.22,
+        ease: 'back.out(2)'
+      }, 17.8);
+
+      // 18.2s: Confident, friendly flat 2D goodbye wink on right eye!
+      master.to(eyeRight, { scaleY: 0.05, duration: 0.1, ease: 'power2.in' }, 18.2);
+      master.to(eyeRight, { scaleY: 1.1, duration: 0.16, ease: 'back.out(2)' }, 18.3);
+      master.to(eyeLeft, { scale: 1.15, duration: 0.1 }, 18.2);
+      master.to(eyeLeft, { scale: 1.1, duration: 0.15 }, 18.3);
+    }
+
+    // Initialize timeline & layout
+    buildMasterTimeline();
+    autoScaleStage();
+
+    // ==========================================================
+    // 4. UI CONTROLS & LISTENERS
+    // ==========================================================
+    const btnPlay = document.getElementById('btn-play');
+    btnPlay.addEventListener('click', () => {
+      initAudio();
+      if (isPlaying) {
+        master.pause();
+        btnPlay.textContent = '▶ Play 2D Reel';
+        isPlaying = false;
+      } else {
+        if (master.progress() === 1) master.restart();
+        else master.play();
+        btnPlay.textContent = '⏸ Pause';
+        isPlaying = true;
+      }
+    });
+
+    const btnSound = document.getElementById('btn-sound');
+    btnSound.addEventListener('click', () => {
+      isSoundOn = !isSoundOn;
+      btnSound.textContent = isSoundOn ? '🔊 Sound: On' : '🔇 Sound: Off';
+    });
+
+    const btn169 = document.getElementById('btn-16-9');
+    const btn916 = document.getElementById('btn-9-16');
+
+    btn169.addEventListener('click', () => {
+      if (currentAspect === '16:9') return;
+      currentAspect = '16:9';
+      btn169.classList.add('active');
+      btn916.classList.remove('active');
+      document.getElementById('stage').classList.remove('vertical-9-16');
+      autoScaleStage();
+      buildMasterTimeline();
+      if (isPlaying) master.play();
+    });
+
+    btn916.addEventListener('click', () => {
+      if (currentAspect === '9:16') return;
+      currentAspect = '9:16';
+      btn916.classList.add('active');
+      btn169.classList.remove('active');
+      document.getElementById('stage').classList.add('vertical-9-16');
+      autoScaleStage();
+      buildMasterTimeline();
+      if (isPlaying) master.play();
+    });
+
+    const scrubTrack = document.getElementById('scrub-track');
+    scrubTrack.addEventListener('click', (e) => {
+      const rect = scrubTrack.getBoundingClientRect();
+      const p = (e.clientX - rect.left) / rect.width;
+      master.progress(Math.max(0, Math.min(1, p)));
+    });
+
+    // Auto-fade controls when playing
+    let hideBarTimer = null;
+    function showControls() {
+      const bar = document.getElementById('director-bar');
+      if (!bar) return;
+      bar.style.opacity = '1';
+      bar.style.pointerEvents = 'auto';
+      clearTimeout(hideBarTimer);
+      if (isPlaying) {
+        hideBarTimer = setTimeout(() => {
+          bar.style.opacity = '0';
+          bar.style.pointerEvents = 'none';
+        }, 1800);
+      }
+    }
+    window.addEventListener('mousemove', showControls);
+
+    // Auto-play on load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => { btnPlay.click(); }, 350);
+    });
+  </script>
+</body>
+</html>

@@ -180,7 +180,7 @@ class ScreenshotManager: ObservableObject {
             task.arguments = ["-i", targetUrl.path]
             
             task.terminationHandler = { [weak self] _ in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
                     self?.loadScreenshots()
                     NotchStateCoordinator.shared.open(tab: .screenshots)
                 }

@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HyperNotch — Bold 2D Graphic Motion Reel</title>
+  <!-- Google Fonts: Inter Display & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <!-- GSAP 3 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background: #000000;
+      color: #000000;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* MASTER 1920x1080 / 1080x1920 CANVAS (PURE FLAT 2D) */
+    #stage {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      background: #d9ff00; /* Starts directly with high-energy Acid Lime */
+      overflow: hidden;
+      transform-origin: center center;
+    }
+
+    #stage.vertical-9-16 {
+      width: 1080px;
+      height: 1920px;
+    }
+
+    /* SOLID COLOR BLOCKS (No Gradients) */
+    .color-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      will-change: background-color;
+    }
+
+    /* GLOBAL 2D GRAPHIC OVERLAYS */
+    .fui-corner-mark {
+      position: absolute;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      z-index: 90;
+      pointer-events: none;
+    }
+    .fui-tl { top: 36px; left: 40px; }
+    .fui-tr { top: 36px; right: 40px; text-align: right; }
+    .fui-bl { bottom: 36px; left: 40px; }
+    .fui-br { bottom: 36px; right: 40px; text-align: right; }
+
+    /* THE GRAPHIC NOTCH (Solid Black Geometric Silhouette) */
+    #graphic-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 220px;
+      height: 38px;
+      background: #000000;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+      z-index: 80;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+      transform-origin: top center;
+      will-change: width, height, background-color;
+    }
+
+    /* Notch Sensor Optics (Graphic dots) */
+    .notch-optics {
+      width: 100%;
+      height: 38px;
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .optic-lens {
+      width: 12px;
+      height: 12px;
+      background: #141416;
+      border-radius: 50%;
+      border: 1.5px solid #282830;
+      position: relative;
+    }
+    .optic-dot {
+      width: 4px;
+      height: 4px;
+      background: #00f0ff;
+      border-radius: 50%;
+      position: absolute;
+      top: 2.5px;
+      left: 2.5px;
+    }
+    .optic-led {
+      width: 4px;
+      height: 4px;
+      background: #34d399;
+      border-radius: 50%;
+      opacity: 0.2;
+    }
+
+    /* NOTCH EXPANDED GRAPHIC CONTENT */
+    .notch-inner-box {
+      width: 100%;
+      height: calc(100% - 38px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      opacity: 0;
+      color: #ffffff;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* SCENE CONTAINERS (Orthographic 2D Planes) */
+    .scene-plane {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+
+    /* ========================================================
+       SCENE 1: SMART FILE SHELF (Acid Lime & Pitch Black)
+       ======================================================== */
+    #scene-shelf {
+      background: #d9ff00;
+      color: #000000;
+    }
+    .shelf-headline {
+      font-size: 88px;
+      font-weight: 900;
+      letter-spacing: -3px;
+      text-transform: uppercase;
+      line-height: 0.95;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .shelf-badge-strip {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .solid-tag {
+      background: #000000;
+      color: #d9ff00;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 8px 18px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+    }
+
+    /* 2D Flying File Card */
+    #drag-file-card {
+      position: absolute;
+      top: 55%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #000000;
+      color: #ffffff;
+      padding: 16px 28px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+      z-index: 85;
+      opacity: 0;
+      box-shadow: 12px 12px 0px rgba(0, 0, 0, 0.25);
+    }
+    .file-pill-tag {
+      background: #d9ff00;
+      color: #000000;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    /* Counter Hero Box */
+    #token-roll-box {
+      position: absolute;
+      bottom: 120px;
+      background: #000000;
+      color: #d9ff00;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 36px;
+      font-weight: 800;
+      padding: 14px 32px;
+      border-radius: 8px;
+      opacity: 0;
+      transform: translateY(20px);
+      letter-spacing: 1px;
+    }
+
+    /* ========================================================
+       SCENE 2: ZERO-LEAK SECURITY CLIPBOARD (International Orange)
+       ======================================================== */
+    #scene-security {
+      background: #ff4700;
+      color: #ffffff;
+    }
+    .sec-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      background: #000000;
+      color: #ff4700;
+      padding: 6px 16px;
+      border-radius: 4px;
+      margin-bottom: 24px;
+    }
+    .sec-key-card {
+      background: #ffffff;
+      color: #000000;
+      border: 4px solid #000000;
+      border-radius: 16px;
+      padding: 24px 44px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 16px 16px 0px #000000;
+      position: relative;
+    }
+    .key-text-line {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      position: relative;
+    }
+    .key-strike-bar {
+      position: absolute;
+      top: 50%;
+      left: -4%;
+      width: 0%;
+      height: 6px;
+      background: #ff4700;
+      transform: translateY(-50%);
+    }
+    .keychain-stamp, .keychain-seal {
+      background: #000000;
+      color: #d9ff00;
+      border: 3px solid #000000;
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-size: 20px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      letter-spacing: 2px;
+      opacity: 0;
+      transform: scale(0.6) rotate(-3deg);
+      box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.35);
+    }
+
+    /* ========================================================
+       SCENE 3: ON-DEVICE APPLE VISION OCR (Electric Cobalt Blue)
+       ======================================================== */
+    #scene-ocr {
+      background: #0047ff;
+      color: #ffffff;
+    }
+    .ocr-header-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      background: #00f0ff;
+      color: #000000;
+      padding: 6px 18px;
+      border-radius: 4px;
+      margin-bottom: 24px;
+    }
+    .ocr-reticle-box {
+      width: 780px;
+      height: 240px;
+      border: 4px solid #ffffff;
+      background: #000000;
+      border-radius: 16px;
+      box-shadow: 16px 16px 0px #00f0ff;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 24px;
+    }
+    .ocr-code-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffffff;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .ocr-scanner-blade {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background: #00f0ff;
+    }
+    .ocr-meta-strip {
+      margin-top: 30px;
+      display: flex;
+      gap: 20px;
+    }
+    .ocr-pill {
+      background: #ffffff;
+      color: #0047ff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 800;
+      padding: 8px 20px;
+      border-radius: 6px;
+    }
+
+    /* ========================================================
+       SCENE 4: KINETIC MANIFESTO STROBE (High Impact Cuts)
+       ======================================================== */
+    #scene-manifesto {
+      background: #0a0a0c;
+      color: #ffffff;
+      z-index: 50;
+    }
+    .manifesto-big-word {
+      font-size: 150px;
+      font-weight: 900;
+      text-transform: uppercase;
+      line-height: 0.9;
+      letter-spacing: -6px;
+      text-align: center;
+      will-change: transform, color;
+    }
+    .manifesto-sub-line {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      margin-top: 24px;
+      text-transform: uppercase;
+    }
+
+    /* ========================================================
+       SCENE 5: SWISS MINIMALIST POSTER PACKSHOT
+       ======================================================== */
+    #scene-packshot {
+      background: #f5f5f7;
+      color: #0a0a0c;
+      z-index: 60;
+    }
+    .poster-card {
+      width: 860px;
+      background: #ffffff;
+      border: 4px solid #0a0a0c;
+      border-radius: 24px;
+      box-shadow: 20px 20px 0px #0a0a0c;
+      padding: 48px 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .poster-app-icon {
+      width: 110px;
+      height: 110px;
+      border-radius: 24px;
+      border: 3px solid #0a0a0c;
+      margin-bottom: 24px;
+      box-shadow: 6px 6px 0px #0a0a0c;
+    }
+    .poster-brand-title {
+      font-size: 68px;
+      font-weight: 900;
+      letter-spacing: -3px;
+      margin-bottom: 12px;
+      color: #0a0a0c;
+    }
+    .poster-tagline {
+      font-size: 22px;
+      font-weight: 600;
+      color: #4b5563;
+      margin-bottom: 32px;
+    }
+    .poster-specs-grid {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .spec-box {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 8px 18px;
+      background: #0a0a0c;
+      color: #ffffff;
+      border-radius: 6px;
+    }
+    .spec-box.accent-box {
+      background: #d9ff00;
+      color: #0a0a0c;
+      border: 2px solid #0a0a0c;
+    }
+    .poster-cta-box {
+      margin-top: 28px;
+      background: #0a0a0c;
+      color: #ffffff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 12px 28px;
+      border-radius: 8px;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 4px 4px 0px rgba(0,0,0,0.15);
+    }
+    .poster-cta-box .cta-prompt {
+      color: #d9ff00;
+    }
+
+    /* Director Controls Bar */
+    #director-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      background: #000000;
+      border: 2px solid #ffffff;
+      border-radius: 40px;
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      color: #ffffff;
+      transition: opacity 0.3s ease;
+    }
+    .btn-ctl {
+      background: #ffffff;
+      color: #000000;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-ctl.secondary {
+      background: #222226;
+      color: #ffffff;
+      border: 1px solid #444;
+    }
+    .btn-aspect {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #888;
+    }
+    .btn-aspect.active {
+      color: #00f0ff;
+      background: #18181b;
+    }
+    .scrub-track {
+      width: 160px;
+      height: 6px;
+      background: #333338;
+      border-radius: 3px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .scrub-fill {
+      height: 100%;
+      width: 0%;
+      background: #d9ff00;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MASTER 2D STAGE -->
+  <div id="stage">
+
+    <!-- FUI Minimal Graphic Telemetry -->
+    <div class="fui-corner-mark fui-tl" id="hud-tl">⚡️ HYPERNOTCH // 2D REEL</div>
+    <div class="fui-corner-mark fui-tr" id="hud-tr">60 FPS • APPLE SILICON</div>
+    <div class="fui-corner-mark fui-bl" id="hud-bl">00.00s / 20.00s • [BEAT 01: SHELF]</div>
+    <div class="fui-corner-mark fui-br" id="hud-br">REC ● SWIFT 5.9</div>
+
+    <!-- THE GRAPHIC BLACK NOTCH (Central UI Actor) -->
+    <div id="graphic-notch">
+      <div class="notch-optics">
+        <div class="optic-lens">
+          <div class="optic-dot"></div>
+        </div>
+        <div class="optic-led" id="notch-led"></div>
+      </div>
+
+      <!-- Notch Inner Expanded Display -->
+      <div class="notch-inner-box" id="notch-display">
+        <span id="notch-title-slot" style="font-weight:800; font-size:14px; color:#d9ff00;">FILE ABSORBED</span>
+        <span id="notch-detail-slot" style="font-size:12px; color:#ffffff;">142,800 TOKENS</span>
+      </div>
+    </div>
+
+    <!-- FLYING FILE CARD (Act 1) -->
+    <div id="drag-file-card">
+      <span style="font-size:22px;">📦</span>
+      <span>core_agent.py</span>
+      <span class="file-pill-tag">48 KB</span>
+    </div>
+
+    <!-- ACT 1: SMART FILE SHELF (Acid Lime #d9ff00) -->
+    <div class="scene-plane" id="scene-shelf">
+      <div class="shelf-headline">DROP FILES<br/>INTO YOUR NOTCH</div>
+      <div class="shelf-badge-strip">
+        <div class="solid-tag">DRAG & DROP SHELF</div>
+        <div class="solid-tag">TOKEN CALCULATOR</div>
+        <div class="solid-tag">WEBP / BASE64</div>
+      </div>
+      <div id="token-roll-box">⚡️ 142,800 TOKENS CALCULATED</div>
+    </div>
+
+    <!-- ACT 2: ZERO-LEAK SECURITY (International Orange #ff4700) -->
+    <div class="scene-plane" id="scene-security">
+      <div class="sec-sub">DEVELOPER CLIPBOARD FILTER</div>
+      <div class="sec-key-card">
+        <div class="key-text-line">
+          sk-ant-api03-98x21a4f009b
+          <div class="key-strike-bar" id="strike-bar"></div>
+        </div>
+        <div class="keychain-seal" id="keychain-stamp">
+          <span>🔒</span>
+          <span>KEYCHAIN ENCRYPTED // ZERO LEAKS</span>
+        </div>
+      </div>
+      <div style="font-family:'JetBrains Mono'; font-weight:800; font-size:16px; margin-top:28px; background:#000000; color:#ffffff; padding:8px 20px; border-radius:6px;">
+        API KEYS NEVER TOUCH DISK OR CLOUD
+      </div>
+    </div>
+
+    <!-- ACT 3: ON-DEVICE APPLE VISION OCR (Electric Cobalt #0047ff) -->
+    <div class="scene-plane" id="scene-ocr">
+      <div class="ocr-header-tag">100% OFFLINE LOCAL OCR</div>
+      <div class="ocr-reticle-box">
+        <div class="ocr-scanner-blade" id="ocr-blade"></div>
+        <div class="ocr-code-text" id="ocr-code-block">
+          func streamTokens() -> AsyncStream&lt;Token&gt; {<br/>
+          &nbsp;&nbsp;return neuralCoordinator.generate()<br/>
+          }
+        </div>
+      </div>
+      <div class="ocr-meta-strip">
+        <div class="ocr-pill">APPLE VISION API</div>
+        <div class="ocr-pill">&lt; 8MS RESPONSE</div>
+        <div class="ocr-pill">ZERO SERVER UPLOAD</div>
+      </div>
+    </div>
+
+    <!-- ACT 4: KINETIC MANIFESTO STROBE (High Impact Fullscreen Slams) -->
+    <div class="scene-plane" id="scene-manifesto">
+      <div class="manifesto-big-word" id="slam-title">ZERO CLOUD</div>
+      <div class="manifesto-sub-line" id="slam-sub">100% ON-DEVICE HARDWARE ACCELERATION</div>
+    </div>
+
+    <!-- ACT 5: SWISS MINIMALIST POSTER PACKSHOT -->
+    <div class="scene-plane" id="scene-packshot">
+      <div class="poster-card">
+        <img src="../Resources/AppIcon.png" alt="HyperNotch Icon" class="poster-app-icon" onerror="this.style.display='none'" />
+        <div class="poster-brand-title">HyperNotch</div>
+        <div class="poster-tagline">The Ultimate AI & Developer HUD for macOS</div>
+        <div class="poster-specs-grid">
+          <div class="spec-box accent-box">v1.5</div>
+          <div class="spec-box">Swift 5.9</div>
+          <div class="spec-box">Native Metal</div>
+          <div class="spec-box">Apple Silicon NPU</div>
+          <div class="spec-box">Zero-Trust</div>
+        </div>
+        <div class="poster-cta-box">
+          <span class="cta-prompt">$</span> brew install --cask hypernotch
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- End #stage -->
+
+  <!-- Director Playback Bar -->
+  <div id="director-bar">
+    <button class="btn-ctl" id="btn-play">▶ Play 2D Reel</button>
+    <button class="btn-ctl secondary" id="btn-sound">🔊 Sound: On</button>
+    <div class="btn-aspect active" id="btn-16-9">16:9</div>
+    <div class="btn-aspect" id="btn-9-16">9:16</div>
+    <div class="scrub-track" id="scrub-track">
+      <div class="scrub-fill" id="scrub-fill"></div>
+    </div>
+    <span style="font-size:11px; font-family:'JetBrains Mono'; width:32px;" id="tc-display">00s</span>
+  </div>
+
+  <script>
+    // ==========================================================
+    // 1. STAGE AUTO-SCALE & CONFIGURATION
+    // ==========================================================
+    let currentAspect = '16:9';
+    const CONFIG = {
+      '16:9': { width: 1920, height: 1080, duration: 20.0 },
+      '9:16': { width: 1080, height: 1920, duration: 20.0 }
+    };
+
+    function autoScaleStage() {
+      const stage = document.getElementById('stage');
+      const cfg = CONFIG[currentAspect];
+      const scaleX = window.innerWidth / cfg.width;
+      const scaleY = window.innerHeight / cfg.height;
+      const scale = Math.min(scaleX, scaleY) * 0.95;
+      stage.style.transform = `scale(${scale})`;
+    }
+    window.addEventListener('resize', autoScaleStage);
+
+    // ==========================================================
+    // 2. PROCEDURAL 808 & SYNTH AUDIO ENGINE
+    // ==========================================================
+    let audioCtx = null;
+    let isSoundOn = true;
+    let isPlaying = false;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    // Heavy 808 Kick Impact
+    function play808(t, freq = 120) {
+      if (!isSoundOn || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      osc.frequency.exponentialRampToValueAtTime(32, t + 0.35);
+      gain.gain.setValueAtTime(0.4, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.38);
+    }
+
+    // Snappy Mechanical Click
+    function playSnapClick(t) {
+      if (!isSoundOn || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(2400, t);
+      osc.frequency.exponentialRampToValueAtTime(400, t + 0.04);
+      gain.gain.setValueAtTime(0.25, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.05);
+    }
+
+    // Laser slash / zap
+    function playLaserSlash(t) {
+      if (!isSoundOn || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(1800, t);
+      osc.frequency.exponentialRampToValueAtTime(160, t + 0.12);
+      gain.gain.setValueAtTime(0.2, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.14);
+    }
+
+    // High Tech Scan Beep
+    function playScanBeep(t) {
+      if (!isSoundOn || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, t);
+      osc.frequency.linearRampToValueAtTime(1760, t + 0.15);
+      gain.gain.setValueAtTime(0.12, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.2);
+    }
+
+    // Pristine Resolution Piano Chime
+    function playOutroChime(t) {
+      if (!isSoundOn || !audioCtx) return;
+      const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+      notes.forEach((f, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, t + i * 0.04);
+        gain.gain.setValueAtTime(0.15 / (i + 1), t + i * 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.8);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t + i * 0.04);
+        osc.stop(t + 2.9);
+      });
+    }
+
+    // ==========================================================
+    // 3. MASTER 2D KINETIC TIMELINE
+    // ==========================================================
+    const stage = document.getElementById('stage');
+    const graphicNotch = document.getElementById('graphic-notch');
+    const notchDisplay = document.getElementById('notch-display');
+    const notchLed = document.getElementById('notch-led');
+    const dragFileCard = document.getElementById('drag-file-card');
+    const tokenRollBox = document.getElementById('token-roll-box');
+
+    // Scenes
+    const sceneShelf = document.getElementById('scene-shelf');
+    const sceneSecurity = document.getElementById('scene-security');
+    const sceneOcr = document.getElementById('scene-ocr');
+    const sceneManifesto = document.getElementById('scene-manifesto');
+    const scenePackshot = document.getElementById('scene-packshot');
+
+    // Sub elements
+    const strikeBar = document.getElementById('strike-bar');
+    const keychainStamp = document.getElementById('keychain-stamp');
+    const ocrBlade = document.getElementById('ocr-blade');
+    const slamTitle = document.getElementById('slam-title');
+    const slamSub = document.getElementById('slam-sub');
+
+    // FUI Meta
+    const hudTl = document.getElementById('hud-tl');
+    const hudTr = document.getElementById('hud-tr');
+    const hudBl = document.getElementById('hud-bl');
+    const hudBr = document.getElementById('hud-br');
+    const scrubFill = document.getElementById('scrub-fill');
+    const tcDisplay = document.getElementById('tc-display');
+
+    let master = null;
+
+    function buildMasterTimeline() {
+      if (master) master.kill();
+
+      master = gsap.timeline({
+        paused: true,
+        onUpdate: () => {
+          const t = master.time();
+          const p = master.progress();
+          hudBl.textContent = `${t.toFixed(2).padStart(5, '0')}s / 20.00s`;
+          tcDisplay.textContent = `${Math.floor(t)}s`;
+          scrubFill.style.width = `${p * 100}%`;
+        },
+        onComplete: () => {
+          document.getElementById('btn-play').textContent = '↺ Replay';
+          isPlaying = false;
+        }
+      });
+
+      window.master = master;
+      window.__SET_TIME__ = function(timeMs) {
+        if (master) {
+          master.pause();
+          master.time(timeMs / 1000);
+        }
+      };
+
+      // --------------------------------------------------------
+      // INITIAL 2D STATE RESETS
+      // --------------------------------------------------------
+      master.set(graphicNotch, { width: 220, height: 38, borderRadius: '0 0 20px 20px', background: '#000000' }, 0);
+      master.set(notchDisplay, { opacity: 0 }, 0);
+      master.set(notchLed, { opacity: 0.2 }, 0);
+      master.set(dragFileCard, { opacity: 0, y: 140, scale: 0.8 }, 0);
+      master.set(tokenRollBox, { opacity: 0, y: 30 }, 0);
+      master.set(strikeBar, { width: '0%' }, 0);
+      master.set(keychainStamp, { opacity: 0, scale: 0.6, rotate: -3 }, 0);
+      master.set([sceneShelf, sceneSecurity, sceneOcr, sceneManifesto, scenePackshot], { opacity: 0 }, 0);
+
+      // --------------------------------------------------------
+      // ACT 1: 00.0s – 03.5s | SMART FILE SHELF (Acid Lime #d9ff00)
+      // --------------------------------------------------------
+      master.add(() => {
+        if (isPlaying && audioCtx) play808(audioCtx.currentTime, 140);
+        hudTl.textContent = '⚡️ HYPERNOTCH // [ACT 1: SMART SHELF]';
+        hudTl.style.color = '#000000';
+        hudTr.style.color = '#000000';
+        hudBl.style.color = '#000000';
+        hudBr.style.color = '#000000';
+      }, 0);
+
+      master.set(sceneShelf, { opacity: 1 }, 0);
+
+      // 0.4s: File card springs up from bottom
+      master.fromTo(dragFileCard, 
+        { opacity: 0, y: 140, scale: 0.7 },
+        { opacity: 1, y: 40, scale: 1, duration: 0.5, ease: 'back.out(2)' },
+        0.4
+      );
+
+      // 1.3s: File card snaps straight up into the notch!
+      master.to(dragFileCard, {
+        y: -360,
+        scale: 0.6,
+        duration: 0.45,
+        ease: 'power3.in'
+      }, 1.3);
+
+      // 1.75s: Notch swallows the file! Haptic snap click!
+      master.add(() => {
+        if (isPlaying && audioCtx) {
+          playSnapClick(audioCtx.currentTime);
+          play808(audioCtx.currentTime, 90);
+        }
+      }, 1.75);
+
+      master.set(dragFileCard, { opacity: 0 }, 1.75);
+
+      // Notch expands downwards like a mechanical shelf
+      master.to(graphicNotch, {
+        width: 480,
+        height: 96,
+        borderRadius: '0 0 24px 24px',
+        duration: 0.35,
+        ease: 'back.out(2.4)'
+      }, 1.75);
+
+      master.to(notchLed, { opacity: 1, duration: 0.1 }, 1.75);
+      master.to(notchDisplay, { opacity: 1, duration: 0.2 }, 1.85);
+
+      // 2.0s: Token count banner pops up with number roll
+      master.to(tokenRollBox, {
+        opacity: 1,
+        y: 0,
+        duration: 0.4,
+        ease: 'back.out(2)'
+      }, 2.0);
+
+      // --------------------------------------------------------
+      // ACT 2: 03.5s – 07.0s | ZERO-LEAK SECURITY (Orange #ff4700)
+      // --------------------------------------------------------
+      master.add(() => {
+        if (isPlaying && audioCtx) play808(audioCtx.currentTime, 160);
+        hudTl.textContent = '⚡️ HYPERNOTCH // [ACT 2: ZERO-LEAK KEYCHAIN]';
+        hudTl.style.color = '#ffffff';
+        hudTr.style.color = '#ffffff';
+        hudBl.style.color = '#ffffff';
+        hudBr.style.color = '#ffffff';
+      }, 3.5);
+
+      master.set(sceneShelf, { opacity: 0 }, 3.5);
+      master.set(sceneSecurity, { opacity: 1 }, 3.5);
+
+      // Reset notch to compact pill
+      master.to(graphicNotch, {
+        width: 220,
+        height: 38,
+        borderRadius: '0 0 20px 20px',
+        duration: 0.25,
+        ease: 'power3.out'
+      }, 3.5);
+      master.set(notchDisplay, { opacity: 0 }, 3.5);
+
+      // 4.3s: Laser slash strikes through exposed API key!
+      master.add(() => {
+        if (isPlaying && audioCtx) playLaserSlash(audioCtx.currentTime);
+      }, 4.3);
+
+      master.to(strikeBar, { width: '108%', duration: 0.28, ease: 'power4.out' }, 4.3);
+
+      // 4.6s: Keychain Stamp slams down with heavy 808 impact!
+      master.add(() => {
+        if (isPlaying && audioCtx) play808(audioCtx.currentTime, 80);
+      }, 4.6);
+
+      master.to(keychainStamp, {
+        opacity: 1,
+        scale: 1,
+        rotate: -2,
+        duration: 0.35,
+        ease: 'back.out(2.5)'
+      }, 4.6);
+
+      // --------------------------------------------------------
+      // ACT 3: 07.0s – 10.5s | APPLE VISION OCR (Electric Blue #0047ff)
+      // --------------------------------------------------------
+      master.add(() => {
+        if (isPlaying && audioCtx) {
+          play808(audioCtx.currentTime, 130);
+          playScanBeep(audioCtx.currentTime);
+        }
+        hudTl.textContent = '⚡️ HYPERNOTCH // [ACT 3: LOCAL VISION OCR]';
+        hudTl.style.color = '#ffffff';
+        hudTr.style.color = '#ffffff';
+        hudBl.style.color = '#ffffff';
+        hudBr.style.color = '#ffffff';
+      }, 7.0);
+
+      master.set(sceneSecurity, { opacity: 0 }, 7.0);
+      master.set(sceneOcr, { opacity: 1 }, 7.0);
+
+      // Scanner blade sweeps across the code block
+      master.fromTo(ocrBlade,
+        { top: 0 },
+        { top: '100%', duration: 0.75, ease: 'linear' },
+        7.1
+      );
+
+      // Notch transforms into OCR scanner HUD
+      master.to(graphicNotch, {
+        width: 380,
+        height: 72,
+        borderRadius: '0 0 20px 20px',
+        duration: 0.3,
+        ease: 'power3.out'
+      }, 7.8);
+
+      master.add(() => {
+        document.getElementById('notch-title-slot').textContent = 'OCR EXTRACTED';
+        document.getElementById('notch-title-slot').style.color = '#00f0ff';
+        document.getElementById('notch-detail-slot').textContent = '< 8MS LOCAL VISION';
+      }, 7.8);
+      master.to(notchDisplay, { opacity: 1, duration: 0.2 }, 7.9);
+
+      // --------------------------------------------------------
+      // ACT 4: 10.5s – 15.0s | KINETIC MANIFESTO (60 FPS Slams)
+      // --------------------------------------------------------
+      master.set(sceneOcr, { opacity: 0 }, 10.5);
+      master.set(sceneManifesto, { opacity: 1 }, 10.5);
+      master.set(notchDisplay, { opacity: 0 }, 10.5);
+
+      // Notch shrinks out of way during typography slams
+      master.to(graphicNotch, {
+        height: 0,
+        duration: 0.2,
+        ease: 'power2.in'
+      }, 10.5);
+
+      // Slam 1: ZERO CLOUD (Acid Lime Background #d9ff00 / Pitch Black Text)
+      master.add(() => {
+        if (isPlaying && audioCtx) play808(audioCtx.currentTime, 150);
+        hudTl.textContent = '⚡️ HYPERNOTCH // [MANIFESTO: ZERO CLOUD]';
+        hudTl.style.color = '#000000';
+        hudTr.style.color = '#000000';
+        hudBl.style.color = '#000000';
+        hudBr.style.color = '#000000';
+      }, 10.5);
+
+      master.set(sceneManifesto, { background: '#d9ff00', color: '#000000' }, 10.5);
+      master.set(slamTitle, { textContent: 'ZERO CLOUD', color: '#000000', scale: 1.8 }, 10.5);
+      master.set(slamSub, { textContent: '100% LOCAL ON-DEVICE COMPUTING', color: '#000000' }, 10.5);
+      master.to(slamTitle, { scale: 1, duration: 0.35, ease: 'power4.out' }, 10.5);
+
+      // Slam 2: ZERO LATENCY (Electric Cyan #00f0ff / Pitch Black Text)
+      master.add(() => {
+        if (isPlaying && audioCtx) play808(audioCtx.currentTime, 160);
+        hudTl.textContent = '⚡️ HYPERNOTCH // [MANIFESTO: ZERO LATENCY]';
+        hudTl.style.color = '#000000';
+        hudTr.style.color = '#000000';
+        hudBl.style.color = '#000000';
+        hudBr.style.color = '#000000';
+      }, 11.6);
+      master.set(sceneManifesto, { background: '#00f0ff', color: '#000000' }, 11.6);
+      master.set(slamTitle, { textContent: 'ZERO LATENCY', color: '#000000', scale: 1.8 }, 11.6);
+      master.set(slamSub, { textContent: 'SUB-MILLISECOND RESPONSE SPEED', color: '#000000' }, 11.6);
+      master.to(slamTitle, { scale: 1, duration: 0.35, ease: 'power4.out' }, 11.6);
+
+      // Slam 3: ZERO LEAKS (International Orange #ff4700 / Crisp White Text)
+      master.add(() => {
+        if (isPlaying && audioCtx) play808(audioCtx.currentTime, 170);
+        hudTl.textContent = '⚡️ HYPERNOTCH // [MANIFESTO: ZERO LEAKS]';
+        hudTl.style.color = '#ffffff';
+        hudTr.style.color = '#ffffff';
+        hudBl.style.color = '#ffffff';
+        hudBr.style.color = '#ffffff';
+      }, 12.7);
+      master.set(sceneManifesto, { background: '#ff4700', color: '#ffffff' }, 12.7);
+      master.set(slamTitle, { textContent: 'ZERO LEAKS', color: '#ffffff', scale: 1.8 }, 12.7);
+      master.set(slamSub, { textContent: 'HARDWARE KEYCHAIN ENCLAVE ISOLATION', color: '#ffffff' }, 12.7);
+      master.to(slamTitle, { scale: 1, duration: 0.35, ease: 'power4.out' }, 12.7);
+
+      // Slam 4: SUPERCHARGED (Obsidian #0a0a0c / Pure White Text)
+      master.add(() => {
+        if (isPlaying && audioCtx) play808(audioCtx.currentTime, 120);
+        hudTl.textContent = '⚡️ HYPERNOTCH // [MANIFESTO: SUPERCHARGED]';
+        hudTl.style.color = '#ffffff';
+        hudTr.style.color = '#ffffff';
+        hudBl.style.color = '#ffffff';
+        hudBr.style.color = '#ffffff';
+      }, 13.8);
+      master.set(sceneManifesto, { background: '#0a0a0c', color: '#ffffff' }, 13.8);
+      master.set(slamTitle, { textContent: 'SUPERCHARGED', color: '#ffffff', scale: 2.1 }, 13.8);
+      master.set(slamSub, { textContent: 'THE ULTIMATE HUD FOR THE MACBOOK NOTCH', color: '#d9ff00' }, 13.8);
+      master.to(slamTitle, { scale: 1, duration: 0.4, ease: 'power4.out' }, 13.8);
+
+      // --------------------------------------------------------
+      // ACT 5: 15.0s – 20.0s | SWISS MINIMALIST POSTER PACKSHOT
+      // --------------------------------------------------------
+      master.add(() => {
+        if (isPlaying && audioCtx) playOutroChime(audioCtx.currentTime);
+        hudTl.textContent = '⚡️ HYPERNOTCH // [OFFICIAL RELEASE v1.5]';
+        hudTl.style.color = '#000000';
+        hudTr.style.color = '#000000';
+        hudBl.style.color = '#000000';
+        hudBr.style.color = '#000000';
+        document.getElementById('notch-title-slot').textContent = '';
+        document.getElementById('notch-detail-slot').textContent = '';
+      }, 15.0);
+
+      master.set(sceneManifesto, { opacity: 0 }, 15.0);
+      master.set(scenePackshot, { opacity: 1 }, 15.0);
+      master.set(notchDisplay, { opacity: 0 }, 15.0);
+
+      // Restore Notch as minimal top pill
+      master.to(graphicNotch, {
+        width: 200,
+        height: 36,
+        borderRadius: '0 0 18px 18px',
+        duration: 0.4,
+        ease: 'back.out(2)'
+      }, 15.1);
+
+      // Pop in the poster card with crisp physical bounce
+      master.fromTo('.poster-card',
+        { scale: 0.88, opacity: 0, y: 40 },
+        { scale: 1, opacity: 1, y: 0, duration: 0.7, ease: 'back.out(2)' },
+        15.1
+      );
+    }
+
+    // Initialize timeline & layout
+    buildMasterTimeline();
+    autoScaleStage();
+
+    // ==========================================================
+    // 4. UI CONTROLS & LISTENERS
+    // ==========================================================
+    const btnPlay = document.getElementById('btn-play');
+    btnPlay.addEventListener('click', () => {
+      initAudio();
+      if (isPlaying) {
+        master.pause();
+        btnPlay.textContent = '▶ Play 2D Reel';
+        isPlaying = false;
+      } else {
+        if (master.progress() === 1) master.restart();
+        else master.play();
+        btnPlay.textContent = '⏸ Pause';
+        isPlaying = true;
+      }
+    });
+
+    const btnSound = document.getElementById('btn-sound');
+    btnSound.addEventListener('click', () => {
+      isSoundOn = !isSoundOn;
+      btnSound.textContent = isSoundOn ? '🔊 Sound: On' : '🔇 Sound: Off';
+    });
+
+    const btn169 = document.getElementById('btn-16-9');
+    const btn916 = document.getElementById('btn-9-16');
+
+    btn169.addEventListener('click', () => {
+      if (currentAspect === '16:9') return;
+      currentAspect = '16:9';
+      btn169.classList.add('active');
+      btn916.classList.remove('active');
+      document.getElementById('stage').classList.remove('vertical-9-16');
+      autoScaleStage();
+      buildMasterTimeline();
+      if (isPlaying) master.play();
+    });
+
+    btn916.addEventListener('click', () => {
+      if (currentAspect === '9:16') return;
+      currentAspect = '9:16';
+      btn916.classList.add('active');
+      btn169.classList.remove('active');
+      document.getElementById('stage').classList.add('vertical-9-16');
+      autoScaleStage();
+      buildMasterTimeline();
+      if (isPlaying) master.play();
+    });
+
+    const scrubTrack = document.getElementById('scrub-track');
+    scrubTrack.addEventListener('click', (e) => {
+      const rect = scrubTrack.getBoundingClientRect();
+      const p = (e.clientX - rect.left) / rect.width;
+      master.progress(Math.max(0, Math.min(1, p)));
+    });
+
+    // Auto-fade controls when playing
+    let hideBarTimer = null;
+    function showControls() {
+      const bar = document.getElementById('director-bar');
+      if (!bar) return;
+      bar.style.opacity = '1';
+      bar.style.pointerEvents = 'auto';
+      clearTimeout(hideBarTimer);
+      if (isPlaying) {
+        hideBarTimer = setTimeout(() => {
+          bar.style.opacity = '0';
+          bar.style.pointerEvents = 'none';
+        }, 1800);
+      }
+    }
+    window.addEventListener('mousemove', showControls);
+
+    // Auto-play on load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => { btnPlay.click(); }, 350);
+    });
+  </script>
+</body>
+</html>

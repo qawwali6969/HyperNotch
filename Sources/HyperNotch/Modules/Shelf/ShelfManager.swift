@@ -147,13 +147,13 @@ class ShelfManager: ObservableObject {
                     guard let data = item as? Data,
                           let url = URL(dataRepresentation: data, relativeTo: nil) else {
                         if let url = item as? URL {
-                            Task { @MainActor in
+                            Task { @MainActor [weak self] in
                                 self?.addFile(url: url)
                             }
                         }
                         return
                     }
-                    Task { @MainActor in
+                    Task { @MainActor [weak self] in
                         self?.addFile(url: url)
                     }
                 }
