@@ -177,215 +177,252 @@ struct WebToolsView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
-    // MARK: - Compact, Perfectly Balanced Add Form (Fits notch perfectly!)
-    private var addLinkForm: some View {
-        VStack(spacing: 8) {
-            HStack(alignment: .center, spacing: 10) {
-                // 1. Live Preview of Dock Icon
-                ZStack {
-                    RoundedRectangle(cornerRadius: 13)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color(white: 0.22),
-                                    Color(white: 0.10)
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
+    // MARK: - Compact, Perfectly Balanced Add Form (V2 Engineering HUD)
+    private var addFormPreviewIcon: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 11)
+                .fill(
+                    themeManager.currentTheme == .engineeringV2
+                        ? LinearGradient(colors: [V2Colors.ice.opacity(0.24), V2Colors.ice.opacity(0.08)], startPoint: .top, endPoint: .bottom)
+                        : LinearGradient(colors: [Color(white: 0.22), Color(white: 0.10)], startPoint: .top, endPoint: .bottom)
+                )
+                .frame(width: 44, height: 44)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 11)
+                        .stroke(
+                            themeManager.currentTheme == .engineeringV2 ? V2Colors.ice2.opacity(0.7) : Color.white.opacity(0.25),
+                            lineWidth: 1.2
+                        )
+                )
+                .overlay(
+                    Group {
+                        if useFavicon, let data = previewFaviconData, let nsImg = NSImage(data: data) {
+                            Image(nsImage: nsImg)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 22, height: 22)
+                                .clipShape(RoundedRectangle(cornerRadius: 5))
+                                .shadow(color: .white.opacity(0.5), radius: 4)
+                        } else if useFavicon && isLoadingFavicon {
+                            ProgressView()
+                                .scaleEffect(0.6)
+                        } else {
+                            Image(systemName: selectedIcon)
+                                .font(.system(size: 19, weight: .semibold))
+                                .foregroundStyle(colorFromName(selectedColor))
+                                .shadow(color: colorFromName(selectedColor).opacity(0.6), radius: 4)
+                        }
+                    }
+                )
+                .shadow(
+                    color: themeManager.currentTheme == .engineeringV2 ? V2Colors.ice.opacity(0.35) : colorFromName(selectedColor).opacity(0.25),
+                    radius: 6,
+                    y: 2
+                )
+        }
+    }
+    
+    private var addFormTextFields: some View {
+        HStack(spacing: 6) {
+            TextField(loc("Title (Claude / Midjourney)", "Название (Claude / Midjourney)"), text: $newTitle)
+                .textFieldStyle(.plain)
+                .font(.system(size: 9.5, weight: .medium, design: .monospaced))
+                .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4.5)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.white.opacity(0.04))
+                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(themeManager.currentTheme == .engineeringV2 ? V2Colors.edge : Color.white.opacity(0.12), lineWidth: 1))
+                )
+            
+            TextField(loc("URL (https://...)", "URL (https://...)"), text: $newUrl)
+                .textFieldStyle(.plain)
+                .font(.system(size: 9.5, design: .monospaced))
+                .foregroundStyle(themeManager.currentTheme == .engineeringV2 ? V2Colors.ice1 : Color.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4.5)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.white.opacity(0.04))
+                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(themeManager.currentTheme == .engineeringV2 ? V2Colors.edge : Color.white.opacity(0.12), lineWidth: 1))
+                )
+                .onChange(of: newUrl) { _, newVal in
+                    autoDetectIconAndColor(for: newVal)
+                    if useFavicon && !newVal.isEmpty {
+                        fetchPreviewFavicon(for: newVal)
+                    }
+                }
+        }
+    }
+    
+    private var addFormCategoriesAndToggle: some View {
+        HStack(spacing: 4) {
+            ForEach(categories.indices, id: \.self) { idx in
+                let cat = categories[idx]
+                let isSelected = selectedCategoryIndex == idx
+                Button(action: {
+                    withAnimation(.spring(response: 0.2)) {
+                        selectedCategoryIndex = idx
+                    }
+                }) {
+                    HStack(spacing: 3) {
+                        Image(systemName: cat.icon)
+                            .font(.system(size: 8))
+                        Text(cat.name)
+                            .font(.system(size: 8.5, weight: isSelected ? .bold : .medium, design: .monospaced))
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(
+                        Capsule()
+                            .fill(isSelected ? (themeManager.currentTheme == .engineeringV2 ? V2Colors.ice.opacity(0.22) : Color.white.opacity(0.2)) : Color.white.opacity(0.04))
+                            .overlay(
+                                Capsule().stroke(
+                                    isSelected ? (themeManager.currentTheme == .engineeringV2 ? V2Colors.ice2.opacity(0.6) : Color.white) : (themeManager.currentTheme == .engineeringV2 ? V2Colors.edge : Color.white.opacity(0.1)),
+                                    lineWidth: 1
+                                )
                             )
-                        )
-                        .frame(width: 44, height: 44)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 13)
-                                .stroke(Color.white.opacity(0.25), lineWidth: 1.2)
-                        )
-                        .overlay(
-                            Group {
-                                if useFavicon, let data = previewFaviconData, let nsImg = NSImage(data: data) {
-                                    Image(nsImage: nsImg)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 24, height: 24)
-                                        .clipShape(RoundedRectangle(cornerRadius: 6))
-                                        .shadow(color: .white.opacity(0.5), radius: 4)
-                                } else if useFavicon && isLoadingFavicon {
-                                    ProgressView()
-                                        .scaleEffect(0.6)
-                                } else {
-                                    Image(systemName: selectedIcon)
-                                        .font(.system(size: 19, weight: .semibold))
-                                        .foregroundStyle(colorFromName(selectedColor))
-                                        .shadow(color: colorFromName(selectedColor).opacity(0.6), radius: 4)
-                                }
-                            }
-                        )
-                        .shadow(color: (useFavicon ? Color.white : colorFromName(selectedColor)).opacity(0.25), radius: 6, y: 2)
+                    )
+                    .foregroundStyle(isSelected ? (themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white) : (themeManager.currentTheme == .engineeringV2 ? V2Colors.faint : Color.secondary))
                 }
-                
-                // 2. Input Fields
-                VStack(spacing: 5) {
-                    HStack(spacing: 6) {
-                        TextField(loc("Title (Claude / Midjourney)", "Название (Claude / Midjourney)"), text: $newTitle)
-                            .textFieldStyle(.plain)
-                            .font(.system(size: 10, weight: .medium))
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 4)
-                            .background(Color.white.opacity(0.08))
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                        
-                        TextField(loc("URL (https://...)", "URL (https://...)"), text: $newUrl)
-                            .textFieldStyle(.plain)
-                            .font(.system(size: 10, design: .monospaced))
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 4)
-                            .background(Color.white.opacity(0.08))
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                            .onChange(of: newUrl) { oldVal, newVal in
-                                autoDetectIconAndColor(for: newVal)
-                                if useFavicon && !newVal.isEmpty {
-                                    fetchPreviewFavicon(for: newVal)
-                                }
-                            }
-                    }
-                    
-                    // 3. Category Selector Pills & Favicon Checkbox
-                    HStack(spacing: 4) {
-                        ForEach(categories.indices, id: \.self) { idx in
-                            let cat = categories[idx]
-                            Button(action: {
-                                withAnimation(.spring(response: 0.2)) {
-                                    selectedCategoryIndex = idx
-                                }
-                            }) {
-                                HStack(spacing: 3) {
-                                    Image(systemName: cat.icon)
-                                        .font(.system(size: 8))
-                                    Text(cat.name)
-                                        .font(.system(size: 9, weight: selectedCategoryIndex == idx ? .bold : .medium))
-                                }
-                                .padding(.horizontal, 7)
-                                .padding(.vertical, 3)
-                                .background(selectedCategoryIndex == idx ? Color.white.opacity(0.2) : Color.white.opacity(0.06))
-                                .foregroundStyle(selectedCategoryIndex == idx ? .white : .secondary)
-                                .clipShape(Capsule())
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        
-                        Spacer()
-                        
-                        // "Use favicon" Checkbox
-                        Toggle(isOn: $useFavicon) {
-                            HStack(spacing: 3) {
-                                Image(systemName: "globe")
-                                    .font(.system(size: 9))
-                                Text(loc("Use favicon", "Использовать favicon"))
-                                    .font(.system(size: 9, weight: .medium))
-                            }
-                            .foregroundStyle(useFavicon ? .white : .secondary)
-                        }
-                        .toggleStyle(.checkbox)
-                        .onChange(of: useFavicon) { _, enabled in
-                            if enabled && !newUrl.isEmpty {
-                                fetchPreviewFavicon(for: newUrl)
-                            }
-                        }
-                    }
-                }
+                .buttonStyle(.plain)
             }
             
-            // 4. Icon Selector (28x28px) + Color Swatches + Submit
-            let activeCategory = categories[selectedCategoryIndex]
-            HStack(spacing: 6) {
-                // Icons row
-                ForEach(activeCategory.icons, id: \.self) { icon in
-                    let isSelected = selectedIcon == icon
-                    Button(action: {
-                        selectedIcon = icon
-                    }) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(isSelected ? Color.white.opacity(0.2) : Color.white.opacity(0.05))
-                                .frame(width: 28, height: 28)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(isSelected ? Color.white : Color.white.opacity(0.12), lineWidth: isSelected ? 1.5 : 1)
-                                )
-                            
-                            Image(systemName: icon)
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(isSelected ? .white : .secondary)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    .scaleEffect(isSelected ? 1.08 : 1.0)
+            Spacer()
+            
+            Toggle(isOn: $useFavicon) {
+                HStack(spacing: 3) {
+                    Image(systemName: "globe")
+                        .font(.system(size: 8.5))
+                    Text(loc("Use favicon", "Использовать favicon"))
+                        .font(.system(size: 8.5, weight: .medium, design: .monospaced))
                 }
-                
-                Spacer()
-                
-                // Color Swatches (White is first!)
-                HStack(spacing: 4) {
-                    ForEach(availableColors, id: \.self) { color in
-                        let isSelected = selectedColor == color
-                        Button(action: { selectedColor = color }) {
-                            Circle()
-                                .fill(colorFromName(color))
-                                .frame(width: 14, height: 14)
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color.white, lineWidth: isSelected ? 2 : 0)
-                                )
-                                .shadow(color: colorFromName(color).opacity(isSelected ? 0.7 : 0.0), radius: 3)
-                        }
-                        .buttonStyle(.plain)
-                        .scaleEffect(isSelected ? 1.2 : 1.0)
-                    }
-                }
-                
-                // Cancel & Save Buttons
-                HStack(spacing: 5) {
-                    Button(loc("Cancel", "Отмена")) {
-                        withAnimation(.spring) {
-                            showingAddSheet = false
-                            useFavicon = false
-                            previewFaviconData = nil
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 6)
-                    
-                    VibeInteractiveHoverButton(text: loc("Add", "Добавить"), icon: "plus", fontSize: 9, horizontalPadding: 9, verticalPadding: 4, minHeight: 24) {
-                        let titleToSave = newTitle.isEmpty ? cleanHost(newUrl) : newTitle
-                        manager.addItem(
-                            title: titleToSave,
-                            url: newUrl,
-                            iconName: selectedIcon,
-                            colorName: selectedColor,
-                            useCustomFavicon: useFavicon
-                        )
-                        newTitle = ""
-                        newUrl = ""
-                        useFavicon = false
-                        previewFaviconData = nil
-                        withAnimation(.spring) {
-                            showingAddSheet = false
-                        }
-                    }
+                .foregroundStyle(useFavicon ? (themeManager.currentTheme == .engineeringV2 ? V2Colors.ice1 : Color.white) : (themeManager.currentTheme == .engineeringV2 ? V2Colors.faint : Color.secondary))
+            }
+            .toggleStyle(.checkbox)
+            .onChange(of: useFavicon) { _, enabled in
+                if enabled && !newUrl.isEmpty {
+                    fetchPreviewFavicon(for: newUrl)
                 }
             }
         }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(white: 0.08).opacity(0.95))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
+    }
+    
+    private var addFormIconSelector: some View {
+        let activeCategory = categories[selectedCategoryIndex]
+        return HStack(spacing: 5) {
+            ForEach(activeCategory.icons, id: \.self) { icon in
+                let isSelected = selectedIcon == icon
+                Button(action: {
+                    selectedIcon = icon
+                }) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(
+                                isSelected
+                                    ? (themeManager.currentTheme == .engineeringV2 ? V2Colors.ice.opacity(0.24) : Color.white.opacity(0.2))
+                                    : Color.white.opacity(0.04)
+                            )
+                            .frame(width: 28, height: 28)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(
+                                        isSelected
+                                            ? (themeManager.currentTheme == .engineeringV2 ? V2Colors.ice2.opacity(0.7) : Color.white)
+                                            : (themeManager.currentTheme == .engineeringV2 ? V2Colors.edge : Color.white.opacity(0.1)),
+                                        lineWidth: 1
+                                    )
+                            )
+                        
+                        Image(systemName: icon)
+                            .font(.system(size: 12.5, weight: .semibold))
+                            .foregroundStyle(
+                                isSelected
+                                    ? (themeManager.currentTheme == .engineeringV2 ? V2Colors.milk : Color.white)
+                                    : (themeManager.currentTheme == .engineeringV2 ? V2Colors.faint : Color.secondary)
+                            )
+                    }
+                }
+                .buttonStyle(.plain)
+                .scaleEffect(isSelected ? 1.08 : 1.0)
+            }
+        }
+    }
+    
+    private var addFormColorSwatches: some View {
+        HStack(spacing: 4) {
+            ForEach(availableColors, id: \.self) { color in
+                let isSelected = selectedColor == color
+                Button(action: { selectedColor = color }) {
+                    Circle()
+                        .fill(colorFromName(color))
+                        .frame(width: 13, height: 13)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white, lineWidth: isSelected ? 2 : 0)
+                        )
+                        .shadow(color: colorFromName(color).opacity(isSelected ? 0.7 : 0.0), radius: 3)
+                }
+                .buttonStyle(.plain)
+                .scaleEffect(isSelected ? 1.2 : 1.0)
+            }
+        }
+    }
+    
+    private var addFormActionButtons: some View {
+        HStack(spacing: 6) {
+            V2GlassButton(title: loc("Cancel", "Отмена")) {
+                withAnimation(.spring) {
+                    showingAddSheet = false
+                    useFavicon = false
+                    previewFaviconData = nil
+                }
+            }
+            
+            V2GlassButton(title: loc("Add", "Добавить"), icon: "plus", isKey: true) {
+                let titleToSave = newTitle.isEmpty ? cleanHost(newUrl) : newTitle
+                manager.addItem(
+                    title: titleToSave,
+                    url: newUrl,
+                    iconName: selectedIcon,
+                    colorName: selectedColor,
+                    useCustomFavicon: useFavicon
                 )
-                .shadow(color: .black.opacity(0.4), radius: 12, y: 4)
-        )
+                newTitle = ""
+                newUrl = ""
+                useFavicon = false
+                previewFaviconData = nil
+                withAnimation(.spring) {
+                    showingAddSheet = false
+                }
+            }
+        }
+    }
+
+    private var addLinkForm: some View {
+        VStack(spacing: 8) {
+            HStack(alignment: .center, spacing: 10) {
+                addFormPreviewIcon
+                
+                VStack(spacing: 5) {
+                    addFormTextFields
+                    addFormCategoriesAndToggle
+                }
+            }
+            
+            HStack(spacing: 6) {
+                addFormIconSelector
+                
+                Spacer()
+                
+                addFormColorSwatches
+                
+                addFormActionButtons
+            }
+        }
+        .padding(10)
+        .heroGlassCard(cornerRadius: 13)
         .padding(.horizontal, 16)
     }
     
@@ -490,14 +527,14 @@ struct WebToolsView: View {
     }
     
     private var dockPillBackground: some View {
-        Capsule()
+        RoundedRectangle(cornerRadius: 13, style: .continuous)
             .fill(
                 themeManager.currentTheme == .engineeringV2
                     ? AnyShapeStyle(LinearGradient(colors: [Color.white.opacity(0.065), Color.white.opacity(0.02)], startPoint: .top, endPoint: .bottom))
                     : AnyShapeStyle(Color.black.opacity(0.85))
             )
             .overlay(
-                Capsule().stroke(
+                RoundedRectangle(cornerRadius: 13, style: .continuous).stroke(
                     themeManager.currentTheme == .engineeringV2 ? V2Colors.edge : Color.white.opacity(0.12),
                     lineWidth: 1
                 )
