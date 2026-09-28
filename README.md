@@ -49,7 +49,7 @@
 * **Drag & Drop:** Перетаскивайте файлы прямо в область выреза экрана из любой программы или Finder.
 * **Конвертер изображений:** Быстрая конвертация картинок в форматы WebP и PNG в 1 клик.
 * **Data URI / Base64:** Копирование `data:image/...;base64,...` в буфер обмена для использования в CSS, фронтенде и LLM-промптах.
-* **Калькулятор токенов:** Автоматическая оценка веса текста и кода в токенах (`~tok`) перед отправкой в нейросети.
+* **Индикатор токенов на файлах:** Автоматический бейдж объема текста и кода в токенах (`~tok`) прямо на карточках файлов на полке перед отправкой в нейросети.
 * **Интеграция с системой:** Быстрая отправка через нативный AirDrop и открытие файла в Finder.
 
 #### 2. 📋 Developer Clipboard & Quick AI (Буфер обмена с ИИ)
@@ -59,7 +59,7 @@
   * *«Объяснить»* - подробный разбор логики функции или текста ошибки.
   * *«Саммари»* - моментальная выжимка сути текста.
   * *«RU ↔ EN»* - мгновенный перевод с автоопределением языка.
-* **Промпт-бар:** Прямой чат с моделями ИИ прямо из выпадающей шторки.
+* **Быстрый промпт-бар:** Отправка разовых запросов к Google Gemini и Z.ai прямо из выпадающей шторки с выводом результата в модальном окне.
 
 #### 3. 📸 Screen OCR & Скриншоты (Локальное распознавание текста)
 * **Захват области экрана (Screen to Text):** Удобная рамка выделения фрагмента экрана с автоматическим скрытием панели нотча, чтобы она не мешала обзору.
@@ -67,8 +67,8 @@
 * **Автоматическое копирование:** Текст моментально попадает в буфер обмена и сохраняется в истории.
 
 #### 4. 🎵 Music HUD & Dynamic Waveform (Музыка в вырезе)
-* **Живой эквалайзер:** Плавная анимация звуковой волны в компактном вырезе при воспроизведении музыки.
-* **Управление треками:** Поддержка Spotify и Apple Music - обложка, название трека, артист и кнопки управления воспроизведением.
+* **Анимированная звуковая волна:** Плавная индикация воспроизведения музыки в компактном вырезе.
+* **Управление треками:** Поддержка Spotify и Apple Music — обложка, название трека, артист и кнопки управления воспроизведением.
 
 #### 5. ⏱ Фокус-таймер и Помодоро
 * Встроенный таймер для работы короткими спринтами (25 мин Помодоро, 15 мин, 5 мин).
@@ -76,11 +76,11 @@
 
 #### 6. 📊 AI Quota Tracker & Будильник лимитов
 * Отслеживание лимитов популярных AI-провайдеров с обратным отсчетом до сброса лимита.
-* **Умный будильник:** В 1 клик ставит будильник в стандартном приложении «Часы» macOS ровно на время сброса лимита (например, через 3 часа), чтобы вы не пропустили момент восстановления квоты.
+* **Умный будильник:** В 1 клик создает напоминание в Reminders и ставит будильник в приложении «Часы» macOS ровно на время сброса лимита, чтобы не пропустить восстановление квоты.
 
-#### 7. 🌐 Web Tools & Кастомный мониторинг
-* Быстрый доступ к локальным веб-серверам (`localhost:3000`), репозиториям и дашбордам.
-* Поддержка пользовательских виджетов и веб-статусов.
+#### 7. 🌐 Web Tools & Быстрый лаунчер
+* Быстрый запуск закрепленных ссылок на локальные серверы (`localhost:3000`), репозитории GitHub и дашборды с автоподгрузкой фавиконок.
+* Выбор целевого браузера (Safari, Google Chrome, Arc, Brave, Firefox) для каждого сервиса.
 
 #### 8. 🌐 Двуязычный интерфейс (English & Русский)
 * По умолчанию приложение открывается на **английском языке**.
@@ -151,7 +151,7 @@ HyperNotch спроектирован с философией **Zero-Trust** и 
 * **Drag & Drop:** Drop files directly into the top screen edge/notch area from any macOS app or Finder.
 * **Smart Converter:** Convert images into WebP or PNG with a single click.
 * **Data URI / Base64:** Instant `data:image/...;base64,...` clipboard copying for frontend development and multimodal LLM prompts.
-* **Token Estimator:** Real-time token count estimation (`~tok`) for text and code snippets.
+* **File Token Badge:** Automatic token count estimation (`~tok`) displayed on text and code file cards before sending to LLMs.
 * **System Integrations:** Instant native AirDrop sharing and "Reveal in Finder".
 
 #### 2. 📋 Developer Clipboard & Quick AI
@@ -161,7 +161,7 @@ HyperNotch спроектирован с философией **Zero-Trust** и 
   * *Explain* - deep dive into error traces and complex code blocks.
   * *Summarize* - key takeaways from lengthy texts.
   * *Translate (RU ↔ EN)* - high-accuracy translation with language auto-detection.
-* **Inline Prompt Bar:** Prompt LLMs directly from your notch drawer.
+* **Inline Prompt Bar:** Send quick one-shot prompts to Google Gemini or Z.ai directly from the notch drawer.
 
 #### 3. 📸 Screen OCR & Capture
 * **Interactive Area Capture:** High-precision crosshairs with notch auto-collapse to give you unobstructed screen access.
@@ -169,7 +169,7 @@ HyperNotch спроектирован с философией **Zero-Trust** и 
 * **Instant Copy:** Recognized text is instantly placed into your clipboard and notch history.
 
 #### 4. 🎵 Music HUD & Live Waveform
-* **Animated Waveform:** Smooth real-time audio visualization in the closed notch during playback.
+* **Animated Waveform:** Smooth playback state wave animation in the compact notch.
 * **Playback Controls:** Seamless Spotify & Apple Music track info, album art, and `[⏮ ⏯ ⏭]` controls.
 
 #### 5. ⏱ Pomodoro & Focus Timer
@@ -178,10 +178,11 @@ HyperNotch спроектирован с философией **Zero-Trust** и 
 
 #### 6. 📊 AI Quota & Limits Monitor
 * Real-time monitoring of AI quota reset windows.
-* **Smart Alarm:** One-click integration with the native macOS Clock app to set an alarm exactly when your AI quota resets (e.g., in 3 hours).
+* **Smart Alarm:** One-click integration with macOS Clock & Reminders to set alerts exactly when your quota window resets.
 
-#### 7. 🌐 Developer Web Tools
-* Quick-launch pinned links to localhost dev servers, GitHub, cloud consoles, and custom web dashboards.
+#### 7. 🌐 Developer Web Launcher
+* Quick-launch pinned bookmarks to localhost dev servers (`localhost:3000`), GitHub, cloud consoles, and dashboards with automatic favicon fetching.
+* Per-link browser targeting (Safari, Google Chrome, Arc, Brave, Firefox).
 
 #### 8. 🌐 Dual-Language UI (English & Russian)
 * Defaults to **English** out of the box.
